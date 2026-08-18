@@ -126,6 +126,9 @@ def _migrar(con: sqlite3.Connection) -> None:
         con.execute("ALTER TABLE pacientes ADD COLUMN tags TEXT")
     if "escolaridade_anos" not in colunas:
         con.execute("ALTER TABLE pacientes ADD COLUMN escolaridade_anos REAL")
+    colunas_med = {r["name"] for r in con.execute("PRAGMA table_info(medicamentos)")}
+    if "cids" not in colunas_med:
+        con.execute("ALTER TABLE medicamentos ADD COLUMN cids TEXT")
 
 
 def sincronizar_seed_medicamentos(con: sqlite3.Connection) -> None:
@@ -135,19 +138,20 @@ def sincronizar_seed_medicamentos(con: sqlite3.Connection) -> None:
     for med in seed["medicamentos"]:
         row = con.execute("SELECT id FROM medicamentos WHERE principio_ativo = ?",
                           (med["principio_ativo"],)).fetchone()
+        cids_json = json.dumps(med.get("cids", []), ensure_ascii=False)
         if row:
             med_id = row["id"]
-            con.execute("UPDATE medicamentos SET obs = ? WHERE id = ?",
-                        (med.get("obs"), med_id))
+            con.execute("UPDATE medicamentos SET obs = ?, cids = ? WHERE id = ?",
+                        (med.get("obs"), cids_json, med_id))
         else:
             med_id = con.execute(
                 "INSERT INTO medicamentos "
-                "(principio_ativo, grupo, classificacao_receita, disponibilidade, lme, obs) "
-                "VALUES (?, ?, ?, ?, ?, ?)",
+                "(principio_ativo, grupo, classificacao_receita, disponibilidade, lme, "
+                "obs, cids) VALUES (?, ?, ?, ?, ?, ?, ?)",
                 (med["principio_ativo"], med.get("grupo"),
                  med.get("classificacao_receita", "C1"),
                  json.dumps(med.get("disponibilidade", []), ensure_ascii=False),
-                 1 if med.get("lme") else 0, med.get("obs")),
+                 1 if med.get("lme") else 0, med.get("obs"), cids_json),
             ).lastrowid
         for apr in med.get("apresentacoes", []):
             arow = con.execute(

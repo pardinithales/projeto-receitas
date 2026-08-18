@@ -268,6 +268,7 @@ def catalogo():
          "classificacao": m["classificacao_receita"],
          "disponibilidade": json.loads(m["disponibilidade"]),
          "lme": bool(m["lme"]), "obs": m["obs"],
+         "cids": json.loads(m["cids"]) if m["cids"] else [],
          "apresentacoes": por_med.get(m["id"], [])}
         for m in meds
     ]

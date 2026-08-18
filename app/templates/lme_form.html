@@ -210,7 +210,20 @@ const DESCRICOES_CID = {
   'G40.2': 'Epilepsia e síndromes epilépticas sintomáticas definidas por sua localização (focal) (parcial) com crises parciais complexas',
   'G40.3': 'Epilepsia e síndromes epilépticas generalizadas idiopáticas',
   'G40.4': 'Outras epilepsias e síndromes epilépticas generalizadas',
+  'G40.5': 'Síndromes epilépticas especiais',
+  'G40.6': 'Crises de grande mal, não especificadas (com ou sem pequeno mal)',
+  'G40.7': 'Pequeno mal não especificado, sem crises de grande mal',
   'G40.8': 'Outras epilepsias',
+  'F00.0': 'Demência na doença de Alzheimer de início precoce',
+  'F00.1': 'Demência na doença de Alzheimer de início tardio',
+  'F00.2': 'Demência na doença de Alzheimer, forma atípica ou mista',
+  'G24.3': 'Torcicolo espasmódico',
+  'G24.4': 'Distonia orofacial idiopática',
+  'G24.5': 'Blefaroespasmo',
+  'G24.8': 'Outras distonias',
+  'G51.3': 'Espasmo hemifacial clônico',
+  'G81.1': 'Hemiplegia espástica',
+  'G82.4': 'Tetraplegia espástica',
   'G30.0': 'Doença de Alzheimer de início precoce',
   'G30.1': 'Doença de Alzheimer de início tardio',
   'G30.8': 'Outras formas de doença de Alzheimer',
@@ -241,31 +254,21 @@ function aplicarCid(cid) {
 document.querySelector('input[name=diagnostico]').addEventListener('input',
   function() { this.dataset.auto = '0'; });   // edição manual vira definitiva
 
-// CID padrão por grupo do medicamento + opções selecionáveis (sempre editável)
-const CIDS_POR_GRUPO = [
-  { contem: ['antiepiléptico'], padrao: 'G40.1',
-    opcoes: ['G40.0', 'G40.1', 'G40.2', 'G40.3', 'G40.4', 'G40.8'] },
-  { contem: ['demência', 'antidemencial', 'anticolinesterásico'], padrao: 'G30.1',
-    opcoes: ['G30.0', 'G30.1', 'G30.8', 'G30.9'] },
-  { contem: ['miastenia'], padrao: 'G70.0', opcoes: ['G70.0', 'G70.2'] },
-  { contem: ['esclerose múltipla'], padrao: 'G35', opcoes: ['G35'] },
-  { contem: ['antiparkinsoniano'], padrao: 'G20', opcoes: ['G20'] },
-  { contem: ['estatina'], padrao: 'E78.0', opcoes: ['E78.0', 'E78.2', 'E78.5'] },
-  { contem: ['dor neuropática'], padrao: 'R52.1', opcoes: ['R52.1', 'R52.2'] },
-  { contem: ['imunoterapia'], padrao: 'G61.0', opcoes: ['G61.0', 'G70.0'] },
-];
 function sugerirCid() {
+  // CIDs vêm do catálogo POR MEDICAMENTO (fichas SES-SP/PCDT). Escolher o CID
+  // muda tudo que depende dele: pista do PCDT, escalas (MEEM/CDR/EDSS), termo.
   const campo = document.querySelector('input[name=cid10]');
   const diag = document.querySelector('input[name=diagnostico]');
   const chips = document.getElementById('cids-sugeridos');
   const primeiro = document.querySelector('#meds .med-busca');
   const m = primeiro && medNome(primeiro.value);
   chips.innerHTML = '';
-  if (!m) return;
-  // um medicamento pode ter MAIS DE UMA indicação (ex.: gabapentina = epilepsia OU dor)
-  const regras = CIDS_POR_GRUPO.filter(r => r.contem.some(c => (m.grupo || '').includes(c)));
-  if (!regras.length) return;
-  const opcoes = [...new Set(regras.flatMap(r => r.opcoes))];
+  if (!m || !(m.cids || []).length) { pistaPcdt(); return; }
+  const opcoes = m.cids;
+  // G30.x e F00.x são a mesma indicação (Alzheimer); só pergunta quando as
+  // indicações são realmente diferentes (ex.: gabapentina G40 vs R52)
+  const indicacao = c => ({ 'F00': 'G30' }[c.slice(0, 3)] || c.slice(0, 3));
+  const grupos = new Set(opcoes.map(indicacao));
   const atual = campo.value.trim().toUpperCase();
 
   // CID herdado de outra medicação/indicação: limpa e obriga a escolher
@@ -273,18 +276,20 @@ function sugerirCid() {
     campo.value = '';
     if (diag.dataset.auto === '1') { diag.value = ''; }
   }
-  if (!campo.value.trim() && regras.length === 1) {
-    campo.value = regras[0].padrao;
-    if (DESCRICOES_CID[regras[0].padrao] && !diag.value.trim()) {
-      diag.value = DESCRICOES_CID[regras[0].padrao];
-      diag.dataset.auto = '1';
+  if (!campo.value.trim()) {
+    if (grupos.size === 1) {              // indicação única: 1º CID é o padrão
+      campo.value = opcoes[0];
+      if (DESCRICOES_CID[opcoes[0]] && !diag.value.trim()) {
+        diag.value = DESCRICOES_CID[opcoes[0]];
+        diag.dataset.auto = '1';
+      }
+    } else {                              // ex.: gabapentina (epilepsia OU dor)
+      const aviso = document.createElement('span');
+      aviso.className = 'chip'; aviso.style.cssText = 'background:#fff7e0;cursor:default';
+      aviso.textContent = '⚠ ' + m.principio_ativo +
+        ' tem mais de uma indicação — escolha o CID:';
+      chips.appendChild(aviso);
     }
-  }
-  if (!campo.value.trim() && regras.length > 1) {
-    const aviso = document.createElement('span');
-    aviso.className = 'chip'; aviso.style.cssText = 'background:#fff7e0;cursor:default';
-    aviso.textContent = '⚠ ' + m.principio_ativo + ' tem mais de uma indicação — escolha o CID:';
-    chips.appendChild(aviso);
   }
   opcoes.forEach(cid => {
     const b = document.createElement('button');

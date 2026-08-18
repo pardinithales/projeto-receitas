@@ -5,892 +5,2154 @@
       "principio_ativo": "Carbamazepina",
       "grupo": "antiepiléptico",
       "classificacao_receita": "C1",
-      "disponibilidade": ["remume"],
+      "disponibilidade": [
+        "remume"
+      ],
       "lme": false,
       "apresentacoes": [
-        {"dose": "200mg", "forma": "comprimido", "posologias": [
-          {"texto": "Tomar 1 comprimido de 12 em 12 horas", "qtd_30dias": "60 comprimidos"},
-          {"texto": "Tomar 1 comprimido de 8 em 8 horas", "qtd_30dias": "90 comprimidos"},
-          {"texto": "Tomar 2 comprimidos de 12 em 12 horas", "qtd_30dias": "120 comprimidos"}
-        ]},
-        {"dose": "400mg", "forma": "comprimido", "posologias": [
-          {"texto": "Tomar 1 comprimido de 12 em 12 horas", "qtd_30dias": "60 comprimidos"},
-          {"texto": "Tomar 1 comprimido de 8 em 8 horas", "qtd_30dias": "90 comprimidos"}
-        ]},
-        {"dose": "20mg/mL", "forma": "suspensão oral", "posologias": [
-          {"texto": "Tomar 5 mL de 12 em 12 horas", "qtd_30dias": "3 frascos"}
-        ]}
+        {
+          "dose": "200mg",
+          "forma": "comprimido",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido de 12 em 12 horas",
+              "qtd_30dias": "60 comprimidos"
+            },
+            {
+              "texto": "Tomar 1 comprimido de 8 em 8 horas",
+              "qtd_30dias": "90 comprimidos"
+            },
+            {
+              "texto": "Tomar 2 comprimidos de 12 em 12 horas",
+              "qtd_30dias": "120 comprimidos"
+            }
+          ]
+        },
+        {
+          "dose": "400mg",
+          "forma": "comprimido",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido de 12 em 12 horas",
+              "qtd_30dias": "60 comprimidos"
+            },
+            {
+              "texto": "Tomar 1 comprimido de 8 em 8 horas",
+              "qtd_30dias": "90 comprimidos"
+            }
+          ]
+        },
+        {
+          "dose": "20mg/mL",
+          "forma": "suspensão oral",
+          "posologias": [
+            {
+              "texto": "Tomar 5 mL de 12 em 12 horas",
+              "qtd_30dias": "3 frascos"
+            }
+          ]
+        }
+      ],
+      "cids": [
+        "G40.1",
+        "G40.0",
+        "G40.2",
+        "G40.3",
+        "G40.4",
+        "G40.5",
+        "G40.6",
+        "G40.7",
+        "G40.8"
       ]
     },
     {
       "principio_ativo": "Ácido valproico",
       "grupo": "antiepiléptico",
       "classificacao_receita": "C1",
-      "disponibilidade": ["remume"],
+      "disponibilidade": [
+        "remume"
+      ],
       "lme": false,
       "apresentacoes": [
-        {"dose": "250mg", "forma": "comprimido", "posologias": [
-          {"texto": "Tomar 1 comprimido de 12 em 12 horas", "qtd_30dias": "60 comprimidos"},
-          {"texto": "Tomar 2 comprimidos de 12 em 12 horas", "qtd_30dias": "120 comprimidos"}
-        ]},
-        {"dose": "500mg", "forma": "comprimido", "posologias": [
-          {"texto": "Tomar 1 comprimido de 12 em 12 horas", "qtd_30dias": "60 comprimidos"},
-          {"texto": "Tomar 1 comprimido de 8 em 8 horas", "qtd_30dias": "90 comprimidos"}
-        ]},
-        {"dose": "50mg/mL", "forma": "xarope", "posologias": [
-          {"texto": "Tomar 5 mL de 12 em 12 horas", "qtd_30dias": "3 frascos"}
-        ]}
+        {
+          "dose": "250mg",
+          "forma": "comprimido",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido de 12 em 12 horas",
+              "qtd_30dias": "60 comprimidos"
+            },
+            {
+              "texto": "Tomar 2 comprimidos de 12 em 12 horas",
+              "qtd_30dias": "120 comprimidos"
+            }
+          ]
+        },
+        {
+          "dose": "500mg",
+          "forma": "comprimido",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido de 12 em 12 horas",
+              "qtd_30dias": "60 comprimidos"
+            },
+            {
+              "texto": "Tomar 1 comprimido de 8 em 8 horas",
+              "qtd_30dias": "90 comprimidos"
+            }
+          ]
+        },
+        {
+          "dose": "50mg/mL",
+          "forma": "xarope",
+          "posologias": [
+            {
+              "texto": "Tomar 5 mL de 12 em 12 horas",
+              "qtd_30dias": "3 frascos"
+            }
+          ]
+        }
+      ],
+      "cids": [
+        "G40.1",
+        "G40.0",
+        "G40.2",
+        "G40.3",
+        "G40.4",
+        "G40.5",
+        "G40.6",
+        "G40.7",
+        "G40.8"
       ]
     },
     {
       "principio_ativo": "Fenobarbital",
       "grupo": "antiepiléptico",
       "classificacao_receita": "B1",
-      "disponibilidade": ["remume"],
+      "disponibilidade": [
+        "remume"
+      ],
       "lme": false,
       "apresentacoes": [
-        {"dose": "100mg", "forma": "comprimido", "posologias": [
-          {"texto": "Tomar 1 comprimido à noite", "qtd_30dias": "30 comprimidos"},
-          {"texto": "Tomar 1 comprimido de 12 em 12 horas", "qtd_30dias": "60 comprimidos"}
-        ]},
-        {"dose": "40mg/mL", "forma": "solução oral (gotas)", "posologias": [
-          {"texto": "Tomar 40 gotas à noite", "qtd_30dias": "2 frascos"}
-        ]}
+        {
+          "dose": "100mg",
+          "forma": "comprimido",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido à noite",
+              "qtd_30dias": "30 comprimidos"
+            },
+            {
+              "texto": "Tomar 1 comprimido de 12 em 12 horas",
+              "qtd_30dias": "60 comprimidos"
+            }
+          ]
+        },
+        {
+          "dose": "40mg/mL",
+          "forma": "solução oral (gotas)",
+          "posologias": [
+            {
+              "texto": "Tomar 40 gotas à noite",
+              "qtd_30dias": "2 frascos"
+            }
+          ]
+        }
+      ],
+      "cids": [
+        "G40.1",
+        "G40.0",
+        "G40.2",
+        "G40.3",
+        "G40.4",
+        "G40.5",
+        "G40.6",
+        "G40.7",
+        "G40.8"
       ]
     },
     {
       "principio_ativo": "Fenitoína",
       "grupo": "antiepiléptico",
       "classificacao_receita": "C1",
-      "disponibilidade": ["remume"],
+      "disponibilidade": [
+        "remume"
+      ],
       "lme": false,
       "apresentacoes": [
-        {"dose": "100mg", "forma": "comprimido", "posologias": [
-          {"texto": "Tomar 1 comprimido de 8 em 8 horas", "qtd_30dias": "90 comprimidos"},
-          {"texto": "Tomar 1 comprimido de 12 em 12 horas", "qtd_30dias": "60 comprimidos"}
-        ]}
+        {
+          "dose": "100mg",
+          "forma": "comprimido",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido de 8 em 8 horas",
+              "qtd_30dias": "90 comprimidos"
+            },
+            {
+              "texto": "Tomar 1 comprimido de 12 em 12 horas",
+              "qtd_30dias": "60 comprimidos"
+            }
+          ]
+        }
+      ],
+      "cids": [
+        "G40.1",
+        "G40.0",
+        "G40.2",
+        "G40.3",
+        "G40.4",
+        "G40.5",
+        "G40.6",
+        "G40.7",
+        "G40.8"
       ]
     },
     {
       "principio_ativo": "Clonazepam",
       "grupo": "benzodiazepínico",
       "classificacao_receita": "B1",
-      "disponibilidade": ["remume", "comercial"],
+      "disponibilidade": [
+        "remume",
+        "comercial"
+      ],
       "lme": false,
       "apresentacoes": [
-        {"dose": "0,5mg", "forma": "comprimido", "posologias": [
-          {"texto": "Tomar 1 comprimido à noite", "qtd_30dias": "30 comprimidos"}
-        ]},
-        {"dose": "2mg", "forma": "comprimido", "posologias": [
-          {"texto": "Tomar 1 comprimido à noite", "qtd_30dias": "30 comprimidos"}
-        ]},
-        {"dose": "2,5mg/mL", "forma": "solução oral (gotas)", "posologias": [
-          {"texto": "Tomar 5 gotas antes de dormir", "qtd_30dias": "1 frasco"},
-          {"texto": "Tomar 6-8 gotas antes de dormir", "qtd_30dias": "1 frasco"}
-        ]}
+        {
+          "dose": "0,5mg",
+          "forma": "comprimido",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido à noite",
+              "qtd_30dias": "30 comprimidos"
+            }
+          ]
+        },
+        {
+          "dose": "2mg",
+          "forma": "comprimido",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido à noite",
+              "qtd_30dias": "30 comprimidos"
+            }
+          ]
+        },
+        {
+          "dose": "2,5mg/mL",
+          "forma": "solução oral (gotas)",
+          "posologias": [
+            {
+              "texto": "Tomar 5 gotas antes de dormir",
+              "qtd_30dias": "1 frasco"
+            },
+            {
+              "texto": "Tomar 6-8 gotas antes de dormir",
+              "qtd_30dias": "1 frasco"
+            }
+          ]
+        }
+      ],
+      "cids": [
+        "G40.1",
+        "G40.0",
+        "G40.2",
+        "G40.3",
+        "G40.4",
+        "G40.5",
+        "G40.6",
+        "G40.7",
+        "G40.8"
       ]
     },
     {
       "principio_ativo": "Clobazam",
       "grupo": "benzodiazepínico",
       "classificacao_receita": "B1",
-      "disponibilidade": ["ceaf"],
+      "disponibilidade": [
+        "ceaf"
+      ],
       "lme": true,
       "apresentacoes": [
-        {"dose": "10mg", "forma": "comprimido", "posologias": [
-          {"texto": "Tomar 1 comprimido à noite", "qtd_30dias": "30 comprimidos"},
-          {"texto": "Tomar 1 comprimido de 12 em 12 horas", "qtd_30dias": "60 comprimidos"}
-        ]},
-        {"dose": "20mg", "forma": "comprimido", "posologias": [
-          {"texto": "Tomar 1 comprimido à noite", "qtd_30dias": "30 comprimidos"}
-        ]}
+        {
+          "dose": "10mg",
+          "forma": "comprimido",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido à noite",
+              "qtd_30dias": "30 comprimidos"
+            },
+            {
+              "texto": "Tomar 1 comprimido de 12 em 12 horas",
+              "qtd_30dias": "60 comprimidos"
+            }
+          ]
+        },
+        {
+          "dose": "20mg",
+          "forma": "comprimido",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido à noite",
+              "qtd_30dias": "30 comprimidos"
+            }
+          ]
+        }
+      ],
+      "cids": [
+        "G40.1",
+        "G40.0",
+        "G40.2",
+        "G40.3",
+        "G40.4",
+        "G40.5",
+        "G40.6",
+        "G40.7",
+        "G40.8"
       ]
     },
     {
       "principio_ativo": "Levetiracetam",
       "grupo": "antiepiléptico",
       "classificacao_receita": "C1",
-      "disponibilidade": ["ceaf"],
+      "disponibilidade": [
+        "ceaf"
+      ],
       "lme": true,
       "apresentacoes": [
-        {"dose": "250mg", "forma": "comprimido", "posologias": [
-          {"texto": "Tomar 1 comprimido de 12 em 12 horas", "qtd_30dias": "60 comprimidos"},
-          {"texto": "Tomar 2 comprimidos de 12 em 12 horas", "qtd_30dias": "120 comprimidos"}
-        ]},
-        {"dose": "500mg", "forma": "comprimido", "posologias": [
-          {"texto": "Tomar 1 comprimido de 12 em 12 horas", "qtd_30dias": "60 comprimidos"}
-        ]},
-        {"dose": "750mg", "forma": "comprimido", "posologias": [
-          {"texto": "Tomar 1 comprimido de 12 em 12 horas", "qtd_30dias": "60 comprimidos"},
-          {"texto": "Tomar 2 comprimidos de 12 em 12 horas", "qtd_30dias": "120 comprimidos"}
-        ]},
-        {"dose": "1000mg", "forma": "comprimido", "posologias": [
-          {"texto": "Tomar 1 comprimido de 12 em 12 horas", "qtd_30dias": "60 comprimidos"}
-        ]},
-        {"dose": "100mg/mL", "forma": "solução oral", "posologias": [
-          {"texto": "Tomar 5 mL de 12 em 12 horas", "qtd_30dias": "2 frascos"},
-          {"texto": "Tomar 15 mL de 12 em 12 horas", "qtd_30dias": "6 frascos"}
-        ]}
+        {
+          "dose": "250mg",
+          "forma": "comprimido",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido de 12 em 12 horas",
+              "qtd_30dias": "60 comprimidos"
+            },
+            {
+              "texto": "Tomar 2 comprimidos de 12 em 12 horas",
+              "qtd_30dias": "120 comprimidos"
+            }
+          ]
+        },
+        {
+          "dose": "500mg",
+          "forma": "comprimido",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido de 12 em 12 horas",
+              "qtd_30dias": "60 comprimidos"
+            }
+          ]
+        },
+        {
+          "dose": "750mg",
+          "forma": "comprimido",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido de 12 em 12 horas",
+              "qtd_30dias": "60 comprimidos"
+            },
+            {
+              "texto": "Tomar 2 comprimidos de 12 em 12 horas",
+              "qtd_30dias": "120 comprimidos"
+            }
+          ]
+        },
+        {
+          "dose": "1000mg",
+          "forma": "comprimido",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido de 12 em 12 horas",
+              "qtd_30dias": "60 comprimidos"
+            }
+          ]
+        },
+        {
+          "dose": "100mg/mL",
+          "forma": "solução oral",
+          "posologias": [
+            {
+              "texto": "Tomar 5 mL de 12 em 12 horas",
+              "qtd_30dias": "2 frascos"
+            },
+            {
+              "texto": "Tomar 15 mL de 12 em 12 horas",
+              "qtd_30dias": "6 frascos"
+            }
+          ]
+        }
+      ],
+      "cids": [
+        "G40.1",
+        "G40.0",
+        "G40.2",
+        "G40.3",
+        "G40.4",
+        "G40.5",
+        "G40.6",
+        "G40.7",
+        "G40.8"
       ]
     },
     {
       "principio_ativo": "Lamotrigina",
       "grupo": "antiepiléptico",
       "classificacao_receita": "C1",
-      "disponibilidade": ["ceaf"],
+      "disponibilidade": [
+        "ceaf"
+      ],
       "lme": true,
       "apresentacoes": [
-        {"dose": "25mg", "forma": "comprimido", "posologias": [
-          {"texto": "Tomar 1 comprimido à noite", "qtd_30dias": "30 comprimidos"},
-          {"texto": "Tomar 1 comprimido de 12 em 12 horas", "qtd_30dias": "60 comprimidos"}
-        ]},
-        {"dose": "50mg", "forma": "comprimido", "posologias": [
-          {"texto": "Tomar 1 comprimido de 12 em 12 horas", "qtd_30dias": "60 comprimidos"},
-          {"texto": "Tomar 2 comprimidos de 12 em 12 horas", "qtd_30dias": "120 comprimidos"}
-        ]},
-        {"dose": "100mg", "forma": "comprimido", "posologias": [
-          {"texto": "Tomar 1 comprimido de 12 em 12 horas", "qtd_30dias": "60 comprimidos"},
-          {"texto": "Tomar 2 comprimidos de 12 em 12 horas", "qtd_30dias": "120 comprimidos"}
-        ]}
+        {
+          "dose": "25mg",
+          "forma": "comprimido",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido à noite",
+              "qtd_30dias": "30 comprimidos"
+            },
+            {
+              "texto": "Tomar 1 comprimido de 12 em 12 horas",
+              "qtd_30dias": "60 comprimidos"
+            }
+          ]
+        },
+        {
+          "dose": "50mg",
+          "forma": "comprimido",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido de 12 em 12 horas",
+              "qtd_30dias": "60 comprimidos"
+            },
+            {
+              "texto": "Tomar 2 comprimidos de 12 em 12 horas",
+              "qtd_30dias": "120 comprimidos"
+            }
+          ]
+        },
+        {
+          "dose": "100mg",
+          "forma": "comprimido",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido de 12 em 12 horas",
+              "qtd_30dias": "60 comprimidos"
+            },
+            {
+              "texto": "Tomar 2 comprimidos de 12 em 12 horas",
+              "qtd_30dias": "120 comprimidos"
+            }
+          ]
+        }
+      ],
+      "cids": [
+        "G40.1",
+        "G40.0",
+        "G40.2",
+        "G40.3",
+        "G40.4",
+        "G40.5",
+        "G40.6",
+        "G40.7",
+        "G40.8"
       ]
     },
     {
       "principio_ativo": "Topiramato",
       "grupo": "antiepiléptico / profilaxia de migrânea",
       "classificacao_receita": "C1",
-      "disponibilidade": ["ceaf"],
+      "disponibilidade": [
+        "ceaf"
+      ],
       "lme": true,
       "apresentacoes": [
-        {"dose": "25mg", "forma": "comprimido", "posologias": [
-          {"texto": "Tomar 1 comprimido à noite", "qtd_30dias": "30 comprimidos"},
-          {"texto": "Tomar 1 comprimido de 12 em 12 horas", "qtd_30dias": "60 comprimidos"}
-        ]},
-        {"dose": "50mg", "forma": "comprimido", "posologias": [
-          {"texto": "Tomar 1 comprimido de 12 em 12 horas", "qtd_30dias": "60 comprimidos"},
-          {"texto": "Tomar 2 comprimidos de 12 em 12 horas", "qtd_30dias": "120 comprimidos"}
-        ]},
-        {"dose": "100mg", "forma": "comprimido", "posologias": [
-          {"texto": "Tomar 1 comprimido de 12 em 12 horas", "qtd_30dias": "60 comprimidos"}
-        ]}
+        {
+          "dose": "25mg",
+          "forma": "comprimido",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido à noite",
+              "qtd_30dias": "30 comprimidos"
+            },
+            {
+              "texto": "Tomar 1 comprimido de 12 em 12 horas",
+              "qtd_30dias": "60 comprimidos"
+            }
+          ]
+        },
+        {
+          "dose": "50mg",
+          "forma": "comprimido",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido de 12 em 12 horas",
+              "qtd_30dias": "60 comprimidos"
+            },
+            {
+              "texto": "Tomar 2 comprimidos de 12 em 12 horas",
+              "qtd_30dias": "120 comprimidos"
+            }
+          ]
+        },
+        {
+          "dose": "100mg",
+          "forma": "comprimido",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido de 12 em 12 horas",
+              "qtd_30dias": "60 comprimidos"
+            }
+          ]
+        }
+      ],
+      "cids": [
+        "G40.1",
+        "G40.0",
+        "G40.2",
+        "G40.3",
+        "G40.4",
+        "G40.5",
+        "G40.6",
+        "G40.7",
+        "G40.8"
       ]
     },
     {
       "principio_ativo": "Gabapentina",
       "grupo": "antiepiléptico / dor neuropática",
       "classificacao_receita": "C1",
-      "disponibilidade": ["ceaf"],
+      "disponibilidade": [
+        "ceaf"
+      ],
       "lme": true,
       "obs": "LME exige escalas EVA e LANSS anexas (padrão do consultório: LANSS 21 pontos, EVA 8)",
       "apresentacoes": [
-        {"dose": "300mg", "forma": "cápsula", "posologias": [
-          {"texto": "Tomar 1 cápsula de 8 em 8 horas", "qtd_30dias": "90 cápsulas"},
-          {"texto": "Tomar 2 cápsulas de 8 em 8 horas", "qtd_30dias": "180 cápsulas"}
-        ]},
-        {"dose": "400mg", "forma": "cápsula", "posologias": [
-          {"texto": "Tomar 1 cápsula de 8 em 8 horas", "qtd_30dias": "90 cápsulas"}
-        ]},
-        {"dose": "600mg", "forma": "comprimido", "posologias": [
-          {"texto": "Tomar 1 comprimido de 8 em 8 horas", "qtd_30dias": "90 comprimidos"}
-        ]}
+        {
+          "dose": "300mg",
+          "forma": "cápsula",
+          "posologias": [
+            {
+              "texto": "Tomar 1 cápsula de 8 em 8 horas",
+              "qtd_30dias": "90 cápsulas"
+            },
+            {
+              "texto": "Tomar 2 cápsulas de 8 em 8 horas",
+              "qtd_30dias": "180 cápsulas"
+            }
+          ]
+        },
+        {
+          "dose": "400mg",
+          "forma": "cápsula",
+          "posologias": [
+            {
+              "texto": "Tomar 1 cápsula de 8 em 8 horas",
+              "qtd_30dias": "90 cápsulas"
+            }
+          ]
+        },
+        {
+          "dose": "600mg",
+          "forma": "comprimido",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido de 8 em 8 horas",
+              "qtd_30dias": "90 comprimidos"
+            }
+          ]
+        }
+      ],
+      "cids": [
+        "G40.1",
+        "G40.0",
+        "G40.2",
+        "G40.3",
+        "G40.4",
+        "G40.5",
+        "G40.6",
+        "G40.7",
+        "G40.8",
+        "R52.1",
+        "R52.2"
       ]
     },
     {
       "principio_ativo": "Pregabalina",
       "grupo": "dor neuropática",
       "classificacao_receita": "C1",
-      "disponibilidade": ["comercial"],
+      "disponibilidade": [
+        "comercial"
+      ],
       "lme": false,
       "apresentacoes": [
-        {"dose": "75mg", "forma": "cápsula", "posologias": [
-          {"texto": "Tomar 1 cápsula à noite", "qtd_30dias": "30 cápsulas"},
-          {"texto": "Tomar 1 cápsula de 12 em 12 horas", "qtd_30dias": "60 cápsulas"}
-        ]},
-        {"dose": "150mg", "forma": "cápsula", "posologias": [
-          {"texto": "Tomar 1 cápsula à noite", "qtd_30dias": "30 cápsulas"},
-          {"texto": "Tomar 1 cápsula de 12 em 12 horas", "qtd_30dias": "60 cápsulas"}
-        ]}
+        {
+          "dose": "75mg",
+          "forma": "cápsula",
+          "posologias": [
+            {
+              "texto": "Tomar 1 cápsula à noite",
+              "qtd_30dias": "30 cápsulas"
+            },
+            {
+              "texto": "Tomar 1 cápsula de 12 em 12 horas",
+              "qtd_30dias": "60 cápsulas"
+            }
+          ]
+        },
+        {
+          "dose": "150mg",
+          "forma": "cápsula",
+          "posologias": [
+            {
+              "texto": "Tomar 1 cápsula à noite",
+              "qtd_30dias": "30 cápsulas"
+            },
+            {
+              "texto": "Tomar 1 cápsula de 12 em 12 horas",
+              "qtd_30dias": "60 cápsulas"
+            }
+          ]
+        }
+      ],
+      "cids": [
+        "R52.1",
+        "R52.2"
       ]
     },
     {
       "principio_ativo": "Lacosamida",
       "grupo": "antiepiléptico",
       "classificacao_receita": "C1",
-      "disponibilidade": ["comercial"],
+      "disponibilidade": [
+        "comercial"
+      ],
       "lme": false,
       "apresentacoes": [
-        {"dose": "50mg", "forma": "comprimido", "posologias": [
-          {"texto": "Tomar 1 comprimido de 12 em 12 horas", "qtd_30dias": "60 comprimidos"}
-        ]},
-        {"dose": "100mg", "forma": "comprimido", "posologias": [
-          {"texto": "Tomar 1 comprimido de 12 em 12 horas", "qtd_30dias": "60 comprimidos"}
-        ]},
-        {"dose": "200mg", "forma": "comprimido", "posologias": [
-          {"texto": "Tomar 1 comprimido de 12 em 12 horas", "qtd_30dias": "60 comprimidos"}
-        ]}
+        {
+          "dose": "50mg",
+          "forma": "comprimido",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido de 12 em 12 horas",
+              "qtd_30dias": "60 comprimidos"
+            }
+          ]
+        },
+        {
+          "dose": "100mg",
+          "forma": "comprimido",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido de 12 em 12 horas",
+              "qtd_30dias": "60 comprimidos"
+            }
+          ]
+        },
+        {
+          "dose": "200mg",
+          "forma": "comprimido",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido de 12 em 12 horas",
+              "qtd_30dias": "60 comprimidos"
+            }
+          ]
+        }
+      ],
+      "cids": [
+        "G40.1",
+        "G40.0",
+        "G40.2",
+        "G40.3",
+        "G40.4",
+        "G40.5",
+        "G40.6",
+        "G40.7",
+        "G40.8"
       ]
     },
     {
       "principio_ativo": "Oxcarbazepina",
       "grupo": "antiepiléptico",
       "classificacao_receita": "C1",
-      "disponibilidade": ["comercial"],
+      "disponibilidade": [
+        "comercial"
+      ],
       "lme": false,
       "apresentacoes": [
-        {"dose": "300mg", "forma": "comprimido", "posologias": [
-          {"texto": "Tomar 1 comprimido de 12 em 12 horas", "qtd_30dias": "60 comprimidos"}
-        ]},
-        {"dose": "600mg", "forma": "comprimido", "posologias": [
-          {"texto": "Tomar 1 comprimido de 12 em 12 horas", "qtd_30dias": "60 comprimidos"}
-        ]}
+        {
+          "dose": "300mg",
+          "forma": "comprimido",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido de 12 em 12 horas",
+              "qtd_30dias": "60 comprimidos"
+            }
+          ]
+        },
+        {
+          "dose": "600mg",
+          "forma": "comprimido",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido de 12 em 12 horas",
+              "qtd_30dias": "60 comprimidos"
+            }
+          ]
+        }
+      ],
+      "cids": [
+        "G40.1",
+        "G40.0",
+        "G40.2",
+        "G40.3",
+        "G40.4",
+        "G40.5",
+        "G40.6",
+        "G40.7",
+        "G40.8"
       ]
     },
     {
       "principio_ativo": "Primidona",
       "grupo": "antiepiléptico / tremor essencial",
       "classificacao_receita": "C1",
-      "disponibilidade": ["ceaf"],
+      "disponibilidade": [
+        "ceaf"
+      ],
       "lme": true,
       "apresentacoes": [
-        {"dose": "100mg", "forma": "comprimido", "posologias": [
-          {"texto": "Tomar 1 comprimido à noite", "qtd_30dias": "30 comprimidos"}
-        ]},
-        {"dose": "250mg", "forma": "comprimido", "posologias": [
-          {"texto": "Tomar 1 comprimido à noite", "qtd_30dias": "30 comprimidos"}
-        ]}
+        {
+          "dose": "100mg",
+          "forma": "comprimido",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido à noite",
+              "qtd_30dias": "30 comprimidos"
+            }
+          ]
+        },
+        {
+          "dose": "250mg",
+          "forma": "comprimido",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido à noite",
+              "qtd_30dias": "30 comprimidos"
+            }
+          ]
+        }
+      ],
+      "cids": [
+        "G40.1",
+        "G40.0",
+        "G40.2",
+        "G40.3",
+        "G40.4",
+        "G40.5",
+        "G40.6",
+        "G40.7",
+        "G40.8"
       ]
     },
     {
       "principio_ativo": "Vigabatrina",
       "grupo": "antiepiléptico",
       "classificacao_receita": "C1",
-      "disponibilidade": ["ceaf"],
+      "disponibilidade": [
+        "ceaf"
+      ],
       "lme": true,
       "apresentacoes": [
-        {"dose": "500mg", "forma": "comprimido", "posologias": [
-          {"texto": "Tomar 1 comprimido de 12 em 12 horas", "qtd_30dias": "60 comprimidos"}
-        ]}
+        {
+          "dose": "500mg",
+          "forma": "comprimido",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido de 12 em 12 horas",
+              "qtd_30dias": "60 comprimidos"
+            }
+          ]
+        }
+      ],
+      "cids": [
+        "G40.1",
+        "G40.0",
+        "G40.2",
+        "G40.3",
+        "G40.4",
+        "G40.5",
+        "G40.6",
+        "G40.7",
+        "G40.8"
       ]
     },
     {
       "principio_ativo": "Donepezila",
       "grupo": "anticolinesterásico / demência",
       "classificacao_receita": "C1",
-      "disponibilidade": ["ceaf"],
+      "disponibilidade": [
+        "ceaf"
+      ],
       "lme": true,
       "obs": "LME com termo próprio incluindo CDR e Mini-Mental (MEEM)",
       "apresentacoes": [
-        {"dose": "5mg", "forma": "comprimido", "posologias": [
-          {"texto": "Tomar 1 comprimido após o jantar", "qtd_30dias": "30 comprimidos"}
-        ]},
-        {"dose": "10mg", "forma": "comprimido", "posologias": [
-          {"texto": "Tomar 1 comprimido após o jantar", "qtd_30dias": "30 comprimidos"}
-        ]}
+        {
+          "dose": "5mg",
+          "forma": "comprimido",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido após o jantar",
+              "qtd_30dias": "30 comprimidos"
+            }
+          ]
+        },
+        {
+          "dose": "10mg",
+          "forma": "comprimido",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido após o jantar",
+              "qtd_30dias": "30 comprimidos"
+            }
+          ]
+        }
+      ],
+      "cids": [
+        "G30.1",
+        "G30.0",
+        "G30.8",
+        "G30.9",
+        "F00.0",
+        "F00.1",
+        "F00.2"
       ]
     },
     {
       "principio_ativo": "Memantina",
       "grupo": "antidemencial",
       "classificacao_receita": "C1",
-      "disponibilidade": ["ceaf"],
+      "disponibilidade": [
+        "ceaf"
+      ],
       "lme": true,
       "apresentacoes": [
-        {"dose": "10mg", "forma": "comprimido", "posologias": [
-          {"texto": "Tomar 1 comprimido pela manhã", "qtd_30dias": "30 comprimidos"},
-          {"texto": "Tomar 1 comprimido de 12 em 12 horas", "qtd_30dias": "60 comprimidos"}
-        ]}
+        {
+          "dose": "10mg",
+          "forma": "comprimido",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido pela manhã",
+              "qtd_30dias": "30 comprimidos"
+            },
+            {
+              "texto": "Tomar 1 comprimido de 12 em 12 horas",
+              "qtd_30dias": "60 comprimidos"
+            }
+          ]
+        }
+      ],
+      "cids": [
+        "G30.1",
+        "G30.0",
+        "G30.8",
+        "G30.9",
+        "F00.0",
+        "F00.1",
+        "F00.2"
       ]
     },
     {
       "principio_ativo": "Rivastigmina",
       "grupo": "anticolinesterásico / demência",
       "classificacao_receita": "C1",
-      "disponibilidade": ["ceaf"],
+      "disponibilidade": [
+        "ceaf"
+      ],
       "lme": true,
       "apresentacoes": [
-        {"dose": "1,5mg", "forma": "cápsula", "posologias": [
-          {"texto": "Tomar 1 cápsula de 12 em 12 horas, com alimento", "qtd_30dias": "60 cápsulas"}
-        ]},
-        {"dose": "3mg", "forma": "cápsula", "posologias": [
-          {"texto": "Tomar 1 cápsula de 12 em 12 horas, com alimento", "qtd_30dias": "60 cápsulas"}
-        ]},
-        {"dose": "4,5mg", "forma": "cápsula", "posologias": [
-          {"texto": "Tomar 1 cápsula de 12 em 12 horas, com alimento", "qtd_30dias": "60 cápsulas"}
-        ]},
-        {"dose": "4,6mg/24h", "forma": "adesivo transdérmico", "posologias": [
-          {"texto": "Aplicar 1 adesivo por dia, em pele limpa e seca, alternando o local", "qtd_30dias": "30 adesivos"}
-        ]},
-        {"dose": "9,5mg/24h", "forma": "adesivo transdérmico", "posologias": [
-          {"texto": "Aplicar 1 adesivo por dia, em pele limpa e seca, alternando o local", "qtd_30dias": "30 adesivos"}
-        ]},
-        {"dose": "13,3mg/24h", "forma": "adesivo transdérmico", "posologias": [
-          {"texto": "Aplicar 1 adesivo por dia, em pele limpa e seca, alternando o local", "qtd_30dias": "30 adesivos"}
-        ]},
-        {"dose": "2mg/mL", "forma": "solução oral", "posologias": [
-          {"texto": "Tomar conforme orientação, de 12 em 12 horas, com alimento", "qtd_30dias": "2 frascos"}
-        ]}
+        {
+          "dose": "1,5mg",
+          "forma": "cápsula",
+          "posologias": [
+            {
+              "texto": "Tomar 1 cápsula de 12 em 12 horas, com alimento",
+              "qtd_30dias": "60 cápsulas"
+            }
+          ]
+        },
+        {
+          "dose": "3mg",
+          "forma": "cápsula",
+          "posologias": [
+            {
+              "texto": "Tomar 1 cápsula de 12 em 12 horas, com alimento",
+              "qtd_30dias": "60 cápsulas"
+            }
+          ]
+        },
+        {
+          "dose": "4,5mg",
+          "forma": "cápsula",
+          "posologias": [
+            {
+              "texto": "Tomar 1 cápsula de 12 em 12 horas, com alimento",
+              "qtd_30dias": "60 cápsulas"
+            }
+          ]
+        },
+        {
+          "dose": "4,6mg/24h",
+          "forma": "adesivo transdérmico",
+          "posologias": [
+            {
+              "texto": "Aplicar 1 adesivo por dia, em pele limpa e seca, alternando o local",
+              "qtd_30dias": "30 adesivos"
+            }
+          ]
+        },
+        {
+          "dose": "9,5mg/24h",
+          "forma": "adesivo transdérmico",
+          "posologias": [
+            {
+              "texto": "Aplicar 1 adesivo por dia, em pele limpa e seca, alternando o local",
+              "qtd_30dias": "30 adesivos"
+            }
+          ]
+        },
+        {
+          "dose": "13,3mg/24h",
+          "forma": "adesivo transdérmico",
+          "posologias": [
+            {
+              "texto": "Aplicar 1 adesivo por dia, em pele limpa e seca, alternando o local",
+              "qtd_30dias": "30 adesivos"
+            }
+          ]
+        },
+        {
+          "dose": "2mg/mL",
+          "forma": "solução oral",
+          "posologias": [
+            {
+              "texto": "Tomar conforme orientação, de 12 em 12 horas, com alimento",
+              "qtd_30dias": "2 frascos"
+            }
+          ]
+        }
+      ],
+      "cids": [
+        "G30.1",
+        "G30.0",
+        "G30.8",
+        "G30.9",
+        "F00.0",
+        "F00.1",
+        "F00.2"
       ]
     },
     {
       "principio_ativo": "Galantamina",
       "grupo": "anticolinesterásico / demência",
       "classificacao_receita": "C1",
-      "disponibilidade": ["ceaf"],
+      "disponibilidade": [
+        "ceaf"
+      ],
       "lme": true,
       "apresentacoes": [
-        {"dose": "8mg", "forma": "cápsula de liberação prolongada", "posologias": [
-          {"texto": "Tomar 1 cápsula pela manhã", "qtd_30dias": "30 cápsulas"}
-        ]},
-        {"dose": "16mg", "forma": "cápsula de liberação prolongada", "posologias": [
-          {"texto": "Tomar 1 cápsula pela manhã", "qtd_30dias": "30 cápsulas"}
-        ]},
-        {"dose": "24mg", "forma": "cápsula de liberação prolongada", "posologias": [
-          {"texto": "Tomar 1 cápsula pela manhã", "qtd_30dias": "30 cápsulas"}
-        ]}
+        {
+          "dose": "8mg",
+          "forma": "cápsula de liberação prolongada",
+          "posologias": [
+            {
+              "texto": "Tomar 1 cápsula pela manhã",
+              "qtd_30dias": "30 cápsulas"
+            }
+          ]
+        },
+        {
+          "dose": "16mg",
+          "forma": "cápsula de liberação prolongada",
+          "posologias": [
+            {
+              "texto": "Tomar 1 cápsula pela manhã",
+              "qtd_30dias": "30 cápsulas"
+            }
+          ]
+        },
+        {
+          "dose": "24mg",
+          "forma": "cápsula de liberação prolongada",
+          "posologias": [
+            {
+              "texto": "Tomar 1 cápsula pela manhã",
+              "qtd_30dias": "30 cápsulas"
+            }
+          ]
+        }
+      ],
+      "cids": [
+        "G30.1",
+        "G30.0",
+        "G30.8",
+        "G30.9",
+        "F00.0",
+        "F00.1",
+        "F00.2"
       ]
     },
     {
       "principio_ativo": "Levodopa + Benserazida",
       "grupo": "antiparkinsoniano",
       "classificacao_receita": "comum",
-      "disponibilidade": ["remume", "ceaf"],
+      "disponibilidade": [
+        "remume",
+        "ceaf"
+      ],
       "lme": false,
       "apresentacoes": [
-        {"dose": "100/25mg", "forma": "comprimido (BD)", "posologias": [
-          {"texto": "Tomar 1 comprimido de 8 em 8 horas, 1 hora antes das refeições", "qtd_30dias": "90 comprimidos"},
-          {"texto": "Tomar 1 + ½ (um e meio) às 07:00; 1 comprimido às 13:00 (2 horas após almoçar); 1 comprimido às 17:00", "qtd_30dias": "105 comprimidos"}
-        ]},
-        {"dose": "200/50mg", "forma": "comprimido", "posologias": [
-          {"texto": "Tomar 1 comprimido de 8 em 8 horas, 1 hora antes das refeições", "qtd_30dias": "90 comprimidos"}
-        ]},
-        {"dose": "100/25mg", "forma": "cápsula HBS (liberação prolongada)", "posologias": [
-          {"texto": "Tomar 1 cápsula à noite, ao deitar", "qtd_30dias": "30 cápsulas"}
-        ]}
+        {
+          "dose": "100/25mg",
+          "forma": "comprimido (BD)",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido de 8 em 8 horas, 1 hora antes das refeições",
+              "qtd_30dias": "90 comprimidos"
+            },
+            {
+              "texto": "Tomar 1 + ½ (um e meio) às 07:00; 1 comprimido às 13:00 (2 horas após almoçar); 1 comprimido às 17:00",
+              "qtd_30dias": "105 comprimidos"
+            }
+          ]
+        },
+        {
+          "dose": "200/50mg",
+          "forma": "comprimido",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido de 8 em 8 horas, 1 hora antes das refeições",
+              "qtd_30dias": "90 comprimidos"
+            }
+          ]
+        },
+        {
+          "dose": "100/25mg",
+          "forma": "cápsula HBS (liberação prolongada)",
+          "posologias": [
+            {
+              "texto": "Tomar 1 cápsula à noite, ao deitar",
+              "qtd_30dias": "30 cápsulas"
+            }
+          ]
+        }
+      ],
+      "cids": [
+        "G20"
       ]
     },
     {
       "principio_ativo": "Levodopa + Carbidopa",
       "grupo": "antiparkinsoniano",
       "classificacao_receita": "comum",
-      "disponibilidade": ["remume"],
+      "disponibilidade": [
+        "remume"
+      ],
       "lme": false,
       "apresentacoes": [
-        {"dose": "250/25mg", "forma": "comprimido", "posologias": [
-          {"texto": "Tomar 1 comprimido de 8 em 8 horas, 1 hora antes das refeições", "qtd_30dias": "90 comprimidos"}
-        ]}
+        {
+          "dose": "250/25mg",
+          "forma": "comprimido",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido de 8 em 8 horas, 1 hora antes das refeições",
+              "qtd_30dias": "90 comprimidos"
+            }
+          ]
+        }
+      ],
+      "cids": [
+        "G20"
       ]
     },
     {
       "principio_ativo": "Pramipexol",
       "grupo": "antiparkinsoniano",
       "classificacao_receita": "C1",
-      "disponibilidade": ["ceaf"],
+      "disponibilidade": [
+        "ceaf"
+      ],
       "lme": true,
       "apresentacoes": [
-        {"dose": "0,125mg", "forma": "comprimido", "posologias": [
-          {"texto": "Tomar 1 comprimido de 8 em 8 horas", "qtd_30dias": "90 comprimidos"}
-        ]},
-        {"dose": "0,25mg", "forma": "comprimido", "posologias": [
-          {"texto": "Tomar 1 comprimido de 8 em 8 horas", "qtd_30dias": "90 comprimidos"}
-        ]},
-        {"dose": "1mg", "forma": "comprimido", "posologias": [
-          {"texto": "Tomar 1 comprimido de 8 em 8 horas", "qtd_30dias": "90 comprimidos"}
-        ]}
+        {
+          "dose": "0,125mg",
+          "forma": "comprimido",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido de 8 em 8 horas",
+              "qtd_30dias": "90 comprimidos"
+            }
+          ]
+        },
+        {
+          "dose": "0,25mg",
+          "forma": "comprimido",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido de 8 em 8 horas",
+              "qtd_30dias": "90 comprimidos"
+            }
+          ]
+        },
+        {
+          "dose": "1mg",
+          "forma": "comprimido",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido de 8 em 8 horas",
+              "qtd_30dias": "90 comprimidos"
+            }
+          ]
+        }
+      ],
+      "cids": [
+        "G20"
       ]
     },
     {
       "principio_ativo": "Entacapona",
       "grupo": "antiparkinsoniano",
       "classificacao_receita": "comum",
-      "disponibilidade": ["ceaf"],
+      "disponibilidade": [
+        "ceaf"
+      ],
       "lme": true,
       "apresentacoes": [
-        {"dose": "200mg", "forma": "comprimido", "posologias": [
-          {"texto": "Tomar 1 comprimido junto com cada dose de levodopa", "qtd_30dias": "90 comprimidos"}
-        ]}
+        {
+          "dose": "200mg",
+          "forma": "comprimido",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido junto com cada dose de levodopa",
+              "qtd_30dias": "90 comprimidos"
+            }
+          ]
+        }
+      ],
+      "cids": [
+        "G20"
       ]
     },
     {
       "principio_ativo": "Rasagilina",
       "grupo": "antiparkinsoniano",
       "classificacao_receita": "comum",
-      "disponibilidade": ["ceaf"],
+      "disponibilidade": [
+        "ceaf"
+      ],
       "lme": true,
       "apresentacoes": [
-        {"dose": "1mg", "forma": "comprimido", "posologias": [
-          {"texto": "Tomar 1 comprimido pela manhã", "qtd_30dias": "30 comprimidos"}
-        ]}
+        {
+          "dose": "1mg",
+          "forma": "comprimido",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido pela manhã",
+              "qtd_30dias": "30 comprimidos"
+            }
+          ]
+        }
+      ],
+      "cids": [
+        "G20"
       ]
     },
     {
       "principio_ativo": "Atorvastatina",
       "grupo": "estatina / prevenção vascular",
       "classificacao_receita": "comum",
-      "disponibilidade": ["ceaf", "remume"],
+      "disponibilidade": [
+        "ceaf",
+        "remume"
+      ],
       "lme": true,
       "obs": "LME para dislipidemia (CID E78) — usada em prevenção secundária de AVC",
       "apresentacoes": [
-        {"dose": "20mg", "forma": "comprimido", "posologias": [
-          {"texto": "Tomar 1 comprimido à noite", "qtd_30dias": "30 comprimidos"}
-        ]},
-        {"dose": "40mg", "forma": "comprimido", "posologias": [
-          {"texto": "Tomar 1 comprimido à noite", "qtd_30dias": "30 comprimidos"},
-          {"texto": "Tomar 2 comprimidos à noite", "qtd_30dias": "60 comprimidos"}
-        ]},
-        {"dose": "80mg", "forma": "comprimido", "posologias": [
-          {"texto": "Tomar 1 comprimido à noite", "qtd_30dias": "30 comprimidos"}
-        ]}
+        {
+          "dose": "20mg",
+          "forma": "comprimido",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido à noite",
+              "qtd_30dias": "30 comprimidos"
+            }
+          ]
+        },
+        {
+          "dose": "40mg",
+          "forma": "comprimido",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido à noite",
+              "qtd_30dias": "30 comprimidos"
+            },
+            {
+              "texto": "Tomar 2 comprimidos à noite",
+              "qtd_30dias": "60 comprimidos"
+            }
+          ]
+        },
+        {
+          "dose": "80mg",
+          "forma": "comprimido",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido à noite",
+              "qtd_30dias": "30 comprimidos"
+            }
+          ]
+        }
+      ],
+      "cids": [
+        "E78.0",
+        "E78.2",
+        "E78.5"
       ]
     },
     {
       "principio_ativo": "Biperideno",
       "grupo": "antiparkinsoniano",
       "classificacao_receita": "C1",
-      "disponibilidade": ["remume"],
+      "disponibilidade": [
+        "remume"
+      ],
       "lme": false,
       "apresentacoes": [
-        {"dose": "2mg", "forma": "comprimido", "posologias": [
-          {"texto": "Tomar 1 comprimido de 12 em 12 horas", "qtd_30dias": "60 comprimidos"}
-        ]}
+        {
+          "dose": "2mg",
+          "forma": "comprimido",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido de 12 em 12 horas",
+              "qtd_30dias": "60 comprimidos"
+            }
+          ]
+        }
+      ],
+      "cids": [
+        "G20"
       ]
     },
     {
       "principio_ativo": "Amantadina",
       "grupo": "antiparkinsoniano",
       "classificacao_receita": "comum",
-      "disponibilidade": ["comercial"],
+      "disponibilidade": [
+        "comercial"
+      ],
       "lme": false,
       "apresentacoes": [
-        {"dose": "100mg", "forma": "comprimido", "posologias": [
-          {"texto": "Tomar 1 comprimido de 12 em 12 horas", "qtd_30dias": "60 comprimidos"}
-        ]}
+        {
+          "dose": "100mg",
+          "forma": "comprimido",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido de 12 em 12 horas",
+              "qtd_30dias": "60 comprimidos"
+            }
+          ]
+        }
+      ],
+      "cids": [
+        "G20"
       ]
     },
     {
       "principio_ativo": "Sertralina",
       "grupo": "antidepressivo ISRS",
       "classificacao_receita": "C1",
-      "disponibilidade": ["remume"],
+      "disponibilidade": [
+        "remume"
+      ],
       "lme": false,
       "apresentacoes": [
-        {"dose": "50mg", "forma": "comprimido", "posologias": [
-          {"texto": "Tomar 1 comprimido pela manhã", "qtd_30dias": "30 comprimidos"},
-          {"texto": "Tomar 2 comprimidos pela manhã", "qtd_30dias": "60 comprimidos"},
-          {"texto": "Tomar 3 comprimidos pela manhã", "qtd_30dias": "90 comprimidos"}
-        ]},
-        {"dose": "100mg", "forma": "comprimido", "posologias": [
-          {"texto": "Tomar 1 comprimido pela manhã", "qtd_30dias": "30 comprimidos"}
-        ]}
+        {
+          "dose": "50mg",
+          "forma": "comprimido",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido pela manhã",
+              "qtd_30dias": "30 comprimidos"
+            },
+            {
+              "texto": "Tomar 2 comprimidos pela manhã",
+              "qtd_30dias": "60 comprimidos"
+            },
+            {
+              "texto": "Tomar 3 comprimidos pela manhã",
+              "qtd_30dias": "90 comprimidos"
+            }
+          ]
+        },
+        {
+          "dose": "100mg",
+          "forma": "comprimido",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido pela manhã",
+              "qtd_30dias": "30 comprimidos"
+            }
+          ]
+        }
       ]
     },
     {
       "principio_ativo": "Escitalopram",
       "grupo": "antidepressivo ISRS",
       "classificacao_receita": "C1",
-      "disponibilidade": ["comercial"],
+      "disponibilidade": [
+        "comercial"
+      ],
       "lme": false,
       "apresentacoes": [
-        {"dose": "10mg", "forma": "comprimido", "posologias": [
-          {"texto": "Tomar 1 comprimido pela manhã", "qtd_30dias": "30 comprimidos"},
-          {"texto": "Tomar 2 comprimidos pela manhã", "qtd_30dias": "60 comprimidos"}
-        ]},
-        {"dose": "20mg", "forma": "comprimido", "posologias": [
-          {"texto": "Tomar 1 comprimido pela manhã", "qtd_30dias": "30 comprimidos"}
-        ]}
+        {
+          "dose": "10mg",
+          "forma": "comprimido",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido pela manhã",
+              "qtd_30dias": "30 comprimidos"
+            },
+            {
+              "texto": "Tomar 2 comprimidos pela manhã",
+              "qtd_30dias": "60 comprimidos"
+            }
+          ]
+        },
+        {
+          "dose": "20mg",
+          "forma": "comprimido",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido pela manhã",
+              "qtd_30dias": "30 comprimidos"
+            }
+          ]
+        }
       ]
     },
     {
       "principio_ativo": "Fluoxetina",
       "grupo": "antidepressivo ISRS",
       "classificacao_receita": "C1",
-      "disponibilidade": ["remume"],
+      "disponibilidade": [
+        "remume"
+      ],
       "lme": false,
       "apresentacoes": [
-        {"dose": "20mg", "forma": "cápsula", "posologias": [
-          {"texto": "Tomar 1 cápsula pela manhã", "qtd_30dias": "30 cápsulas"},
-          {"texto": "Tomar 2 cápsulas pela manhã", "qtd_30dias": "60 cápsulas"}
-        ]}
+        {
+          "dose": "20mg",
+          "forma": "cápsula",
+          "posologias": [
+            {
+              "texto": "Tomar 1 cápsula pela manhã",
+              "qtd_30dias": "30 cápsulas"
+            },
+            {
+              "texto": "Tomar 2 cápsulas pela manhã",
+              "qtd_30dias": "60 cápsulas"
+            }
+          ]
+        }
       ]
     },
     {
       "principio_ativo": "Paroxetina",
       "grupo": "antidepressivo ISRS",
       "classificacao_receita": "C1",
-      "disponibilidade": ["comercial"],
+      "disponibilidade": [
+        "comercial"
+      ],
       "lme": false,
       "apresentacoes": [
-        {"dose": "20mg", "forma": "comprimido", "posologias": [
-          {"texto": "Tomar 1 comprimido pela manhã", "qtd_30dias": "30 comprimidos"}
-        ]}
+        {
+          "dose": "20mg",
+          "forma": "comprimido",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido pela manhã",
+              "qtd_30dias": "30 comprimidos"
+            }
+          ]
+        }
       ]
     },
     {
       "principio_ativo": "Venlafaxina",
       "grupo": "antidepressivo dual / profilaxia de migrânea",
       "classificacao_receita": "C1",
-      "disponibilidade": ["comercial"],
+      "disponibilidade": [
+        "comercial"
+      ],
       "lme": false,
       "apresentacoes": [
-        {"dose": "75mg", "forma": "cápsula de liberação prolongada", "posologias": [
-          {"texto": "Tomar 1 cápsula pela manhã", "qtd_30dias": "30 cápsulas"}
-        ]},
-        {"dose": "150mg", "forma": "cápsula de liberação prolongada", "posologias": [
-          {"texto": "Tomar 1 cápsula pela manhã", "qtd_30dias": "30 cápsulas"}
-        ]}
+        {
+          "dose": "75mg",
+          "forma": "cápsula de liberação prolongada",
+          "posologias": [
+            {
+              "texto": "Tomar 1 cápsula pela manhã",
+              "qtd_30dias": "30 cápsulas"
+            }
+          ]
+        },
+        {
+          "dose": "150mg",
+          "forma": "cápsula de liberação prolongada",
+          "posologias": [
+            {
+              "texto": "Tomar 1 cápsula pela manhã",
+              "qtd_30dias": "30 cápsulas"
+            }
+          ]
+        }
       ]
     },
     {
       "principio_ativo": "Duloxetina",
       "grupo": "antidepressivo dual / dor neuropática",
       "classificacao_receita": "C1",
-      "disponibilidade": ["comercial"],
+      "disponibilidade": [
+        "comercial"
+      ],
       "lme": false,
       "apresentacoes": [
-        {"dose": "30mg", "forma": "cápsula", "posologias": [
-          {"texto": "Tomar 1 cápsula de manhã", "qtd_30dias": "30 cápsulas"},
-          {"texto": "Tomar 2 cápsulas de manhã", "qtd_30dias": "60 cápsulas"}
-        ]},
-        {"dose": "60mg", "forma": "cápsula", "posologias": [
-          {"texto": "Tomar 1 cápsula de manhã", "qtd_30dias": "30 cápsulas"}
-        ]}
+        {
+          "dose": "30mg",
+          "forma": "cápsula",
+          "posologias": [
+            {
+              "texto": "Tomar 1 cápsula de manhã",
+              "qtd_30dias": "30 cápsulas"
+            },
+            {
+              "texto": "Tomar 2 cápsulas de manhã",
+              "qtd_30dias": "60 cápsulas"
+            }
+          ]
+        },
+        {
+          "dose": "60mg",
+          "forma": "cápsula",
+          "posologias": [
+            {
+              "texto": "Tomar 1 cápsula de manhã",
+              "qtd_30dias": "30 cápsulas"
+            }
+          ]
+        }
       ]
     },
     {
       "principio_ativo": "Amitriptilina",
       "grupo": "antidepressivo tricíclico / profilaxia de migrânea",
       "classificacao_receita": "C1",
-      "disponibilidade": ["remume"],
+      "disponibilidade": [
+        "remume"
+      ],
       "lme": false,
       "apresentacoes": [
-        {"dose": "25mg", "forma": "comprimido", "posologias": [
-          {"texto": "Tomar 1 comprimido à noite", "qtd_30dias": "30 comprimidos"},
-          {"texto": "Tomar 2 comprimidos à noite", "qtd_30dias": "60 comprimidos"}
-        ]},
-        {"dose": "75mg", "forma": "comprimido", "posologias": [
-          {"texto": "Tomar 1 comprimido à noite", "qtd_30dias": "30 comprimidos"}
-        ]}
+        {
+          "dose": "25mg",
+          "forma": "comprimido",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido à noite",
+              "qtd_30dias": "30 comprimidos"
+            },
+            {
+              "texto": "Tomar 2 comprimidos à noite",
+              "qtd_30dias": "60 comprimidos"
+            }
+          ]
+        },
+        {
+          "dose": "75mg",
+          "forma": "comprimido",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido à noite",
+              "qtd_30dias": "30 comprimidos"
+            }
+          ]
+        }
       ]
     },
     {
       "principio_ativo": "Nortriptilina",
       "grupo": "antidepressivo tricíclico",
       "classificacao_receita": "C1",
-      "disponibilidade": ["comercial"],
+      "disponibilidade": [
+        "comercial"
+      ],
       "lme": false,
       "apresentacoes": [
-        {"dose": "25mg", "forma": "cápsula", "posologias": [
-          {"texto": "Tomar 1 cápsula à noite", "qtd_30dias": "30 cápsulas"}
-        ]},
-        {"dose": "50mg", "forma": "cápsula", "posologias": [
-          {"texto": "Tomar 1 cápsula à noite", "qtd_30dias": "30 cápsulas"}
-        ]}
+        {
+          "dose": "25mg",
+          "forma": "cápsula",
+          "posologias": [
+            {
+              "texto": "Tomar 1 cápsula à noite",
+              "qtd_30dias": "30 cápsulas"
+            }
+          ]
+        },
+        {
+          "dose": "50mg",
+          "forma": "cápsula",
+          "posologias": [
+            {
+              "texto": "Tomar 1 cápsula à noite",
+              "qtd_30dias": "30 cápsulas"
+            }
+          ]
+        }
       ]
     },
     {
       "principio_ativo": "Imipramina",
       "grupo": "antidepressivo tricíclico",
       "classificacao_receita": "C1",
-      "disponibilidade": ["comercial"],
+      "disponibilidade": [
+        "comercial"
+      ],
       "lme": false,
       "apresentacoes": [
-        {"dose": "25mg", "forma": "comprimido", "posologias": [
-          {"texto": "Tomar 1 comprimido à noite", "qtd_30dias": "30 comprimidos"},
-          {"texto": "Tomar 2 comprimidos à noite", "qtd_30dias": "60 comprimidos"}
-        ]}
+        {
+          "dose": "25mg",
+          "forma": "comprimido",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido à noite",
+              "qtd_30dias": "30 comprimidos"
+            },
+            {
+              "texto": "Tomar 2 comprimidos à noite",
+              "qtd_30dias": "60 comprimidos"
+            }
+          ]
+        }
       ]
     },
     {
       "principio_ativo": "Mirtazapina",
       "grupo": "antidepressivo",
       "classificacao_receita": "C1",
-      "disponibilidade": ["comercial"],
+      "disponibilidade": [
+        "comercial"
+      ],
       "lme": false,
       "apresentacoes": [
-        {"dose": "15mg", "forma": "comprimido", "posologias": [
-          {"texto": "Tomar 1 comprimido após o jantar", "qtd_30dias": "30 comprimidos"}
-        ]},
-        {"dose": "30mg", "forma": "comprimido", "posologias": [
-          {"texto": "Tomar 1 comprimido após o jantar", "qtd_30dias": "30 comprimidos"}
-        ]}
+        {
+          "dose": "15mg",
+          "forma": "comprimido",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido após o jantar",
+              "qtd_30dias": "30 comprimidos"
+            }
+          ]
+        },
+        {
+          "dose": "30mg",
+          "forma": "comprimido",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido após o jantar",
+              "qtd_30dias": "30 comprimidos"
+            }
+          ]
+        }
       ]
     },
     {
       "principio_ativo": "Trazodona",
       "grupo": "antidepressivo / insônia",
       "classificacao_receita": "C1",
-      "disponibilidade": ["comercial"],
+      "disponibilidade": [
+        "comercial"
+      ],
       "lme": false,
       "apresentacoes": [
-        {"dose": "50mg", "forma": "comprimido", "posologias": [
-          {"texto": "Tomar 1 comprimido à noite", "qtd_30dias": "30 comprimidos"}
-        ]},
-        {"dose": "100mg", "forma": "comprimido", "posologias": [
-          {"texto": "Tomar 1 comprimido à noite", "qtd_30dias": "30 comprimidos"}
-        ]}
+        {
+          "dose": "50mg",
+          "forma": "comprimido",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido à noite",
+              "qtd_30dias": "30 comprimidos"
+            }
+          ]
+        },
+        {
+          "dose": "100mg",
+          "forma": "comprimido",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido à noite",
+              "qtd_30dias": "30 comprimidos"
+            }
+          ]
+        }
       ]
     },
     {
       "principio_ativo": "Quetiapina",
       "grupo": "antipsicótico atípico",
       "classificacao_receita": "C1",
-      "disponibilidade": ["ceaf"],
+      "disponibilidade": [
+        "ceaf"
+      ],
       "lme": true,
       "apresentacoes": [
-        {"dose": "25mg", "forma": "comprimido", "posologias": [
-          {"texto": "Tomar 1 comprimido à noite", "qtd_30dias": "30 comprimidos"},
-          {"texto": "Tomar 2 comprimidos à noite", "qtd_30dias": "60 comprimidos"}
-        ]},
-        {"dose": "100mg", "forma": "comprimido", "posologias": [
-          {"texto": "Tomar 1 comprimido à noite", "qtd_30dias": "30 comprimidos"}
-        ]}
+        {
+          "dose": "25mg",
+          "forma": "comprimido",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido à noite",
+              "qtd_30dias": "30 comprimidos"
+            },
+            {
+              "texto": "Tomar 2 comprimidos à noite",
+              "qtd_30dias": "60 comprimidos"
+            }
+          ]
+        },
+        {
+          "dose": "100mg",
+          "forma": "comprimido",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido à noite",
+              "qtd_30dias": "30 comprimidos"
+            }
+          ]
+        }
       ]
     },
     {
       "principio_ativo": "Risperidona",
       "grupo": "antipsicótico atípico",
       "classificacao_receita": "C1",
-      "disponibilidade": ["remume", "ceaf"],
+      "disponibilidade": [
+        "remume",
+        "ceaf"
+      ],
       "lme": false,
       "apresentacoes": [
-        {"dose": "1mg", "forma": "comprimido", "posologias": [
-          {"texto": "Tomar 1 comprimido à noite", "qtd_30dias": "30 comprimidos"}
-        ]},
-        {"dose": "2mg", "forma": "comprimido", "posologias": [
-          {"texto": "Tomar 1 comprimido à noite", "qtd_30dias": "30 comprimidos"}
-        ]}
+        {
+          "dose": "1mg",
+          "forma": "comprimido",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido à noite",
+              "qtd_30dias": "30 comprimidos"
+            }
+          ]
+        },
+        {
+          "dose": "2mg",
+          "forma": "comprimido",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido à noite",
+              "qtd_30dias": "30 comprimidos"
+            }
+          ]
+        }
       ]
     },
     {
       "principio_ativo": "Fingolimode",
       "grupo": "esclerose múltipla",
       "classificacao_receita": "comum",
-      "disponibilidade": ["ceaf"],
+      "disponibilidade": [
+        "ceaf"
+      ],
       "lme": true,
       "obs": "2ª linha EMRR. 1ª dose com observação ~6h e ECG. Monitorizar hemograma/transaminases (30/60/180 dias, depois semestral); avaliação oftalmológica 3º-4º mês.",
       "apresentacoes": [
-        {"dose": "0,5mg", "forma": "cápsula", "posologias": [
-          {"texto": "Tomar 1 cápsula por dia, sempre no mesmo horário", "qtd_30dias": "30 cápsulas"}
-        ]}
+        {
+          "dose": "0,5mg",
+          "forma": "cápsula",
+          "posologias": [
+            {
+              "texto": "Tomar 1 cápsula por dia, sempre no mesmo horário",
+              "qtd_30dias": "30 cápsulas"
+            }
+          ]
+        }
+      ],
+      "cids": [
+        "G35"
       ]
     },
     {
       "principio_ativo": "Fumarato de dimetila",
       "grupo": "esclerose múltipla",
       "classificacao_receita": "comum",
-      "disponibilidade": ["ceaf"],
+      "disponibilidade": [
+        "ceaf"
+      ],
       "lme": true,
       "obs": "Monitorizar hemograma (linfócitos) a cada 3-6 meses",
       "apresentacoes": [
-        {"dose": "120mg", "forma": "cápsula", "posologias": [
-          {"texto": "Tomar 1 cápsula de 12 em 12 horas por 7 dias (dose de início)", "qtd_30dias": "14 cápsulas"}
-        ]},
-        {"dose": "240mg", "forma": "cápsula", "posologias": [
-          {"texto": "Tomar 1 cápsula de 12 em 12 horas", "qtd_30dias": "60 cápsulas"}
-        ]}
+        {
+          "dose": "120mg",
+          "forma": "cápsula",
+          "posologias": [
+            {
+              "texto": "Tomar 1 cápsula de 12 em 12 horas por 7 dias (dose de início)",
+              "qtd_30dias": "14 cápsulas"
+            }
+          ]
+        },
+        {
+          "dose": "240mg",
+          "forma": "cápsula",
+          "posologias": [
+            {
+              "texto": "Tomar 1 cápsula de 12 em 12 horas",
+              "qtd_30dias": "60 cápsulas"
+            }
+          ]
+        }
+      ],
+      "cids": [
+        "G35"
       ]
     },
     {
       "principio_ativo": "Teriflunomida",
       "grupo": "esclerose múltipla",
       "classificacao_receita": "comum",
-      "disponibilidade": ["ceaf"],
+      "disponibilidade": [
+        "ceaf"
+      ],
       "lme": true,
       "obs": "TGP mensal nos 6 primeiros meses; beta-hCG antes de iniciar (contracepção obrigatória)",
       "apresentacoes": [
-        {"dose": "14mg", "forma": "comprimido", "posologias": [
-          {"texto": "Tomar 1 comprimido por dia", "qtd_30dias": "30 comprimidos"}
-        ]}
+        {
+          "dose": "14mg",
+          "forma": "comprimido",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido por dia",
+              "qtd_30dias": "30 comprimidos"
+            }
+          ]
+        }
+      ],
+      "cids": [
+        "G35"
       ]
     },
     {
       "principio_ativo": "Glatirâmer",
       "grupo": "esclerose múltipla",
       "classificacao_receita": "comum",
-      "disponibilidade": ["ceaf"],
+      "disponibilidade": [
+        "ceaf"
+      ],
       "lme": true,
       "apresentacoes": [
-        {"dose": "20mg/mL", "forma": "seringa preenchida SC", "posologias": [
-          {"texto": "Aplicar 1 seringa por via subcutânea 1 vez ao dia", "qtd_30dias": "30 seringas"}
-        ]},
-        {"dose": "40mg/mL", "forma": "seringa preenchida SC", "posologias": [
-          {"texto": "Aplicar 1 seringa por via subcutânea 3 vezes por semana", "qtd_30dias": "12 seringas"}
-        ]}
+        {
+          "dose": "20mg/mL",
+          "forma": "seringa preenchida SC",
+          "posologias": [
+            {
+              "texto": "Aplicar 1 seringa por via subcutânea 1 vez ao dia",
+              "qtd_30dias": "30 seringas"
+            }
+          ]
+        },
+        {
+          "dose": "40mg/mL",
+          "forma": "seringa preenchida SC",
+          "posologias": [
+            {
+              "texto": "Aplicar 1 seringa por via subcutânea 3 vezes por semana",
+              "qtd_30dias": "12 seringas"
+            }
+          ]
+        }
+      ],
+      "cids": [
+        "G35"
       ]
     },
     {
       "principio_ativo": "Natalizumabe",
       "grupo": "esclerose múltipla",
       "classificacao_receita": "comum",
-      "disponibilidade": ["ceaf"],
+      "disponibilidade": [
+        "ceaf"
+      ],
       "lme": true,
       "obs": "EMRR de alta atividade (1ª linha) ou 3ª linha. Infusão EV em centro de referência a cada 28 dias. JCV feito externamente — apenas sinalizar. Hemograma mensal; vigilância de LEMP com RM.",
       "apresentacoes": [
-        {"dose": "300mg", "forma": "frasco-ampola EV", "posologias": [
-          {"texto": "Infundir 300 mg EV a cada 28 dias, em centro de infusão", "qtd_30dias": "1 frasco"}
-        ]}
+        {
+          "dose": "300mg",
+          "forma": "frasco-ampola EV",
+          "posologias": [
+            {
+              "texto": "Infundir 300 mg EV a cada 28 dias, em centro de infusão",
+              "qtd_30dias": "1 frasco"
+            }
+          ]
+        }
+      ],
+      "cids": [
+        "G35"
       ]
     },
     {
       "principio_ativo": "Betainterferona 1a",
       "grupo": "esclerose múltipla",
       "classificacao_receita": "comum",
-      "disponibilidade": ["ceaf"],
+      "disponibilidade": [
+        "ceaf"
+      ],
       "lme": true,
       "obs": "Monitorizar hemograma, transaminases e TSH",
       "apresentacoes": [
-        {"dose": "44mcg", "forma": "seringa preenchida SC", "posologias": [
-          {"texto": "Aplicar por via subcutânea 3 vezes por semana", "qtd_30dias": "12 seringas"}
-        ]},
-        {"dose": "30mcg", "forma": "seringa IM", "posologias": [
-          {"texto": "Aplicar por via intramuscular 1 vez por semana", "qtd_30dias": "4 seringas"}
-        ]}
+        {
+          "dose": "44mcg",
+          "forma": "seringa preenchida SC",
+          "posologias": [
+            {
+              "texto": "Aplicar por via subcutânea 3 vezes por semana",
+              "qtd_30dias": "12 seringas"
+            }
+          ]
+        },
+        {
+          "dose": "30mcg",
+          "forma": "seringa IM",
+          "posologias": [
+            {
+              "texto": "Aplicar por via intramuscular 1 vez por semana",
+              "qtd_30dias": "4 seringas"
+            }
+          ]
+        }
+      ],
+      "cids": [
+        "G35"
       ]
     },
     {
       "principio_ativo": "Piridostigmina",
       "grupo": "miastenia gravis",
       "classificacao_receita": "C1",
-      "disponibilidade": ["ceaf"],
+      "disponibilidade": [
+        "ceaf"
+      ],
       "lme": true,
       "apresentacoes": [
-        {"dose": "60mg", "forma": "comprimido", "posologias": [
-          {"texto": "Tomar 1 comprimido 3 x ao dia", "qtd_30dias": "90 comprimidos"},
-          {"texto": "Tomar 1 comprimido 4 x ao dia", "qtd_30dias": "120 comprimidos"},
-          {"texto": "Tomar 1 comprimido 5 x ao dia", "qtd_30dias": "150 comprimidos"}
-        ]}
+        {
+          "dose": "60mg",
+          "forma": "comprimido",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido 3 x ao dia",
+              "qtd_30dias": "90 comprimidos"
+            },
+            {
+              "texto": "Tomar 1 comprimido 4 x ao dia",
+              "qtd_30dias": "120 comprimidos"
+            },
+            {
+              "texto": "Tomar 1 comprimido 5 x ao dia",
+              "qtd_30dias": "150 comprimidos"
+            }
+          ]
+        }
+      ],
+      "cids": [
+        "G70.0",
+        "G70.2"
       ]
     },
     {
       "principio_ativo": "Azatioprina",
       "grupo": "imunossupressor",
       "classificacao_receita": "C1",
-      "disponibilidade": ["ceaf"],
+      "disponibilidade": [
+        "ceaf"
+      ],
       "lme": true,
       "obs": "Monitorizar hemograma e função hepática periodicamente (modelo de pedido de exames na pasta de termos)",
       "apresentacoes": [
-        {"dose": "50mg", "forma": "comprimido", "posologias": [
-          {"texto": "Tomar 1 comprimido de 12 em 12 horas", "qtd_30dias": "60 comprimidos"},
-          {"texto": "Tomar 2 comprimidos de 12 em 12 horas", "qtd_30dias": "120 comprimidos"}
-        ]}
+        {
+          "dose": "50mg",
+          "forma": "comprimido",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido de 12 em 12 horas",
+              "qtd_30dias": "60 comprimidos"
+            },
+            {
+              "texto": "Tomar 2 comprimidos de 12 em 12 horas",
+              "qtd_30dias": "120 comprimidos"
+            }
+          ]
+        }
+      ],
+      "cids": [
+        "G70.0",
+        "G70.2",
+        "G35"
       ]
     },
     {
       "principio_ativo": "Prednisona",
       "grupo": "corticosteroide",
       "classificacao_receita": "comum",
-      "disponibilidade": ["remume"],
+      "disponibilidade": [
+        "remume"
+      ],
       "lme": false,
       "apresentacoes": [
-        {"dose": "5mg", "forma": "comprimido", "posologias": [
-          {"texto": "Tomar 1 comprimido pela manhã, após o café", "qtd_30dias": "30 comprimidos"}
-        ]},
-        {"dose": "20mg", "forma": "comprimido", "posologias": [
-          {"texto": "Tomar 1 comprimido pela manhã, após o café", "qtd_30dias": "30 comprimidos"}
-        ]}
+        {
+          "dose": "5mg",
+          "forma": "comprimido",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido pela manhã, após o café",
+              "qtd_30dias": "30 comprimidos"
+            }
+          ]
+        },
+        {
+          "dose": "20mg",
+          "forma": "comprimido",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido pela manhã, após o café",
+              "qtd_30dias": "30 comprimidos"
+            }
+          ]
+        }
       ]
     },
     {
       "principio_ativo": "Imunoglobulina humana",
       "grupo": "imunoterapia EV",
       "classificacao_receita": "C1",
-      "disponibilidade": ["ceaf"],
+      "disponibilidade": [
+        "ceaf"
+      ],
       "lme": true,
       "obs": "Considerar SEMPRE frasco de 5g/100mL. Dose por peso: 2 g/kg divididos em 5 dias (frascos = peso × 2 ÷ 5, arredondar p/ cima). Infusão ~1 frasco/hora em BIC: primeiros 30 min a 30 mL/h (teste de tolerância), depois completar o volume restante em ~6 horas. CEAF SP: apenas crise miastênica.",
       "apresentacoes": [
-        {"dose": "5g/100mL", "forma": "frasco-ampola", "posologias": [
-          {"texto": "2 g/kg divididos em 5 dias, EV em BIC. Primeiros 30 minutos: 30 mL/h (teste de tolerância); após, ~1 frasco/hora até completar o volume do dia em ~6 horas.", "qtd_30dias": "calcular pelo peso (peso × 2 ÷ 5 frascos)"}
-        ]}
+        {
+          "dose": "5g/100mL",
+          "forma": "frasco-ampola",
+          "posologias": [
+            {
+              "texto": "2 g/kg divididos em 5 dias, EV em BIC. Primeiros 30 minutos: 30 mL/h (teste de tolerância); após, ~1 frasco/hora até completar o volume do dia em ~6 horas.",
+              "qtd_30dias": "calcular pelo peso (peso × 2 ÷ 5 frascos)"
+            }
+          ]
+        }
+      ],
+      "cids": [
+        "G61.0",
+        "G70.0"
       ]
     },
     {
       "principio_ativo": "Toxina botulínica tipo A",
       "grupo": "migrânea crônica / distonia / espasticidade",
       "classificacao_receita": "C1",
-      "disponibilidade": ["ceaf"],
+      "disponibilidade": [
+        "ceaf"
+      ],
       "lme": true,
       "obs": "Aplicação ambulatorial pelo médico; protocolo PREEMPT para migrânea crônica",
       "apresentacoes": [
-        {"dose": "100U", "forma": "frasco-ampola", "posologias": [
-          {"texto": "Aplicação conforme protocolo, a cada 3 meses", "qtd_30dias": "2 frascos por ciclo"}
-        ]},
-        {"dose": "200U", "forma": "frasco-ampola", "posologias": [
-          {"texto": "Aplicação conforme protocolo, a cada 3 meses", "qtd_30dias": "1 frasco por ciclo"}
-        ]}
+        {
+          "dose": "100U",
+          "forma": "frasco-ampola",
+          "posologias": [
+            {
+              "texto": "Aplicação conforme protocolo, a cada 3 meses",
+              "qtd_30dias": "2 frascos por ciclo"
+            }
+          ]
+        },
+        {
+          "dose": "200U",
+          "forma": "frasco-ampola",
+          "posologias": [
+            {
+              "texto": "Aplicação conforme protocolo, a cada 3 meses",
+              "qtd_30dias": "1 frasco por ciclo"
+            }
+          ]
+        }
+      ],
+      "cids": [
+        "G24.3",
+        "G24.4",
+        "G24.5",
+        "G24.8",
+        "G51.3",
+        "G81.1",
+        "G82.4"
       ]
     },
     {
       "principio_ativo": "Propranolol",
       "grupo": "profilaxia de migrânea / tremor essencial",
       "classificacao_receita": "comum",
-      "disponibilidade": ["remume"],
+      "disponibilidade": [
+        "remume"
+      ],
       "lme": false,
       "apresentacoes": [
-        {"dose": "40mg", "forma": "comprimido", "posologias": [
-          {"texto": "Tomar 1 comprimido de 12 em 12 horas", "qtd_30dias": "60 comprimidos"},
-          {"texto": "Tomar 2 comprimidos de 12 em 12 horas", "qtd_30dias": "120 comprimidos"}
-        ]}
+        {
+          "dose": "40mg",
+          "forma": "comprimido",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido de 12 em 12 horas",
+              "qtd_30dias": "60 comprimidos"
+            },
+            {
+              "texto": "Tomar 2 comprimidos de 12 em 12 horas",
+              "qtd_30dias": "120 comprimidos"
+            }
+          ]
+        }
       ]
     },
     {
       "principio_ativo": "Flunarizina",
       "grupo": "profilaxia de migrânea / vertigem",
       "classificacao_receita": "comum",
-      "disponibilidade": ["comercial"],
+      "disponibilidade": [
+        "comercial"
+      ],
       "lme": false,
       "apresentacoes": [
-        {"dose": "10mg", "forma": "comprimido", "posologias": [
-          {"texto": "Tomar 1 comprimido à noite", "qtd_30dias": "30 comprimidos"}
-        ]}
+        {
+          "dose": "10mg",
+          "forma": "comprimido",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido à noite",
+              "qtd_30dias": "30 comprimidos"
+            }
+          ]
+        }
       ]
     },
     {
       "principio_ativo": "Naproxeno",
       "grupo": "AINE / crise de migrânea",
       "classificacao_receita": "comum",
-      "disponibilidade": ["comercial"],
+      "disponibilidade": [
+        "comercial"
+      ],
       "lme": false,
       "apresentacoes": [
-        {"dose": "500mg", "forma": "comprimido", "posologias": [
-          {"texto": "Tomar 1 comprimido no início da crise; pode repetir após 12 horas se necessário. Máximo 2 comprimidos ao dia.", "qtd_30dias": "20 comprimidos"}
-        ]}
+        {
+          "dose": "500mg",
+          "forma": "comprimido",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido no início da crise; pode repetir após 12 horas se necessário. Máximo 2 comprimidos ao dia.",
+              "qtd_30dias": "20 comprimidos"
+            }
+          ]
+        }
       ]
     },
     {
       "principio_ativo": "Sumatriptano",
       "grupo": "triptano / crise de migrânea",
       "classificacao_receita": "comum",
-      "disponibilidade": ["comercial"],
+      "disponibilidade": [
+        "comercial"
+      ],
       "lme": false,
       "apresentacoes": [
-        {"dose": "50mg", "forma": "comprimido", "posologias": [
-          {"texto": "Tomar 1 comprimido no início da crise; pode repetir após 2 horas se necessário. Máximo 2 comprimidos ao dia. Não usar mais que 9 dias por mês.", "qtd_30dias": "9 comprimidos"}
-        ]},
-        {"dose": "100mg", "forma": "comprimido", "posologias": [
-          {"texto": "Tomar 1 comprimido no início da crise; pode repetir após 2 horas se necessário. Máximo 2 comprimidos ao dia. Não usar mais que 9 dias por mês.", "qtd_30dias": "9 comprimidos"}
-        ]}
+        {
+          "dose": "50mg",
+          "forma": "comprimido",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido no início da crise; pode repetir após 2 horas se necessário. Máximo 2 comprimidos ao dia. Não usar mais que 9 dias por mês.",
+              "qtd_30dias": "9 comprimidos"
+            }
+          ]
+        },
+        {
+          "dose": "100mg",
+          "forma": "comprimido",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido no início da crise; pode repetir após 2 horas se necessário. Máximo 2 comprimidos ao dia. Não usar mais que 9 dias por mês.",
+              "qtd_30dias": "9 comprimidos"
+            }
+          ]
+        }
       ]
     },
     {
       "principio_ativo": "Betaistina",
       "grupo": "vertigem",
       "classificacao_receita": "comum",
-      "disponibilidade": ["comercial"],
+      "disponibilidade": [
+        "comercial"
+      ],
       "lme": false,
       "apresentacoes": [
-        {"dose": "24mg", "forma": "comprimido", "posologias": [
-          {"texto": "Tomar 1 comprimido de 12 em 12 horas", "qtd_30dias": "60 comprimidos"}
-        ]}
+        {
+          "dose": "24mg",
+          "forma": "comprimido",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido de 12 em 12 horas",
+              "qtd_30dias": "60 comprimidos"
+            }
+          ]
+        }
       ]
     },
     {
       "principio_ativo": "Zolpidem",
       "grupo": "hipnótico",
       "classificacao_receita": "B1",
-      "disponibilidade": ["comercial"],
+      "disponibilidade": [
+        "comercial"
+      ],
       "lme": false,
       "apresentacoes": [
-        {"dose": "10mg", "forma": "comprimido", "posologias": [
-          {"texto": "Tomar 1 comprimido imediatamente antes de deitar", "qtd_30dias": "30 comprimidos"}
-        ]}
+        {
+          "dose": "10mg",
+          "forma": "comprimido",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido imediatamente antes de deitar",
+              "qtd_30dias": "30 comprimidos"
+            }
+          ]
+        }
       ]
     }
   ]
