@@ -208,20 +208,61 @@ def extrair_diagnosticos(texto: str) -> list[str]:
     return json.loads(resposta)["diagnosticos"]
 
 
+# Roteiro da anamnese por doença: o que o texto DEVE cobrir, mesmo que o médico
+# digite poucas palavras. Quando faltar um dado específico, escrever de forma
+# genérica porém clinicamente aceitável, SEM inventar números/datas/exames.
+ROTEIRO_ANAMNESE_POR_CID = {
+    "G40": "SEMPRE enfatizar a semiologia da crise (início focal ou generalizado, "
+           "sinais motores, COM ou SEM perda/comprometimento de consciência), última "
+           "crise e frequência atual, e por que preenche critério de epilepsia (2 "
+           "crises não provocadas >24h OU 1 crise com alto risco de recorrência OU "
+           "síndrome definida). Citar EEG e RM/TC apenas se constarem nos dados. Se "
+           "faltar detalhe, usar formulação genérica aceitável (ex.: 'crises focais "
+           "recorrentes, não provocadas, em uso regular da medicação') sem inventar "
+           "datas ou números.",
+    "G30": "Declínio cognitivo progressivo com prejuízo funcional; escolaridade, MEEM "
+           "e CDR com valores; exclusão de causas reversíveis e neuroimagem se "
+           "constarem nos dados.",
+    "F00": "Declínio cognitivo progressivo com prejuízo funcional; escolaridade, MEEM "
+           "e CDR com valores.",
+    "G35": "Forma clínica, surtos (número e último), EDSS atual, disseminação no "
+           "espaço/tempo pela RM se constar; linha de tratamento e falha prévia se "
+           "houver.",
+    "G70": "Fatigabilidade flutuante com piora ao esforço, distribuição (ocular, "
+           "bulbar, apendicular, respiratória); ENMG/anti-AChR se constarem; para "
+           "IVIG, evidenciar crise miastênica.",
+    "G61": "Cronologia da fraqueza ascendente, arreflexia, estágio funcional "
+           "(deambulação), líquor e ENMG se constarem; dose 0,4 g/kg/dia por 5 dias.",
+    "R52": "Dor crônica com características neuropáticas (queimação, choques, "
+           "alodinia), LANSS e EVA com valores, falha ou contraindicação a "
+           "antidepressivo tricíclico.",
+    "G20": "Parkinsonismo (bradicinesia + tremor/rigidez), assimetria e resposta a "
+           "levodopa quando constar; tempo de doença e limitação funcional.",
+    "E78": "Indicação de estatina de alta potência (prevenção secundária de evento "
+           "vascular ou dislipidemia); LDL se constar.",
+}
+
+
 def gerar_anamnese_lme(dados: str, paciente: str, medicamentos: str,
                        cid10: str) -> str:
-    """Anamnese CURTA para o campo 11 do LME, endereçando os critérios do PCDT."""
+    """Anamnese CURTA para o campo 11 do LME, endereçando os critérios do PCDT.
+    Feita para funcionar mesmo com POUCAS palavras do médico."""
+    cid = cid10.upper()
     criterios = next((v for k, v in CRITERIOS_POR_CID.items()
-                      if cid10.upper().startswith(k)), "")
+                      if cid.startswith(k)), "")
+    roteiro = next((v for k, v in ROTEIRO_ANAMNESE_POR_CID.items()
+                    if cid.startswith(k)), "")
     sistema = (
         "Escreva a ANAMNESE do campo 11 do LME (Laudo de Medicamento Especializado do "
         "SUS): um único parágrafo denso de no máximo 6 linhas, técnico e direto, que "
         "demonstre que o paciente preenche os critérios do PCDT para o medicamento "
-        "solicitado. Inclua semiologia, achados objetivos de exames e tratamentos "
-        "prévios com doses quando houver. Não invente dados; não mencione o que não "
-        "está documentado; não cite nome de paciente (identificação sai no "
-        "formulário)." + REGRAS_FIXAS +
-        (f"\n\nCRITÉRIOS A ENDEREÇAR: {criterios}" if criterios else ""))
+        "solicitado. O médico pode ter digitado poucas palavras: complete a estrutura "
+        "esperada com formulações genéricas clinicamente aceitáveis, MAS nunca invente "
+        "números, datas, doses ou resultados de exames que não estejam nos dados — "
+        "itens sem informação são escritos de forma qualitativa ou omitidos em "
+        "silêncio (nunca dizer que falta). Não cite nome de paciente." + REGRAS_FIXAS +
+        (f"\n\nROTEIRO OBRIGATÓRIO DESTA DOENÇA: {roteiro}" if roteiro else "") +
+        (f"\n\nCRITÉRIOS DO PCDT: {criterios}" if criterios else ""))
     conteudo = (f"Medicamento(s): {medicamentos}\nCID-10: {cid10}\n\n"
                 f"Dados clínicos do prontuário:\n{dados}")
     return limpar_texto(_chamar([{"role": "system", "content": sistema},

@@ -280,9 +280,12 @@ function sugerirCid() {
   chips.innerHTML = '';
   if (!m || !(m.cids || []).length) { pistaPcdt(); return; }
   const opcoes = m.cids;
-  // G30.x e F00.x são a mesma indicação (Alzheimer); só pergunta quando as
-  // indicações são realmente diferentes (ex.: gabapentina G40 vs R52)
-  const indicacao = c => ({ 'F00': 'G30' }[c.slice(0, 3)] || c.slice(0, 3));
+  // Agrupamentos que são a MESMA indicação (não perguntar à toa):
+  // F00=G30 (Alzheimer), G51=G24 (distonias/espasmo hemifacial, mesmo PCDT),
+  // G82=G81 (espasticidade). Diferentes de verdade: gaba G40 vs R52,
+  // azatioprina G70 vs G35, IVIG G61 vs G70, toxina G24 vs G81.
+  const indicacao = c => ({ 'F00': 'G30', 'G51': 'G24', 'G82': 'G81' }[c.slice(0, 3)]
+                          || c.slice(0, 3));
   const grupos = new Set(opcoes.map(indicacao));
   const atual = campo.value.trim().toUpperCase();
 
