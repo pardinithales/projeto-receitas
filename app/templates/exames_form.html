@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% block titulo %}Exames — {{ paciente.nome }}{% endblock %}
+{% block conteudo %}
+<div class="cartao">
+  <h1>Solicitação de exames — {{ paciente.nome }}</h1>
+  <p style="color:#5a6b7a">Para o paciente realizar externamente (na cidade dele).
+    Escolha um painel por medicamento, desmarque o que não quiser e adicione extras.</p>
+  <form method="post" action="/pacientes/{{ paciente.id }}/exames" id="form-exames">
+
+    <label>Painel por medicamento (preenche a lista abaixo)</label>
+    <select id="sel-painel"><option value="">— escolher —</option></select>
+
+    <h2>Exames</h2>
+    <div id="lista-exames" class="chips" style="flex-direction:column;align-items:flex-start"></div>
+    <div class="linha" style="margin-top:8px">
+      <div style="flex:2"><label>Adicionar exame avulso</label>
+        <input type="text" id="novo-exame" placeholder="ex.: RM de encéfalo com contraste"></div>
+      <div style="max-width:150px"><label>Material</label>
+        <input type="text" id="novo-material" placeholder="sangue"></div>
+      <div style="max-width:130px"><label>&nbsp;</label>
+        <button type="button" class="botao secundario" style="width:100%"
+                onclick="addExame()">Adicionar</button></div>
+    </div>
+
+    <label>Indicação clínica</label>
+    <input type="text" name="indicacao" value="{{ 'CID-10 ' + cid10 if cid10 else '' }}"
+           placeholder="ex.: monitorização de azatioprina — CID-10 G70.0">
+
+    <h2>Datas dos pedidos</h2>
+    <div class="linha">
+      <div>
+        <div class="radio-grupo">
+          <label><input type="radio" name="com_data" value="com" checked>
+            <span>COM data</span></label>
+          <label><input type="radio" name="com_data" value="sem">
+            <span>SEM data</span></label>
+        </div>
+      </div>
+    </div>
+    <label>Gerar pedidos para (1 folha por período):</label>
+    <div class="chips" id="meses">
+      <label class="chip"><input type="checkbox" value="0" checked> hoje ({{ hoje }})</label>
+      <label class="chip"><input type="checkbox" value="3"> +3 meses</label>
+      <label class="chip"><input type="checkbox" value="6"> +6 meses</label>
+      <label class="chip"><input type="checkbox" value="9"> +9 meses</label>
+      <label class="chip"><input type="checkbox" value="12"> +12 meses</label>
+    </div>
+
+    <input type="hidden" name="exames_json" id="exames_json">
+    <input type="hidden" name="meses_json" id="meses_json">
+    <p style="margin-top:18px">
+      <button class="botao" type="submit">Gerar pedido(s) de exame (PDF)</button>
+      <a class="botao secundario" href="/pacientes/{{ paciente.id }}">Cancelar</a>
+    </p>
+  </form>
+</div>
+
+<script>
+let PAINEIS = [];
+fetch('/api/paineis-exames').then(r => r.json()).then(p => {
+  PAINEIS = p;
+  const sel = document.getElementById('sel-painel');
+  p.forEach((painel, i) => {
+    const nomes = [painel.medicamento].concat(painel.aplica_tambem || []);
+    const o = document.createElement('option');
+    o.value = i; o.textContent = nomes.join(' / ');
+    sel.appendChild(o);
+  });
+});
+document.getElementById('sel-painel').addEventListener('change', function() {
+  if (this.value === '') return;
+  const painel = PAINEIS[parseInt(this.value)];
+  painel.exames.forEach(e => addExame(e.nome, e.material, true));
+  if (painel.periodicidade_sugerida) {
+    const ind = document.querySelector('input[name=indicacao]');
+    if (!ind.value.includes(painel.medicamento))
+      ind.value = (`monitorização de ${painel.medicamento} (${painel.periodicidade_sugerida})` +
+                   (ind.value ? ' — ' + ind.value : ''));
+  }
+  (painel.escalas || []).forEach(e =>
+    alert('Lembrete: este medicamento também exige escala: ' + e));
+});
+function addExame(nome, material, marcado) {
+  nome = nome || document.getElementById('novo-exame').value.trim();
+  material = material !== undefined ? material : document.getElementById('novo-material').value.trim();
+  if (!nome) return;
+  const div = document.getElementById('lista-exames');
+  if ([...div.querySelectorAll('label')].some(l => l.dataset.nome === nome)) return;
+  const l = document.createElement('label');
+  l.className = 'chip'; l.dataset.nome = nome; l.dataset.material = material || '';
+  l.innerHTML = `<input type="checkbox" ${marcado !== false ? 'checked' : ''}> ${nome}` +
+                (material ? ` <small>(${material})</small>` : '');
+  div.appendChild(l);
+  document.getElementById('novo-exame').value = '';
+  document.getElementById('novo-material').value = '';
+}
+document.getElementById('form-exames').addEventListener('submit', e => {
+  const exames = [...document.querySelectorAll('#lista-exames label')]
+    .filter(l => l.querySelector('input').checked)
+    .map(l => ({ nome: l.dataset.nome, material: l.dataset.material }));
+  const meses = [...document.querySelectorAll('#meses input:checked')].map(i => parseInt(i.value));
+  if (!exames.length) { e.preventDefault(); alert('Selecione ao menos um exame.'); return; }
+  if (!meses.length) { e.preventDefault(); alert('Selecione ao menos um período.'); return; }
+  document.getElementById('exames_json').value = JSON.stringify(exames);
+  document.getElementById('meses_json').value = JSON.stringify(meses);
+});
+</script>
+{% endblock %}

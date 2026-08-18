@@ -3,12 +3,24 @@
 {% block conteudo %}
 <div class="cartao">
   <h1>{{ paciente.nome }}</h1>
-  <p style="color:#5a6b7a; margin: 4px 0 14px">
+  <p style="color:#5a6b7a; margin: 4px 0 8px">
     {% if paciente.data_nascimento %}Nascimento: {{ paciente.data_nascimento }} · {% endif %}
     {% if paciente.telefone %}Tel: {{ paciente.telefone }} · {% endif %}
     {% if paciente.cns %}CNS: {{ paciente.cns }}{% endif %}
+    · <a href="/pacientes/{{ paciente.id }}/editar">editar cadastro</a>
   </p>
+  {% if paciente.tags %}
+  <div class="chips" style="margin-bottom:12px">
+    {% for t in paciente.tags.split(",") %}
+    <span class="chip" style="cursor:default">{{ t.strip() }}</span>
+    {% endfor %}
+  </div>
+  {% endif %}
   <a class="botao" href="/pacientes/{{ paciente.id }}/receita">Nova receita</a>
+  <a class="botao" style="background:#7b3fe4"
+     href="/pacientes/{{ paciente.id }}/lme">Gerar LME</a>
+  <a class="botao" style="background:#0a8f5b"
+     href="/pacientes/{{ paciente.id }}/exames">Pedido de exames</a>
   {% if documentos %}
   <a class="botao rosa"
      href="/pacientes/{{ paciente.id }}/receita?copiar_de={{ documentos[0].id }}">

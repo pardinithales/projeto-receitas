@@ -1,13 +1,17 @@
 {% extends "base.html" %}
-{% block titulo %}Novo paciente{% endblock %}
+{% block titulo %}{{ "Editar" if editar else "Novo" }} paciente{% endblock %}
 {% block conteudo %}
 <div class="cartao">
-  <h1>Cadastrar paciente</h1>
+  <h1>{{ "Editar" if editar else "Cadastrar" }} paciente</h1>
   <p style="color:#5a6b7a; margin-top:-6px">Só o <b>nome</b> é obrigatório — o resto pode
     ser preenchido depois. Os dados extras só serão exigidos na hora de gerar um LME.</p>
-  <form method="post" action="/pacientes">
+  <form method="post"
+        action="{{ '/pacientes/' + paciente.id|string + '/editar' if editar else '/pacientes' }}">
     <label>Nome completo *</label>
     <input type="text" name="nome" required value="{{ paciente.nome or '' }}">
+    <label>Palavras-chave / diagnósticos (separar por vírgula — usados na busca)</label>
+    <input type="text" name="tags" value="{{ paciente.tags or '' }}"
+           placeholder="ex.: epilepsia focal estrutural, meningioma, levetiracetam, botox">
     <div class="linha">
       <div><label>Data de nascimento</label><input type="date" name="data_nascimento"></div>
       <div><label>Telefone</label><input type="text" name="telefone"></div>

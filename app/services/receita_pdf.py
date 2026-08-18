@@ -28,7 +28,8 @@ class Receita:
     itens: list[ItemReceita] = field(default_factory=list)
     tipo: str = "controle_especial"   # controle_especial | comum
     via_administracao: str = "USO ORAL"
-    data: str = ""                    # "18/08/2026" (vazio = linha para preencher à mão)
+    data: str = ""                    # "18/08/2026" (vazio = sai sem campo de data)
+    vias: int = 1                     # nº de vias/meses (só faz sentido SEM data)
 
 
 def _texto_quebrado(canvas: Canvas, texto: str, x: float, y: float, largura: float,
@@ -127,23 +128,26 @@ def gerar_receita_pdf(receita: Receita, destino: Path) -> Path:
     c = Canvas(str(destino), pagesize=A4)
     controle = receita.tipo == "controle_especial"
     titulo = "RECEITUÁRIO CONTROLE ESPECIAL" if controle else "RECEITUÁRIO MÉDICO"
-    y = _cabecalho(c, titulo, controle)
+    # COM data: 1 via só (receita datada); SEM data: 1 via por mês até o retorno
+    n_vias = 1 if receita.data else max(1, receita.vias)
 
-    c.setFont("Helvetica", 11)
-    c.drawString(MARGEM_ESQ, y, f"Paciente: {receita.paciente}")
-    y -= 9 * mm
-    c.setFont("Helvetica-Bold", 11)
-    c.drawString(MARGEM_ESQ, y, receita.via_administracao)
-    y -= 8 * mm
+    for _ in range(n_vias):
+        y = _cabecalho(c, titulo, controle)
+        c.setFont("Helvetica", 11)
+        c.drawString(MARGEM_ESQ, y, f"Paciente: {receita.paciente}")
+        y -= 9 * mm
+        c.setFont("Helvetica-Bold", 11)
+        c.drawString(MARGEM_ESQ, y, receita.via_administracao)
+        y -= 8 * mm
 
-    for item in receita.itens:
-        y = _linha_medicamento(c, item, y)
+        for item in receita.itens:
+            y = _linha_medicamento(c, item, y)
 
-    y_comprador = 95 * mm
-    _assinatura(c, y_comprador + 25 * mm, receita.data)
-    if controle:
-        _bloco_comprador_fornecedor(c, y_comprador - 10 * mm)
+        y_comprador = 95 * mm
+        _assinatura(c, y_comprador + 25 * mm, receita.data)
+        if controle:
+            _bloco_comprador_fornecedor(c, y_comprador - 10 * mm)
+        c.showPage()
 
-    c.showPage()
     c.save()
     return destino

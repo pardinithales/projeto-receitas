@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+{% block titulo %}LME — {{ paciente.nome }}{% endblock %}
+{% block conteudo %}
+<div class="cartao">
+  <h1>Gerar LME — {{ paciente.nome }}</h1>
+  {% if erro %}<div class="aviso" style="background:#ffe4e4;border-color:#e9a0a0">{{ erro }}</div>{% endif %}
+  <form method="post" action="/pacientes/{{ paciente.id }}/lme" id="form-lme">
+
+    <h2>Dados do paciente exigidos pelo LME</h2>
+    <div class="linha">
+      <div style="flex:2"><label>Nome da mãe *</label>
+        <input type="text" name="nome_mae" value="{{ paciente.nome_mae or '' }}" required></div>
+      <div><label>Peso (kg) *</label>
+        <input type="number" step="0.1" name="peso_kg" value="{{ paciente.peso_kg or '' }}" required></div>
+      <div><label>Altura (cm) *</label>
+        <input type="number" step="1" name="altura_cm" value="{{ paciente.altura_cm or '' }}" required></div>
+    </div>
+    <div class="linha">
+      <div><label>CNS</label><input type="text" name="cns" value="{{ paciente.cns or '' }}"></div>
+      <div><label>CPF (se não tiver CNS)</label><input type="text" name="cpf" value="{{ paciente.cpf or '' }}"></div>
+      <div><label>Telefone</label><input type="text" name="telefone" value="{{ paciente.telefone or '' }}"></div>
+      <div><label>Raça/cor</label>
+        <select name="raca_cor">
+          {% for r in ["", "Branca", "Parda", "Preta", "Amarela", "Indígena"] %}
+          <option {{ "selected" if paciente.raca_cor == r else "" }}>{{ r }}</option>
+          {% endfor %}
+        </select></div>
+    </div>
+
+    <h2>Medicamentos do LME (até 6)</h2>
+    <p style="color:#5a6b7a;font-size:14px;margin:2px 0 6px">Quantidade mensal repetida
+      nos 6 meses. A 1ª linha sai como texto; as demais casam com a lista oficial do CEAF.</p>
+    <div id="meds"></div>
+    <p><button type="button" class="botao secundario" onclick="novaLinhaMed()">+ Adicionar medicamento</button></p>
+
+    <h2>Dados clínicos (ficam salvos p/ renovação)</h2>
+    <div class="linha">
+      <div style="max-width:140px"><label>CID-10 *</label>
+        <input type="text" name="cid10" value="{{ lme.cid10 or '' }}" required></div>
+      <div><label>Diagnóstico *</label>
+        <input type="text" name="diagnostico" value="{{ lme.diagnostico or '' }}" required></div>
+    </div>
+    <label>Anamnese *</label>
+    <textarea name="anamnese" rows="4" required>{{ lme.anamnese or '' }}</textarea>
+    <label>Tratamentos prévios (vazio = marca NÃO no formulário)</label>
+    <input type="text" name="tratamentos_previos" value="{{ lme.tratamentos_previos or '' }}">
+    <div class="linha">
+      <div>
+        <label>Paciente incapaz?</label>
+        <div class="radio-grupo">
+          <label><input type="radio" name="incapaz" value="nao"
+            {{ "checked" if not lme.incapaz else "" }}><span>NÃO</span></label>
+          <label><input type="radio" name="incapaz" value="sim"
+            {{ "checked" if lme.incapaz else "" }}><span>SIM</span></label>
+        </div>
+      </div>
+      <div><label>Nome do responsável (se incapaz)</label>
+        <input type="text" name="nome_responsavel" value="{{ lme.nome_responsavel or '' }}"></div>
+    </div>
+
+    <h2>Opções</h2>
+    <div class="linha">
+      <div>
+        <label>Data da solicitação</label>
+        <div class="radio-grupo">
+          <label><input type="radio" name="com_data" value="com" checked>
+            <span>COM data ({{ hoje }})</span></label>
+          <label><input type="radio" name="com_data" value="sem">
+            <span>SEM data</span></label>
+        </div>
+      </div>
+    </div>
+    <label class="chip" style="display:inline-flex;align-items:center;gap:8px;font-size:15px;padding:10px 16px">
+      <input type="checkbox" name="gerar_relatorio" value="sim" id="chk-rel">
+      Gerar também RELATÓRIO para a farmácia de alto custo
+    </label>
+    <div id="bloco-relatorio" style="display:none">
+      <label>Texto do relatório (rascunho automático — edite à vontade)</label>
+      <textarea name="texto_relatorio" rows="5" id="texto-relatorio"></textarea>
+    </div>
+
+    <input type="hidden" name="meds_json" id="meds_json">
+    <p style="margin-top:18px">
+      <button class="botao" type="submit">Gerar LME (PDF oficial preenchido)</button>
+      <a class="botao secundario" href="/pacientes/{{ paciente.id }}">Cancelar</a>
+    </p>
+  </form>
+</div>
+
+<template id="tpl-med">
+  <div class="item-med">
+    <div class="linha">
+      <div style="flex:2"><label>Medicamento (alto custo)</label>
+        <input type="text" class="med-busca" list="lista-meds-lme" placeholder="Digite para buscar…"></div>
+      <div><label>Apresentação</label><select class="med-apr"></select></div>
+      <div style="max-width:150px"><label>Qtd mensal</label>
+        <input type="text" class="med-qtd" placeholder="ex.: 60"></div>
+    </div>
+    <p style="text-align:right;margin:6px 0 0">
+      <button type="button" class="chip" onclick="this.closest('.item-med').remove()">remover</button></p>
+  </div>
+</template>
+<datalist id="lista-meds-lme"></datalist>
+
+<script>
+let CAT = [];
+fetch('/api/catalogo').then(r => r.json()).then(c => {
+  CAT = c.filter(m => m.lme);
+  document.getElementById('lista-meds-lme').innerHTML =
+    CAT.map(m => `<option value="${m.principio_ativo}">`).join('');
+  novaLinhaMed();
+});
+function medNome(n){ return CAT.find(m => m.principio_ativo.toLowerCase() === n.trim().toLowerCase()); }
+function novaLinhaMed() {
+  const el = document.getElementById('tpl-med').content.cloneNode(true).firstElementChild;
+  document.getElementById('meds').appendChild(el);
+  const busca = el.querySelector('.med-busca'), apr = el.querySelector('.med-apr'),
+        qtd = el.querySelector('.med-qtd');
+  busca.addEventListener('change', () => {
+    const m = medNome(busca.value);
+    apr.innerHTML = '';
+    if (!m) return;
+    m.apresentacoes.forEach(a => {
+      const o = document.createElement('option');
+      o.value = o.textContent = `${a.dose} - ${a.forma}`;
+      apr.appendChild(o);
+    });
+    const p = m.apresentacoes[0] && m.apresentacoes[0].posologias[0];
+    if (p && p.qtd_30dias) qtd.value = p.qtd_30dias.replace(/[^\d]/g, '');
+  });
+}
+document.getElementById('chk-rel').addEventListener('change', function() {
+  document.getElementById('bloco-relatorio').style.display = this.checked ? 'block' : 'none';
+  if (this.checked && !document.getElementById('texto-relatorio').value) {
+    const diag = document.querySelector('input[name=diagnostico]').value || '(diagnóstico)';
+    const cid = document.querySelector('input[name=cid10]').value || '';
+    const anam = document.querySelector('textarea[name=anamnese]').value || '';
+    document.getElementById('texto-relatorio').value =
+      `À FARMÁCIA DE ALTO CUSTO. Paciente em acompanhamento neurológico com diagnóstico de ${diag}` +
+      (cid ? ` (CID-10 ${cid})` : '') + `. ${anam} Solicito a liberação das medicações descritas no LME anexo, por gentileza.`;
+  }
+});
+document.getElementById('form-lme').addEventListener('submit', e => {
+  const meds = [];
+  document.querySelectorAll('#meds .item-med').forEach(el => {
+    const nome = el.querySelector('.med-busca').value.trim();
+    if (!nome) return;
+    const apr = el.querySelector('.med-apr').value;
+    meds.push({ descricao: apr ? `${nome} ${apr}` : nome,
+                qtd_mensal: el.querySelector('.med-qtd').value.trim() || '30' });
+  });
+  if (!meds.length) { e.preventDefault(); alert('Adicione ao menos um medicamento.'); return; }
+  document.getElementById('meds_json').value = JSON.stringify(meds);
+});
+</script>
+{% endblock %}
