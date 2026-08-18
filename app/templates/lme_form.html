@@ -251,27 +251,42 @@ const CIDS_POR_GRUPO = [
   { contem: ['esclerose múltipla'], padrao: 'G35', opcoes: ['G35'] },
   { contem: ['antiparkinsoniano'], padrao: 'G20', opcoes: ['G20'] },
   { contem: ['estatina'], padrao: 'E78.0', opcoes: ['E78.0', 'E78.2', 'E78.5'] },
-  { contem: ['dor neuropática'], padrao: 'G40.1', opcoes: ['G40.1', 'R52.1', 'R52.2'] },
+  { contem: ['dor neuropática'], padrao: 'R52.1', opcoes: ['R52.1', 'R52.2'] },
   { contem: ['imunoterapia'], padrao: 'G61.0', opcoes: ['G61.0', 'G70.0'] },
 ];
 function sugerirCid() {
   const campo = document.querySelector('input[name=cid10]');
+  const diag = document.querySelector('input[name=diagnostico]');
   const chips = document.getElementById('cids-sugeridos');
   const primeiro = document.querySelector('#meds .med-busca');
   const m = primeiro && medNome(primeiro.value);
   chips.innerHTML = '';
   if (!m) return;
-  const regra = CIDS_POR_GRUPO.find(r => r.contem.some(c => (m.grupo || '').includes(c)));
-  if (!regra) return;
-  if (!campo.value.trim()) {
-    campo.value = regra.padrao;
-    const diag = document.querySelector('input[name=diagnostico]');
-    if (DESCRICOES_CID[regra.padrao] && !diag.value.trim()) {
-      diag.value = DESCRICOES_CID[regra.padrao];
+  // um medicamento pode ter MAIS DE UMA indicação (ex.: gabapentina = epilepsia OU dor)
+  const regras = CIDS_POR_GRUPO.filter(r => r.contem.some(c => (m.grupo || '').includes(c)));
+  if (!regras.length) return;
+  const opcoes = [...new Set(regras.flatMap(r => r.opcoes))];
+  const atual = campo.value.trim().toUpperCase();
+
+  // CID herdado de outra medicação/indicação: limpa e obriga a escolher
+  if (atual && !opcoes.includes(atual)) {
+    campo.value = '';
+    if (diag.dataset.auto === '1') { diag.value = ''; }
+  }
+  if (!campo.value.trim() && regras.length === 1) {
+    campo.value = regras[0].padrao;
+    if (DESCRICOES_CID[regras[0].padrao] && !diag.value.trim()) {
+      diag.value = DESCRICOES_CID[regras[0].padrao];
       diag.dataset.auto = '1';
     }
   }
-  regra.opcoes.forEach(cid => {
+  if (!campo.value.trim() && regras.length > 1) {
+    const aviso = document.createElement('span');
+    aviso.className = 'chip'; aviso.style.cssText = 'background:#fff7e0;cursor:default';
+    aviso.textContent = '⚠ ' + m.principio_ativo + ' tem mais de uma indicação — escolha o CID:';
+    chips.appendChild(aviso);
+  }
+  opcoes.forEach(cid => {
     const b = document.createElement('button');
     b.type = 'button'; b.className = 'chip';
     b.textContent = cid + (DESCRICOES_CID[cid] ? ' — ' + DESCRICOES_CID[cid].slice(0, 40) + '…' : '');

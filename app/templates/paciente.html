@@ -38,6 +38,7 @@
   <table>
     {% for d in documentos %}
     <tr>
+      <td><input type="checkbox" class="sel-doc" value="{{ d.id }}"></td>
       <td>{{ d.data_emissao[:10] }}</td>
       <td>{{ d.tipo.replace("_", " ") }}</td>
       <td>{{ d.resumo }}
@@ -64,12 +65,28 @@
   <p>Nenhum documento emitido ainda.</p>
   {% endif %}
   <p style="margin-top:20px; text-align:right">
+    <form method="post" action="/pacientes/{{ paciente.id }}/excluir-selecionados"
+          style="display:inline" id="form-excluir-sel"
+          onsubmit="return prepararExclusao()">
+      <input type="hidden" name="ids_json" id="ids_json">
+      <button class="chip" type="submit" style="color:#a33">excluir selecionados</button></form>
+    ·
+    <form method="post" action="/pacientes/{{ paciente.id }}/excluir-historico" style="display:inline"
+          onsubmit="return confirm('Excluir TODOS os documentos do paciente (cadastro fica)?')">
+      <button class="chip" type="submit" style="color:#a33">excluir todo o histórico</button></form>
+    ·
     <form method="post" action="/pacientes/{{ paciente.id }}/excluir" style="display:inline"
           onsubmit="return confirm('EXCLUIR o paciente {{ paciente.nome }} e TODO o histórico dele? Não tem volta.')">
       <button class="chip" type="submit" style="color:#a33">excluir paciente</button></form>
   </p>
 </div>
 <script>
+function prepararExclusao() {
+  const ids = [...document.querySelectorAll('.sel-doc:checked')].map(c => c.value);
+  if (!ids.length) { alert('Marque os documentos que quer excluir.'); return false; }
+  document.getElementById('ids_json').value = JSON.stringify(ids);
+  return confirm(`Excluir ${ids.length} documento(s) selecionado(s)?`);
+}
 async function imprimirKit(el) {
   el.textContent = '🖨️ imprimindo kit…';
   try {

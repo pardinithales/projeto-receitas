@@ -1110,6 +1110,44 @@ def excluir_documento(doc_id: int):
     return RedirectResponse(f"/pacientes/{pid}", status_code=303)
 
 
+def _excluir_documentos(con, doc_ids: list[int]) -> None:
+    for doc_id in doc_ids:
+        doc = con.execute("SELECT caminho_pdf FROM documentos WHERE id = ?",
+                          (doc_id,)).fetchone()
+        if doc and doc["caminho_pdf"]:
+            Path(doc["caminho_pdf"]).unlink(missing_ok=True)
+        con.execute("DELETE FROM impressao_fila WHERE documento_id = ?", (doc_id,))
+        con.execute("DELETE FROM documentos WHERE id = ?", (doc_id,))
+
+
+@app.post("/pacientes/{pid}/excluir-historico")
+def excluir_historico(pid: int):
+    """Apaga TODOS os documentos do paciente, mantendo o cadastro e os dados de LME."""
+    con = db.conectar()
+    try:
+        ids = [r["id"] for r in con.execute(
+            "SELECT id FROM documentos WHERE paciente_id = ?", (pid,))]
+        _excluir_documentos(con, ids)
+        con.commit()
+    finally:
+        con.close()
+    return RedirectResponse(f"/pacientes/{pid}", status_code=303)
+
+
+@app.post("/pacientes/{pid}/excluir-selecionados")
+def excluir_selecionados(pid: int, ids_json: str = Form("[]")):
+    ids = [int(i) for i in json.loads(ids_json)]
+    con = db.conectar()
+    try:
+        proprios = {r["id"] for r in con.execute(
+            "SELECT id FROM documentos WHERE paciente_id = ?", (pid,))}
+        _excluir_documentos(con, [i for i in ids if i in proprios])
+        con.commit()
+    finally:
+        con.close()
+    return RedirectResponse(f"/pacientes/{pid}", status_code=303)
+
+
 @app.post("/pacientes/{pid}/excluir")
 def excluir_paciente(pid: int):
     con = db.conectar()
