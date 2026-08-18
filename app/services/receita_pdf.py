@@ -111,12 +111,13 @@ def _bloco_comprador_fornecedor(c: Canvas, y_base: float) -> None:
 
 
 def desenhar_carimbo(c: Canvas, x_centro: float, y_linha: float) -> None:
-    """Carimbo digital centrado sobre a linha de assinatura (atrás do texto)."""
+    """Carimbo digital centrado sobre a linha de assinatura (fundo transparente,
+    então pode ser grande como um carimbo real)."""
     if not config.CARIMBO_PATH.exists():
         return
-    larg = 32 * mm
+    larg = 44 * mm
     alt = larg * 184 / 271          # proporção da imagem do carimbo
-    c.drawImage(str(config.CARIMBO_PATH), x_centro - larg / 2, y_linha - 3 * mm,
+    c.drawImage(str(config.CARIMBO_PATH), x_centro - larg / 2, y_linha - 4 * mm,
                 width=larg, height=alt, mask="auto")
 
 

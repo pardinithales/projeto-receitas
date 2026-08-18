@@ -175,8 +175,9 @@ WIDGETS_DE_TELA = {"MENU", "Salvar como", "Busca CNES", "Hoje",
                    "Digitar manualmente", "Listar medicamentos", "Text2", "suporte"}
 
 # Carimbo: campo 17 (assinatura do médico) e campo 23 (responsável preenchimento)
-POSICOES_CARIMBO = [(448, 186), (448, 30)]      # canto inferior esquerdo
-CARIMBO_LARGURA = 68                             # pontos (~24mm), não cobre os rótulos
+# (fundo transparente: pode ocupar o quadro como um carimbo real)
+POSICOES_CARIMBO = [(420, 178), (420, 24)]      # canto inferior esquerdo
+CARIMBO_LARGURA = 100                            # pontos (~35mm)
 
 
 def _esconder_widgets_e_medir(pdf: pikepdf.Pdf, dados: DadosLME) -> list[tuple]:
