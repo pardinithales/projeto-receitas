@@ -1,0 +1,176 @@
+{
+  "_comentario": "Painéis de exames de monitorização por medicamento (curadoria clínica inicial; conferir contra PCDT vigente — ver docs/requisitos-lme-sp.md). Usados na tela de Pedido de Exames com opção de datas futuras (3/6/9/12 meses).",
+  "paineis": [
+    {
+      "medicamento": "Donepezila",
+      "aplica_tambem": ["Rivastigmina", "Galantamina", "Memantina"],
+      "escalas": ["MEEM (Mini-Mental)", "CDR"],
+      "periodicidade_sugerida": "renovação do LME a cada 6 meses com MEEM/CDR",
+      "exames": [
+        {"nome": "Hemograma completo", "material": "sangue"},
+        {"nome": "TSH", "material": "sangue"},
+        {"nome": "Vitamina B12", "material": "sangue"},
+        {"nome": "Ácido fólico", "material": "sangue"},
+        {"nome": "Sorologia para sífilis (VDRL/FTA-Abs)", "material": "sangue"},
+        {"nome": "Creatinina e ureia", "material": "sangue"},
+        {"nome": "TGO/TGP (transaminases)", "material": "sangue"},
+        {"nome": "Glicemia de jejum", "material": "sangue"},
+        {"nome": "Sódio, potássio, cálcio", "material": "sangue"}
+      ]
+    },
+    {
+      "medicamento": "Azatioprina",
+      "escalas": [],
+      "periodicidade_sugerida": "hemograma e hepatograma quinzenais nos 2 primeiros meses; depois mensal/trimestral",
+      "exames": [
+        {"nome": "Hemograma completo com plaquetas", "material": "sangue"},
+        {"nome": "TGO/TGP (transaminases)", "material": "sangue"},
+        {"nome": "GGT e fosfatase alcalina", "material": "sangue"},
+        {"nome": "Amilase (se sintomas abdominais)", "material": "sangue"}
+      ]
+    },
+    {
+      "medicamento": "Carbamazepina",
+      "aplica_tambem": ["Oxcarbazepina"],
+      "escalas": [],
+      "periodicidade_sugerida": "basal, 1º mês e depois semestral",
+      "exames": [
+        {"nome": "Hemograma completo", "material": "sangue"},
+        {"nome": "Sódio sérico", "material": "sangue"},
+        {"nome": "TGO/TGP (transaminases)", "material": "sangue"},
+        {"nome": "Nível sérico de carbamazepina (se suspeita de toxicidade/má adesão)", "material": "sangue"}
+      ]
+    },
+    {
+      "medicamento": "Ácido valproico",
+      "escalas": [],
+      "periodicidade_sugerida": "basal, 1º mês e depois semestral",
+      "exames": [
+        {"nome": "Hemograma completo com plaquetas", "material": "sangue"},
+        {"nome": "TGO/TGP (transaminases)", "material": "sangue"},
+        {"nome": "Amônia sérica (se sonolência/confusão)", "material": "sangue"},
+        {"nome": "Nível sérico de valproato (se suspeita de toxicidade/má adesão)", "material": "sangue"}
+      ]
+    },
+    {
+      "medicamento": "Fenobarbital",
+      "aplica_tambem": ["Fenitoína", "Primidona"],
+      "escalas": [],
+      "periodicidade_sugerida": "semestral / conforme clínica",
+      "exames": [
+        {"nome": "Hemograma completo", "material": "sangue"},
+        {"nome": "TGO/TGP e GGT", "material": "sangue"},
+        {"nome": "Vitamina D e cálcio (uso prolongado)", "material": "sangue"},
+        {"nome": "Nível sérico do anticonvulsivante", "material": "sangue"}
+      ]
+    },
+    {
+      "medicamento": "Topiramato",
+      "escalas": [],
+      "periodicidade_sugerida": "conforme clínica",
+      "exames": [
+        {"nome": "Bicarbonato/gasometria venosa (acidose metabólica)", "material": "sangue"},
+        {"nome": "Creatinina e ureia", "material": "sangue"}
+      ]
+    },
+    {
+      "medicamento": "Fingolimode",
+      "escalas": [],
+      "periodicidade_sugerida": "hemograma e transaminases a cada 3 meses; avaliação oftalmológica no 3º-4º mês",
+      "exames": [
+        {"nome": "Hemograma completo (linfócitos)", "material": "sangue"},
+        {"nome": "TGO/TGP (transaminases)", "material": "sangue"},
+        {"nome": "Sorologia varicela-zóster (VZV IgG) — antes de iniciar", "material": "sangue"},
+        {"nome": "Avaliação oftalmológica (edema macular)", "material": "consulta"},
+        {"nome": "ECG (monitorização da 1ª dose)", "material": "exame"}
+      ]
+    },
+    {
+      "medicamento": "Natalizumabe",
+      "escalas": [],
+      "periodicidade_sugerida": "sorologia JCV a cada 6 meses; RM anual (LEMP)",
+      "exames": [
+        {"nome": "Sorologia/índice anti-JCV", "material": "sangue"},
+        {"nome": "RM de encéfalo com contraste", "material": "imagem"},
+        {"nome": "Hemograma completo", "material": "sangue"},
+        {"nome": "TGO/TGP (transaminases)", "material": "sangue"}
+      ]
+    },
+    {
+      "medicamento": "Ocrelizumabe",
+      "aplica_tambem": ["Rituximabe"],
+      "escalas": [],
+      "periodicidade_sugerida": "antes de cada ciclo (6/6 meses)",
+      "exames": [
+        {"nome": "HBsAg e anti-HBc (hepatite B) — antes de iniciar", "material": "sangue"},
+        {"nome": "Hemograma completo", "material": "sangue"},
+        {"nome": "Dosagem de imunoglobulinas (IgG/IgM)", "material": "sangue"},
+        {"nome": "TGO/TGP (transaminases)", "material": "sangue"}
+      ]
+    },
+    {
+      "medicamento": "Teriflunomida",
+      "escalas": [],
+      "periodicidade_sugerida": "TGP mensal nos 6 primeiros meses; depois trimestral",
+      "exames": [
+        {"nome": "TGO/TGP (transaminases)", "material": "sangue"},
+        {"nome": "Hemograma completo", "material": "sangue"},
+        {"nome": "PPD ou IGRA (tuberculose) — antes de iniciar", "material": "exame"},
+        {"nome": "Beta-hCG (mulheres em idade fértil) — antes de iniciar", "material": "sangue"},
+        {"nome": "Pressão arterial (aferição)", "material": "consulta"}
+      ]
+    },
+    {
+      "medicamento": "Fumarato de dimetila",
+      "escalas": [],
+      "periodicidade_sugerida": "hemograma a cada 3-6 meses (linfopenia)",
+      "exames": [
+        {"nome": "Hemograma completo (linfócitos)", "material": "sangue"},
+        {"nome": "TGO/TGP (transaminases)", "material": "sangue"},
+        {"nome": "Creatinina e urina tipo I", "material": "sangue/urina"}
+      ]
+    },
+    {
+      "medicamento": "Betainterferona",
+      "aplica_tambem": ["Glatirâmer"],
+      "escalas": [],
+      "periodicidade_sugerida": "hemograma e transaminases a cada 3-6 meses; TSH semestral",
+      "exames": [
+        {"nome": "Hemograma completo", "material": "sangue"},
+        {"nome": "TGO/TGP (transaminases)", "material": "sangue"},
+        {"nome": "TSH", "material": "sangue"}
+      ]
+    },
+    {
+      "medicamento": "Imunoglobulina humana",
+      "escalas": [],
+      "periodicidade_sugerida": "antes de cada ciclo",
+      "exames": [
+        {"nome": "Hemograma completo", "material": "sangue"},
+        {"nome": "Creatinina e ureia", "material": "sangue"},
+        {"nome": "Dosagem de IgA (antes do 1º ciclo)", "material": "sangue"}
+      ]
+    },
+    {
+      "medicamento": "Piridostigmina",
+      "escalas": [],
+      "periodicidade_sugerida": "conforme clínica",
+      "exames": [
+        {"nome": "TSH", "material": "sangue"},
+        {"nome": "Anticorpo anti-receptor de acetilcolina (se ainda não dosado)", "material": "sangue"},
+        {"nome": "TC de tórax (timo) — se ainda não realizada", "material": "imagem"}
+      ]
+    },
+    {
+      "medicamento": "Pramipexol",
+      "aplica_tambem": ["Levodopa + Benserazida", "Levodopa + Carbidopa"],
+      "escalas": [],
+      "periodicidade_sugerida": "conforme clínica",
+      "exames": [
+        {"nome": "Hemograma completo", "material": "sangue"},
+        {"nome": "Creatinina e ureia", "material": "sangue"},
+        {"nome": "TSH, B12 (diagnóstico diferencial)", "material": "sangue"}
+      ]
+    }
+  ]
+}
