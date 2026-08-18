@@ -87,11 +87,19 @@ def iniciar_banco() -> None:
     con = conectar()
     try:
         con.executescript(SCHEMA)
+        _migrar(con)
         if con.execute("SELECT COUNT(*) FROM medicamentos").fetchone()[0] == 0:
             carregar_seed_medicamentos(con)
         con.commit()
     finally:
         con.close()
+
+
+def _migrar(con: sqlite3.Connection) -> None:
+    """Migrações aditivas para bancos criados em versões anteriores."""
+    colunas = {r["name"] for r in con.execute("PRAGMA table_info(pacientes)")}
+    if "tags" not in colunas:
+        con.execute("ALTER TABLE pacientes ADD COLUMN tags TEXT")
 
 
 def carregar_seed_medicamentos(con: sqlite3.Connection) -> int:
