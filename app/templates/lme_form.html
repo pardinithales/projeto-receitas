@@ -40,6 +40,39 @@
       <div><label>Diagnóstico *</label>
         <input type="text" name="diagnostico" value="{{ lme.diagnostico or '' }}" required></div>
     </div>
+    <div class="chips" id="cids-sugeridos"></div>
+
+    <div id="bloco-escalas-dem" style="display:none">
+      <div class="aviso">PCDT de Alzheimer: escolaridade, MEEM e CDR são obrigatórios e
+        entram automaticamente na anamnese.</div>
+      <div class="linha">
+        <div><label>Escolaridade (anos de estudo)</label>
+          <input type="number" step="1" name="escolaridade_anos"
+                 value="{{ paciente.escolaridade_anos or '' }}"></div>
+        <div><label>MEEM (0-30)
+          {% if escalas.MEEM %}<small> — último: {{ escalas.MEEM.valor }} em {{ escalas.MEEM.data }}</small>{% endif %}</label>
+          <input type="number" step="1" min="0" max="30" name="meem"
+                 value="{{ escalas.MEEM.valor if escalas.MEEM else '' }}"></div>
+        <div><label>CDR
+          {% if escalas.CDR %}<small> — último: {{ escalas.CDR.valor }}</small>{% endif %}</label>
+          <select name="cdr">
+            <option value=""></option>
+            {% for v in ["0.5", "1", "2", "3"] %}
+            <option {{ "selected" if escalas.CDR and escalas.CDR.valor == v else "" }}>{{ v }}</option>
+            {% endfor %}
+          </select></div>
+      </div>
+    </div>
+    <div id="bloco-escalas-em" style="display:none">
+      <div class="aviso">PCDT de esclerose múltipla: EDSS é obrigatório e entra
+        automaticamente na anamnese. Sorologia JCV é feita externamente — não pedir aqui.</div>
+      <div class="linha">
+        <div style="max-width:180px"><label>EDSS (0-10)
+          {% if escalas.EDSS %}<small> — último: {{ escalas.EDSS.valor }} em {{ escalas.EDSS.data }}</small>{% endif %}</label>
+          <input type="number" step="0.5" min="0" max="10" name="edss"
+                 value="{{ escalas.EDSS.valor if escalas.EDSS else '' }}"></div>
+      </div>
+    </div>
     <label>Anamnese * <button type="button" class="chip" id="btn-ia-anamnese"
       onclick="anamneseIA()" style="margin-left:8px">gerar com IA focada no PCDT</button></label>
     <div id="pista-pcdt" class="aviso" style="display:none"></div>
@@ -86,6 +119,11 @@
         Gerar relatório técnico com IA (formato que a LME pede)</button></p>
     </div>
 
+    <label class="chip" style="display:inline-flex;align-items:center;gap:8px;font-size:15px;padding:10px 16px">
+      <input type="checkbox" name="incluir_termo" value="sim" checked>
+      Gerar também o TERMO (TER/TCLE) do medicamento, já preenchido
+    </label>
+    {% include "_carimbo.html" %}
     <input type="hidden" name="meds_json" id="meds_json">
     <p style="margin-top:18px">
       <button class="botao" type="submit">Gerar LME (PDF oficial preenchido)</button>
@@ -138,6 +176,39 @@ function novaLinhaMed() {
 }
 let CRITERIOS = {};
 fetch('/api/criterios-pcdt').then(r => r.json()).then(c => { CRITERIOS = c; pistaPcdt(); });
+
+// CID padrão por grupo do medicamento + opções selecionáveis (sempre editável)
+const CIDS_POR_GRUPO = [
+  { contem: ['antiepiléptico'], padrao: 'G40.1',
+    opcoes: ['G40.0', 'G40.1', 'G40.2', 'G40.3', 'G40.4', 'G40.8'] },
+  { contem: ['demência', 'antidemencial', 'anticolinesterásico'], padrao: 'G30.1',
+    opcoes: ['G30.0', 'G30.1', 'G30.8', 'G30.9'] },
+  { contem: ['miastenia'], padrao: 'G70.0', opcoes: ['G70.0', 'G70.2'] },
+  { contem: ['esclerose múltipla'], padrao: 'G35', opcoes: ['G35'] },
+  { contem: ['antiparkinsoniano'], padrao: 'G20', opcoes: ['G20'] },
+  { contem: ['estatina'], padrao: 'E78.0', opcoes: ['E78.0', 'E78.2', 'E78.5'] },
+  { contem: ['dor neuropática'], padrao: 'G40.1', opcoes: ['G40.1', 'R52.1', 'R52.2'] },
+  { contem: ['imunoterapia'], padrao: 'G61.0', opcoes: ['G61.0', 'G70.0'] },
+];
+function sugerirCid() {
+  const campo = document.querySelector('input[name=cid10]');
+  const chips = document.getElementById('cids-sugeridos');
+  const primeiro = document.querySelector('#meds .med-busca');
+  const m = primeiro && medNome(primeiro.value);
+  chips.innerHTML = '';
+  if (!m) return;
+  const regra = CIDS_POR_GRUPO.find(r => r.contem.some(c => (m.grupo || '').includes(c)));
+  if (!regra) return;
+  if (!campo.value.trim()) { campo.value = regra.padrao; }
+  regra.opcoes.forEach(cid => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'chip'; b.textContent = cid;
+    if (campo.value.trim().toUpperCase() === cid) b.classList.add('ativa');
+    b.onclick = () => { campo.value = cid; sugerirCid(); pistaPcdt(); };
+    chips.appendChild(b);
+  });
+  pistaPcdt();
+}
 function pistaPcdt() {
   const cid = document.querySelector('input[name=cid10]').value.trim().toUpperCase();
   const div = document.getElementById('pista-pcdt');
@@ -146,6 +217,10 @@ function pistaPcdt() {
     div.style.display = 'block';
     div.innerHTML = '<b>O que o PCDT pede na anamnese:</b> ' + CRITERIOS[chave];
   } else { div.style.display = 'none'; }
+  document.getElementById('bloco-escalas-dem').style.display =
+    (cid.startsWith('G30') || cid.startsWith('F00')) ? 'block' : 'none';
+  document.getElementById('bloco-escalas-em').style.display =
+    cid.startsWith('G35') ? 'block' : 'none';
 }
 document.querySelector('input[name=cid10]').addEventListener('input', pistaPcdt);
 function medsSelecionados() {

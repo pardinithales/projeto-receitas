@@ -42,7 +42,8 @@
         {% if not d.caminho_pdf %}<span class="chip" style="cursor:default">salva p/ depois</span>{% endif %}
       </td>
       <td><a href="/documentos/{{ d.id }}/pdf" target="_blank">
-        {{ "PDF" if d.caminho_pdf else "gerar PDF" }}</a></td>
+        {{ "PDF" if d.caminho_pdf else "gerar PDF" }}</a>
+        · <a href="#" onclick="imprimirDoc({{ d.id }}, this); return false;">🖨️ imprimir</a></td>
       <td>
         {% if d.tipo == "relatorio_inss" %}
         <a href="/pacientes/{{ paciente.id }}/inss?doc={{ d.id }}">reaproveitar</a>
@@ -58,4 +59,19 @@
   <p>Nenhum documento emitido ainda.</p>
   {% endif %}
 </div>
+<script>
+async function imprimirDoc(id, el) {
+  el.textContent = '🖨️ imprimindo…';
+  try {
+    const r = await fetch(`/documentos/${id}/imprimir`, { method: 'POST' });
+    const j = await r.json();
+    if (j.ok) { el.textContent = '✅ impresso'; }
+    else {
+      el.textContent = '❌ erro';
+      alert('Impressão falhou: ' + (j.erro || '') +
+            '\nResolva (papel/impressora) e use Retomar na página Impressão.');
+    }
+  } catch (e) { el.textContent = '❌ erro'; alert(e); }
+}
+</script>
 {% endblock %}

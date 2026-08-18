@@ -24,6 +24,7 @@
         <button type="button" class="botao secundario" style="width:100%" onclick="addCid()">Adicionar</button></div>
     </div>
 
+    {% include "_carimbo.html" %}
     <input type="hidden" name="dados" value="{{ dados | e }}">
     <input type="hidden" name="cids_json" id="cids_json">
     <p style="margin-top:16px">

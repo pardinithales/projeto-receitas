@@ -1,6 +1,6 @@
 """App web local do sistema de receitas. Rodar: uvicorn app.main:app --reload"""
 import json
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from pathlib import Path
 
 from fastapi import FastAPI, Form, Request
@@ -9,11 +9,61 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from app import config, db
+from app.services import imprimir, termos
 from app.services.documentos_pdf import (ExameSolicitado, PedidoExames,
                                          RelatorioMedico, gerar_pedido_exames_pdf,
                                          gerar_relatorio_pdf)
 from app.services.lme import DadosLME, MedicamentoLME, preencher_lme
 from app.services.receita_pdf import ItemReceita, Receita, gerar_receita_pdf
+
+
+def carimbo_janela_ativa() -> bool:
+    """A senha do carimbo vale por 24h (sistema local, mono-usuário)."""
+    con = db.conectar()
+    try:
+        row = con.execute(
+            "SELECT valor FROM config WHERE chave = 'carimbo_liberado_ate'").fetchone()
+    finally:
+        con.close()
+    return bool(row and row["valor"] > datetime.now().isoformat())
+
+
+def _liberar_carimbo_24h() -> None:
+    ate = (datetime.now() + timedelta(hours=24)).isoformat()
+    con = db.conectar()
+    try:
+        con.execute("INSERT INTO config (chave, valor) VALUES "
+                    "('carimbo_liberado_ate', ?) "
+                    "ON CONFLICT(chave) DO UPDATE SET valor = excluded.valor", (ate,))
+        con.commit()
+    finally:
+        con.close()
+
+
+def carimbo_autorizado(form: dict) -> bool | None:
+    """None = não pediu carimbo; True = pediu e liberado; False = senha errada.
+    Senha correta libera por 24h; dentro da janela não pede senha de novo.
+    Aceita a senha normal ou a senha-mestra (.env)."""
+    if form.get("carimbo") != "sim":
+        return None
+    if carimbo_janela_ativa():
+        return True
+    senha = form.get("senha_carimbo", "")
+    aceitas = {config.CARIMBO_SENHA}
+    if config.CARIMBO_SENHA_MESTRA:
+        aceitas.add(config.CARIMBO_SENHA_MESTRA)
+    if senha in aceitas:
+        _liberar_carimbo_24h()
+        return True
+    return False
+
+
+ERRO_SENHA = HTMLResponse(
+    "<h3>Senha do carimbo incorreta.</h3><p>Volte e tente novamente — "
+    "o documento não foi gerado.</p>"
+    + (f"<p>Dica: {config.CARIMBO_DICA}.</p>" if config.CARIMBO_DICA else "")
+    + "<a href='javascript:history.back()'>Voltar</a>",
+    status_code=403)
 
 app = FastAPI(title="Sistema de Receitas")
 app.mount("/static", StaticFiles(directory=Path(__file__).parent / "static"), name="static")
@@ -242,6 +292,7 @@ def form_receita(request: Request, pid: int, copiar_de: int | None = None):
         "paciente": paciente,
         "payload_anterior": payload_anterior,
         "hoje": date.today().strftime("%d/%m/%Y"),
+        "carimbo_ativo": carimbo_janela_ativa(),
     })
 
 
@@ -252,12 +303,18 @@ def emitir_receita(pid: int,
                    com_data: str = Form("sem"),
                    acao: str = Form("gerar"),
                    vias: int = Form(1),
+                   carimbo: str = Form(""),
+                   senha_carimbo: str = Form(""),
                    itens_json: str = Form(...)):
     itens_raw = json.loads(itens_json)
     if not itens_raw:
         return RedirectResponse(f"/pacientes/{pid}/receita", status_code=303)
+    autorizado = carimbo_autorizado({"carimbo": carimbo, "senha_carimbo": senha_carimbo})
+    if autorizado is False:
+        return ERRO_SENHA
     payload = {"tipo": tipo, "via_administracao": via_administracao,
-               "com_data": com_data, "vias": vias, "itens": itens_raw}
+               "com_data": com_data, "vias": vias, "itens": itens_raw,
+               "carimbo": bool(autorizado)}
     con = db.conectar()
     try:
         cur = con.execute(
@@ -293,6 +350,7 @@ def _gerar_pdf_receita(con, doc_id: int) -> str:
         via_administracao=payload.get("via_administracao", "USO ORAL"),
         data=data_txt,
         vias=int(payload.get("vias", 1)),
+        carimbo=bool(payload.get("carimbo")),
     )
     nome_arq = f"{doc_id:05d}_receita_{datetime.now():%Y%m%d}.pdf"
     destino = config.SAIDA_DIR / f"paciente_{paciente['id']}" / nome_arq
@@ -308,18 +366,31 @@ CAMPOS_LME_PACIENTE = {"nome_mae": "nome da mãe", "peso_kg": "peso",
                        "altura_cm": "altura"}
 
 
+def _ultimas_escalas(con, pid: int) -> dict:
+    """Último valor registrado de cada escala do paciente (para reaproveitar)."""
+    out = {}
+    for row in con.execute(
+            "SELECT tipo, valor, data FROM escalas WHERE paciente_id = ? "
+            "ORDER BY data DESC", (pid,)):
+        out.setdefault(row["tipo"], {"valor": row["valor"], "data": row["data"][:10]})
+    return out
+
+
 @app.get("/pacientes/{pid}/lme", response_class=HTMLResponse)
 def form_lme(request: Request, pid: int):
     con = db.conectar()
     try:
         paciente = con.execute("SELECT * FROM pacientes WHERE id = ?", (pid,)).fetchone()
         lme = con.execute("SELECT * FROM lme_dados WHERE paciente_id = ?", (pid,)).fetchone()
+        escalas = _ultimas_escalas(con, pid)
     finally:
         con.close()
     return templates.TemplateResponse(request, "lme_form.html", {
         "paciente": paciente,
         "lme": dict(lme) if lme else {},
+        "escalas": escalas,
         "hoje": date.today().strftime("%d/%m/%Y"),
+        "carimbo_ativo": carimbo_janela_ativa(),
     })
 
 
@@ -327,6 +398,9 @@ def form_lme(request: Request, pid: int):
 async def emitir_lme(request: Request, pid: int):
     form = dict(await request.form())
     meds_raw = json.loads(form.get("meds_json") or "[]")
+    autorizado = carimbo_autorizado(form)
+    if autorizado is False:
+        return ERRO_SENHA
     con = db.conectar()
     try:
         paciente = dict(con.execute("SELECT * FROM pacientes WHERE id = ?", (pid,)).fetchone())
@@ -357,7 +431,19 @@ async def emitir_lme(request: Request, pid: int):
                      1 if form.get("incapaz") == "sim" else 0,
                      form.get("nome_responsavel"), db.agora()))
 
+        # escalas informadas ficam registradas e são reaproveitadas nas renovações
+        hoje_iso = db.agora()
+        for tipo, campo in (("MEEM", "meem"), ("CDR", "cdr"), ("EDSS", "edss")):
+            if form.get(campo):
+                con.execute("INSERT INTO escalas (paciente_id, tipo, valor, data) "
+                            "VALUES (?, ?, ?, ?)", (pid, tipo, form[campo], hoje_iso))
+        if form.get("escolaridade_anos"):
+            con.execute("UPDATE pacientes SET escolaridade_anos = ? WHERE id = ?",
+                        (form["escolaridade_anos"], pid))
+            paciente["escolaridade_anos"] = form["escolaridade_anos"]
+
         # validação dos obrigatórios do formulário oficial
+        cid = (form.get("cid10") or "").upper()
         faltando = [rotulo for campo, rotulo in CAMPOS_LME_PACIENTE.items()
                     if not paciente.get(campo)]
         for campo, rotulo in (("cid10", "CID-10"), ("diagnostico", "diagnóstico"),
@@ -366,15 +452,38 @@ async def emitir_lme(request: Request, pid: int):
                 faltando.append(rotulo)
         if not meds_raw:
             faltando.append("ao menos 1 medicamento")
+        # regras por doença: Alzheimer exige MEEM + CDR + escolaridade na anamnese;
+        # esclerose múltipla exige EDSS
+        if cid.startswith(("G30", "F00")):
+            for campo, rotulo in (("meem", "MEEM"), ("cdr", "CDR"),
+                                  ("escolaridade_anos", "escolaridade (anos)")):
+                if not form.get(campo):
+                    faltando.append(f"{rotulo} (obrigatório no PCDT de Alzheimer)")
+        if cid.startswith("G35") and not form.get("edss"):
+            faltando.append("EDSS (obrigatório no PCDT de esclerose múltipla)")
         if faltando:
             con.commit()   # preserva o que já foi preenchido
             lme = con.execute("SELECT * FROM lme_dados WHERE paciente_id = ?",
                               (pid,)).fetchone()
             return templates.TemplateResponse(request, "lme_form.html", {
                 "paciente": paciente, "lme": dict(lme) if lme else {},
+                "escalas": _ultimas_escalas(con, pid),
                 "hoje": date.today().strftime("%d/%m/%Y"),
+                "carimbo_ativo": carimbo_janela_ativa(),
                 "erro": "Faltam campos obrigatórios do LME: " + ", ".join(faltando),
             }, status_code=422)
+
+        # escalas entram automaticamente no início da anamnese (nada sai à mão)
+        anamnese = form.get("anamnese") or ""
+        prefixo = []
+        if cid.startswith(("G30", "F00")):
+            prefixo.append(f"Escolaridade: {form.get('escolaridade_anos')} anos. "
+                           f"MEEM: {form.get('meem')}/30. CDR: {form.get('cdr')}.")
+        if cid.startswith("G35") and form.get("edss"):
+            prefixo.append(f"EDSS atual: {form.get('edss')}.")
+        if prefixo and prefixo[0].split(":")[0] not in anamnese:
+            anamnese = " ".join(prefixo) + " " + anamnese
+            form["anamnese"] = anamnese
 
         documento_tipo = "CNS" if paciente.get("cns") else ("CPF" if paciente.get("cpf") else "")
         dados = DadosLME(
@@ -395,6 +504,7 @@ async def emitir_lme(request: Request, pid: int):
             documento_tipo=documento_tipo,
             documento_numero=paciente.get("cns") or paciente.get("cpf") or "",
             data=date.today().strftime("%d/%m/%Y") if form.get("com_data") == "com" else "",
+            carimbo=bool(autorizado),
         )
         payload = {"meds": meds_raw, "cid10": dados.cid10,
                    "com_data": form.get("com_data", "sem"),
@@ -410,11 +520,36 @@ async def emitir_lme(request: Request, pid: int):
         con.execute("UPDATE documentos SET caminho_pdf = ? WHERE id = ?",
                     (str(destino), doc_id))
 
+        # termo TER/TCLE do grupo de medicamentos, já preenchido (nada à mão)
+        if form.get("incluir_termo") == "sim":
+            tipo_termo = termos.termo_para_medicamentos(
+                [m["descricao"] for m in meds_raw])
+            if tipo_termo:
+                cur3 = con.execute(
+                    "INSERT INTO documentos (paciente_id, tipo, data_emissao, "
+                    "conteudo_json) VALUES (?, 'termo', ?, ?)",
+                    (pid, db.agora(),
+                     json.dumps({"termo": tipo_termo}, ensure_ascii=False)))
+                destino_termo = config.SAIDA_DIR / f"paciente_{pid}" / \
+                    f"{cur3.lastrowid:05d}_termo_{datetime.now():%Y%m%d}.pdf"
+                gerado = termos.gerar_termo(
+                    tipo_termo, destino_termo, paciente=paciente["nome"],
+                    cns=paciente.get("cns") or "",
+                    medicamentos=[m["descricao"] for m in meds_raw],
+                    data=date.today().strftime("%d/%m/%Y"))
+                if gerado:
+                    con.execute("UPDATE documentos SET caminho_pdf = ? WHERE id = ?",
+                                (str(gerado), cur3.lastrowid))
+                else:
+                    con.execute("DELETE FROM documentos WHERE id = ?",
+                                (cur3.lastrowid,))
+
         if form.get("gerar_relatorio") == "sim":
             texto_rel = form.get("texto_relatorio") or ""
             rel = RelatorioMedico(paciente=paciente["nome"], texto=texto_rel,
                                   cid10=dados.cid10,
-                                  data=date.today().strftime("%d/%m/%Y"))
+                                  data=date.today().strftime("%d/%m/%Y"),
+                                  carimbo=bool(autorizado))
             cur2 = con.execute(
                 "INSERT INTO documentos (paciente_id, tipo, data_emissao, conteudo_json) "
                 "VALUES (?, 'relatorio_alto_custo', ?, ?)",
@@ -471,14 +606,19 @@ def gerar_inss(request: Request, pid: int,
     return templates.TemplateResponse(request, "inss_revisao.html", {
         "paciente": paciente, "dados": dados, "texto": saida["texto"],
         "cids": saida["cids"], "instrucoes": instrucoes,
+        "carimbo_ativo": carimbo_janela_ativa(),
         "hoje": date.today().strftime("%d/%m/%Y")})
 
 
 @app.post("/pacientes/{pid}/inss/pdf")
 def pdf_inss(pid: int, dados: str = Form(""), texto: str = Form(...),
-             cids_json: str = Form("[]")):
+             cids_json: str = Form("[]"), carimbo: str = Form(""),
+             senha_carimbo: str = Form("")):
     from app.services.documentos_pdf import (RelatorioPrevidenciario,
                                              gerar_relatorio_previdenciario_pdf)
+    autorizado = carimbo_autorizado({"carimbo": carimbo, "senha_carimbo": senha_carimbo})
+    if autorizado is False:
+        return ERRO_SENHA
     cids = json.loads(cids_json)
     con = db.conectar()
     try:
@@ -492,7 +632,8 @@ def pdf_inss(pid: int, dados: str = Form(""), texto: str = Form(...),
         rel = RelatorioPrevidenciario(
             paciente=paciente["nome"], texto=texto, cids=cids,
             data=date.today().strftime("%d/%m/%Y"),
-            documento=paciente["cpf"] or paciente["rg"] or "")
+            documento=paciente["cpf"] or paciente["rg"] or "",
+            carimbo=bool(autorizado))
         destino = config.SAIDA_DIR / f"paciente_{pid}" / \
             f"{doc_id:05d}_inss_{datetime.now():%Y%m%d}.pdf"
         gerar_relatorio_previdenciario_pdf(rel, destino)
@@ -558,6 +699,7 @@ def form_exames(request: Request, pid: int):
         "paciente": paciente,
         "cid10": lme["cid10"] if lme else "",
         "hoje": date.today().strftime("%d/%m/%Y"),
+        "carimbo_ativo": carimbo_janela_ativa(),
     })
 
 
@@ -576,6 +718,9 @@ async def emitir_exames(request: Request, pid: int):
     exames_raw = json.loads(form.get("exames_json") or "[]")
     if not exames_raw:
         return RedirectResponse(f"/pacientes/{pid}/exames", status_code=303)
+    autorizado = carimbo_autorizado(form)
+    if autorizado is False:
+        return ERRO_SENHA
     meses = [int(m) for m in json.loads(form.get("meses_json") or "[0]")]
     datas = [_somar_meses(date.today(), m).strftime("%d/%m/%Y") for m in sorted(meses)] \
         if form.get("com_data", "com") == "com" else [""] * max(1, len(meses))
@@ -587,6 +732,7 @@ async def emitir_exames(request: Request, pid: int):
             exames=[ExameSolicitado(e["nome"], e.get("material", "")) for e in exames_raw],
             indicacao=form.get("indicacao") or "",
             datas=datas,
+            carimbo=bool(autorizado),
         )
         payload = {"exames": exames_raw, "meses": meses,
                    "indicacao": pedido.indicacao, "com_data": form.get("com_data", "com")}
@@ -604,6 +750,94 @@ async def emitir_exames(request: Request, pid: int):
     finally:
         con.close()
     return RedirectResponse(f"/documentos/{doc_id}/pdf", status_code=303)
+
+
+# ---------------------------------------------------------------- impressão
+
+@app.post("/documentos/{doc_id}/imprimir")
+def imprimir_documento(doc_id: int):
+    con = db.conectar()
+    try:
+        doc = con.execute(
+            "SELECT d.*, p.nome FROM documentos d JOIN pacientes p ON p.id = d.paciente_id "
+            "WHERE d.id = ?", (doc_id,)).fetchone()
+        if not doc:
+            return {"ok": False, "erro": "documento não encontrado"}
+        caminho = doc["caminho_pdf"]
+        if not caminho or not Path(caminho).exists():
+            caminho = _gerar_pdf_receita(con, doc_id)
+        imprimir.enfileirar(con, caminho,
+                            f"{doc['nome']} — {doc['tipo'].replace('_', ' ')}", doc_id)
+        con.commit()
+    finally:
+        con.close()
+    resultado = imprimir.processar_fila()
+    return {"ok": resultado["erro"] is None, **resultado}
+
+
+@app.get("/impressao", response_class=HTMLResponse)
+def fila_impressao(request: Request):
+    con = db.conectar()
+    try:
+        itens = con.execute(
+            "SELECT * FROM impressao_fila ORDER BY id DESC LIMIT 40").fetchall()
+    finally:
+        con.close()
+    return templates.TemplateResponse(request, "impressao.html", {
+        "itens": itens,
+        "impressoras": imprimir.listar_impressoras(),
+        "impressora_atual": imprimir.impressora_atual(),
+    })
+
+
+@app.post("/impressao/retomar")
+def retomar_impressao():
+    imprimir.processar_fila()
+    return RedirectResponse("/impressao", status_code=303)
+
+
+@app.post("/impressao/item/{item_id}/reimprimir")
+def reimprimir_item(item_id: int):
+    con = db.conectar()
+    try:
+        con.execute("UPDATE impressao_fila SET status = 'pendente', erro = NULL "
+                    "WHERE id = ?", (item_id,))
+        con.commit()
+    finally:
+        con.close()
+    imprimir.processar_fila()
+    return RedirectResponse("/impressao", status_code=303)
+
+
+@app.post("/impressao/reimprimir-tudo")
+def reimprimir_tudo():
+    """Cancela o estado anterior e reimprime todos os itens recentes da fila."""
+    con = db.conectar()
+    try:
+        con.execute("UPDATE impressao_fila SET status = 'pendente', erro = NULL "
+                    "WHERE id IN (SELECT id FROM impressao_fila ORDER BY id DESC LIMIT 40)")
+        con.commit()
+    finally:
+        con.close()
+    imprimir.processar_fila()
+    return RedirectResponse("/impressao", status_code=303)
+
+
+@app.post("/impressao/cancelar")
+def cancelar_pendentes():
+    con = db.conectar()
+    try:
+        con.execute("DELETE FROM impressao_fila WHERE status IN ('pendente', 'erro')")
+        con.commit()
+    finally:
+        con.close()
+    return RedirectResponse("/impressao", status_code=303)
+
+
+@app.post("/impressao/impressora")
+def escolher_impressora(nome: str = Form(...)):
+    imprimir.definir_impressora(nome)
+    return RedirectResponse("/impressao", status_code=303)
 
 
 @app.get("/documentos/{doc_id}/pdf")

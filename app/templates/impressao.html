@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block titulo %}Impressão{% endblock %}
+{% block conteudo %}
+<div class="cartao">
+  <h1>Fila de impressão</h1>
+  <form method="post" action="/impressao/impressora" class="linha" style="align-items:flex-end">
+    <div><label>Impressora padrão</label>
+      <select name="nome">
+        {% for imp in impressoras %}
+        <option {{ "selected" if imp == impressora_atual else "" }}>{{ imp }}</option>
+        {% endfor %}
+      </select></div>
+    <div style="max-width:140px"><button class="botao secundario" type="submit"
+      style="width:100%">Salvar</button></div>
+  </form>
+
+  <p style="margin-top:16px">
+    <form method="post" action="/impressao/retomar" style="display:inline">
+      <button class="botao" type="submit">Retomar (imprime só o que faltou)</button></form>
+    <form method="post" action="/impressao/reimprimir-tudo" style="display:inline">
+      <button class="botao secundario" type="submit"
+        onclick="return confirm('Reimprimir TODOS os itens recentes?')">Reimprimir tudo</button></form>
+    <form method="post" action="/impressao/cancelar" style="display:inline">
+      <button class="botao secundario" type="submit"
+        onclick="return confirm('Cancelar itens pendentes/erro?')">Cancelar pendentes</button></form>
+  </p>
+
+  {% if itens %}
+  <table>
+    <tr><th>Documento</th><th>Status</th><th></th></tr>
+    {% for i in itens %}
+    <tr>
+      <td>{{ i.descricao }}</td>
+      <td>
+        {% if i.status == "ok" %}✅ impresso
+        {% elif i.status == "erro" %}❌ {{ i.erro }}
+        {% else %}⏳ pendente{% endif %}
+      </td>
+      <td>
+        <form method="post" action="/impressao/item/{{ i.id }}/reimprimir" style="display:inline">
+          <button class="chip" type="submit">reimprimir esta folha</button></form>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}
+  <p>Nada na fila ainda — use o botão 🖨️ no histórico do paciente.</p>
+  {% endif %}
+  <div class="aviso" style="margin-top:14px">Se a impressora parar (papel, offline),
+    resolva o problema e clique em <b>Retomar</b>: só sai o que ainda não foi impresso.</div>
+</div>
+{% endblock %}

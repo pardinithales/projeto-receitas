@@ -46,6 +46,7 @@
       <label class="chip"><input type="checkbox" value="12"> +12 meses</label>
     </div>
 
+    {% include "_carimbo.html" %}
     <input type="hidden" name="exames_json" id="exames_json">
     <input type="hidden" name="meses_json" id="meses_json">
     <p style="margin-top:18px">
@@ -77,8 +78,9 @@ document.getElementById('sel-painel').addEventListener('change', function() {
       ind.value = (`monitorização de ${painel.medicamento} (${painel.periodicidade_sugerida})` +
                    (ind.value ? ' — ' + ind.value : ''));
   }
-  (painel.escalas || []).forEach(e =>
-    alert('Lembrete: este medicamento também exige escala: ' + e));
+  const lembretes = (painel.escalas || []).map(e => 'Escala exigida: ' + e)
+    .concat(painel.avisos || []);
+  if (lembretes.length) alert(lembretes.join('\n\n'));
 });
 function addExame(nome, material, marcado) {
   nome = nome || document.getElementById('novo-exame').value.trim();

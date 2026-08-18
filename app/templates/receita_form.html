@@ -25,16 +25,17 @@
             <span>COM data ({{ hoje }})</span></label>
         </div>
       </div>
-      <div id="bloco-vias" style="max-width:220px">
-        <label>Vias (1 por mês até o retorno)</label>
-        <select name="vias">
+      <div id="bloco-vias" style="max-width:240px">
+        <label>Retorno do paciente em</label>
+        <select id="meses-retorno" onchange="guiaFolhas()">
           {% for v in range(1, 13) %}
-          <option value="{{ v }}">{{ v }} via{{ "s" if v > 1 else "" }}
-            {{ "(retorno em " + v|string + " meses)" if v > 1 else "" }}</option>
+          <option value="{{ v }}">{{ v }} {{ "mês" if v == 1 else "meses" }}</option>
           {% endfor %}
         </select>
       </div>
     </div>
+    <div id="guia-folhas" class="aviso"></div>
+    <input type="hidden" name="vias" id="campo-vias" value="1">
 
     <label>Via de administração</label>
     <select name="via_administracao">
@@ -50,6 +51,7 @@
     <p><button type="button" class="botao secundario" onclick="novaLinha()">+ Adicionar medicamento</button></p>
 
     <div id="avisos"></div>
+    {% include "_carimbo.html" %}
     <input type="hidden" name="itens_json" id="itens_json">
     <p style="margin-top:18px">
       <button class="botao" type="submit" name="acao" value="gerar">Gerar PDF da receita</button>
@@ -91,7 +93,37 @@
 function toggleVias() {
   const sem = document.querySelector('input[name=com_data][value=sem]').checked;
   document.getElementById('bloco-vias').style.display = sem ? 'block' : 'none';
+  guiaFolhas();
 }
+// Guia instrutivo (para qualquer um da equipe saber quantas folhas imprimir):
+// - Controle especial: a farmácia RETÉM 1 via -> 2 folhas por mês de tratamento.
+// - Receita comum (UBS/uso contínuo): vale 2 meses -> 1 folha a cada 2 meses.
+// - COM data: só cobre o mês atual (controlada = 2 folhas; comum = 1).
+function guiaFolhas() {
+  const controlada = document.querySelector('input[name=tipo]:checked').value === 'controle_especial';
+  const semData = document.querySelector('input[name=com_data][value=sem]').checked;
+  const meses = parseInt(document.getElementById('meses-retorno').value);
+  let folhas, texto;
+  if (!semData) {
+    folhas = controlada ? 2 : 1;
+    texto = controlada
+      ? 'COM data: sai <b>2 folhas iguais</b> (1ª via fica retida na farmácia, 2ª via do paciente). Vale 30 dias.'
+      : 'COM data: sai <b>1 folha</b>. Receita comum de uso contínuo vale por 2 meses na UBS.';
+  } else if (controlada) {
+    folhas = meses * 2;
+    texto = `Receita CONTROLADA vale 30 dias e a farmácia retém 1 via: para ${meses} ` +
+            `${meses === 1 ? 'mês' : 'meses'} até o retorno saem <b>${folhas} folhas</b> ` +
+            `(2 iguais por mês, sem data — o paciente data no mês da retirada).`;
+  } else {
+    folhas = Math.ceil(meses / 2);
+    texto = `Receita COMUM (UBS) vale 2 meses: para ${meses} ` +
+            `${meses === 1 ? 'mês' : 'meses'} até o retorno ${folhas === 1 ? 'basta' : 'bastam'} ` +
+            `<b>${folhas} folha${folhas > 1 ? 's' : ''}</b> sem data.`;
+  }
+  document.getElementById('campo-vias').value = folhas;
+  document.getElementById('guia-folhas').innerHTML = '🖨️ ' + texto;
+}
+document.querySelectorAll('input[name=tipo]').forEach(r => r.addEventListener('change', guiaFolhas));
 let CATALOGO = [];
 const PAYLOAD_ANTERIOR = {{ payload_anterior | tojson if payload_anterior else 'null' }};
 
@@ -100,6 +132,7 @@ fetch('/api/catalogo').then(r => r.json()).then(c => {
   const dl = document.getElementById('lista-meds');
   dl.innerHTML = c.map(m => `<option value="${m.principio_ativo}">`).join('');
   iniciar();
+  guiaFolhas();
 });
 
 function medPorNome(nome) {
@@ -165,9 +198,13 @@ function mostrarAvisos(med) {
     const m = medPorNome(inp.value);
     if (!m) return;
     let partes = [];
+    const disp = m.disponibilidade || [];
+    if (disp.includes('remume')) partes.push('tem no POSTO (REMUME) — receita comum da UBS vale 2 meses');
+    if (disp.includes('ceaf')) partes.push('ALTO CUSTO — retirar na Farmácia Especializada com kit LME');
+    if (disp.length === 1 && disp[0] === 'comercial') partes.push('só em farmácia comum (compra)');
     if (m.classificacao === 'B1')
-      partes.push('exige NOTIFICAÇÃO DE RECEITA B (azul) na farmácia');
-    if (m.lme) partes.push('medicamento de alto custo — gerar também o kit LME');
+      partes.push('exige NOTIFICAÇÃO DE RECEITA B (azul) do talão na farmácia');
+    if (m.lme) partes.push('gerar também o kit LME (botão na página do paciente)');
     if (m.obs) partes.push(m.obs);
     if (partes.length)
       div.innerHTML += `<div class="aviso"><b>${m.principio_ativo}:</b> ${partes.join(' · ')}</div>`;
