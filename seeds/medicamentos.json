@@ -117,9 +117,15 @@
           {"texto": "Tomar 1 comprimido de 12 em 12 horas", "qtd_30dias": "60 comprimidos"},
           {"texto": "Tomar 2 comprimidos de 12 em 12 horas", "qtd_30dias": "120 comprimidos"}
         ]},
+        {"dose": "500mg", "forma": "comprimido", "posologias": [
+          {"texto": "Tomar 1 comprimido de 12 em 12 horas", "qtd_30dias": "60 comprimidos"}
+        ]},
         {"dose": "750mg", "forma": "comprimido", "posologias": [
           {"texto": "Tomar 1 comprimido de 12 em 12 horas", "qtd_30dias": "60 comprimidos"},
           {"texto": "Tomar 2 comprimidos de 12 em 12 horas", "qtd_30dias": "120 comprimidos"}
+        ]},
+        {"dose": "1000mg", "forma": "comprimido", "posologias": [
+          {"texto": "Tomar 1 comprimido de 12 em 12 horas", "qtd_30dias": "60 comprimidos"}
         ]},
         {"dose": "100mg/mL", "forma": "solução oral", "posologias": [
           {"texto": "Tomar 5 mL de 12 em 12 horas", "qtd_30dias": "2 frascos"},
@@ -646,10 +652,10 @@
       "classificacao_receita": "C1",
       "disponibilidade": ["ceaf"],
       "lme": true,
-      "obs": "Uso endovenoso em bomba de infusão contínua (BIC). Dose por peso (2g/kg divididos em 5 dias). Primeiros 30 minutos a 30 mL/h (teste de tolerância), depois completar o volume em 6 horas.",
+      "obs": "Considerar SEMPRE frasco de 5g/100mL. Dose por peso: 2 g/kg divididos em 5 dias (frascos = peso × 2 ÷ 5, arredondar p/ cima). Infusão ~1 frasco/hora em BIC: primeiros 30 min a 30 mL/h (teste de tolerância), depois completar o volume restante em ~6 horas. CEAF SP: apenas crise miastênica.",
       "apresentacoes": [
-        {"dose": "5g", "forma": "frasco-ampola", "posologias": [
-          {"texto": "Dias 1, 2 e 3: 6 frascos/dia; dias 4 e 5: 5 frascos/dia. Primeiros 30 minutos: 30 mL/h (teste de tolerância); após, completar o volume restante em 6 horas.", "qtd_30dias": "28 frascos no total"}
+        {"dose": "5g/100mL", "forma": "frasco-ampola", "posologias": [
+          {"texto": "2 g/kg divididos em 5 dias, EV em BIC. Primeiros 30 minutos: 30 mL/h (teste de tolerância); após, ~1 frasco/hora até completar o volume do dia em ~6 horas.", "qtd_30dias": "calcular pelo peso (peso × 2 ÷ 5 frascos)"}
         ]}
       ]
     },

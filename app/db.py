@@ -88,8 +88,7 @@ def iniciar_banco() -> None:
     try:
         con.executescript(SCHEMA)
         _migrar(con)
-        if con.execute("SELECT COUNT(*) FROM medicamentos").fetchone()[0] == 0:
-            carregar_seed_medicamentos(con)
+        sincronizar_seed_medicamentos(con)
         con.commit()
     finally:
         con.close()
@@ -102,39 +101,43 @@ def _migrar(con: sqlite3.Connection) -> None:
         con.execute("ALTER TABLE pacientes ADD COLUMN tags TEXT")
 
 
-def carregar_seed_medicamentos(con: sqlite3.Connection) -> int:
+def sincronizar_seed_medicamentos(con: sqlite3.Connection) -> None:
+    """Upsert idempotente do catálogo: novos fármacos/apresentações/posologias do seed
+    entram em bancos já existentes; edições manuais no banco não são apagadas."""
     seed = json.loads((config.SEEDS_DIR / "medicamentos.json").read_text(encoding="utf-8"))
-    n = 0
     for med in seed["medicamentos"]:
-        cur = con.execute(
-            "INSERT OR IGNORE INTO medicamentos "
-            "(principio_ativo, grupo, classificacao_receita, disponibilidade, lme, obs) "
-            "VALUES (?, ?, ?, ?, ?, ?)",
-            (
-                med["principio_ativo"],
-                med.get("grupo"),
-                med.get("classificacao_receita", "C1"),
-                json.dumps(med.get("disponibilidade", []), ensure_ascii=False),
-                1 if med.get("lme") else 0,
-                med.get("obs"),
-            ),
-        )
-        if cur.rowcount == 0:
-            continue
-        med_id = cur.lastrowid
+        row = con.execute("SELECT id FROM medicamentos WHERE principio_ativo = ?",
+                          (med["principio_ativo"],)).fetchone()
+        if row:
+            med_id = row["id"]
+            con.execute("UPDATE medicamentos SET obs = ? WHERE id = ?",
+                        (med.get("obs"), med_id))
+        else:
+            med_id = con.execute(
+                "INSERT INTO medicamentos "
+                "(principio_ativo, grupo, classificacao_receita, disponibilidade, lme, obs) "
+                "VALUES (?, ?, ?, ?, ?, ?)",
+                (med["principio_ativo"], med.get("grupo"),
+                 med.get("classificacao_receita", "C1"),
+                 json.dumps(med.get("disponibilidade", []), ensure_ascii=False),
+                 1 if med.get("lme") else 0, med.get("obs")),
+            ).lastrowid
         for apr in med.get("apresentacoes", []):
-            cur2 = con.execute(
+            arow = con.execute(
+                "SELECT id FROM apresentacoes WHERE medicamento_id = ? AND dose = ? "
+                "AND forma = ?", (med_id, apr["dose"], apr["forma"])).fetchone()
+            apr_id = arow["id"] if arow else con.execute(
                 "INSERT INTO apresentacoes (medicamento_id, dose, forma) VALUES (?, ?, ?)",
-                (med_id, apr["dose"], apr["forma"]),
-            )
-            apr_id = cur2.lastrowid
+                (med_id, apr["dose"], apr["forma"])).lastrowid
             for pos in apr.get("posologias", []):
-                con.execute(
-                    "INSERT INTO posologias (apresentacao_id, texto, qtd_30dias) VALUES (?, ?, ?)",
-                    (apr_id, pos["texto"], pos.get("qtd_30dias")),
-                )
-        n += 1
-    return n
+                existe = con.execute(
+                    "SELECT 1 FROM posologias WHERE apresentacao_id = ? AND texto = ?",
+                    (apr_id, pos["texto"])).fetchone()
+                if not existe:
+                    con.execute(
+                        "INSERT INTO posologias (apresentacao_id, texto, qtd_30dias) "
+                        "VALUES (?, ?, ?)",
+                        (apr_id, pos["texto"], pos.get("qtd_30dias")))
 
 
 def backup_banco() -> str | None:
