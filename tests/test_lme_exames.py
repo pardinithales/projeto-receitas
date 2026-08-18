@@ -47,13 +47,20 @@ def test_lme_gera_pdf_preenchido(cliente):
         "anamnese": "Paciente fictícia para teste.", "com_data": "com",
     }, follow_redirects=False)
     assert r.status_code == 303
-    pdf_resp = cliente.get(r.headers["location"])
-    assert pdf_resp.content[:5] == b"%PDF-"
+    assert r.headers["location"].startswith(f"/pacientes/{pid}")   # volta ao kit
 
     con = db.conectar()
     caminho = con.execute("SELECT caminho_pdf FROM documentos WHERE tipo = 'lme'"
                           ).fetchone()["caminho_pdf"]
+    # o kit gera junto a receita de controle especial dos medicamentos
+    receita = con.execute(
+        "SELECT conteudo_json FROM documentos WHERE tipo = 'receita_controle_especial'"
+    ).fetchone()
     con.close()
+    assert receita is not None
+    itens = json.loads(receita["conteudo_json"])["itens"]
+    assert any("Levetiracetam" in i["medicamento"] for i in itens)
+    assert all(i["posologia"] for i in itens)
     pdf = pikepdf.open(caminho)
     valores = {}
     for page in pdf.pages:

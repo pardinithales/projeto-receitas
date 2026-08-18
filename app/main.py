@@ -74,6 +74,7 @@ templates = Jinja2Templates(directory=Path(__file__).parent / "templates")
 def startup() -> None:
     db.iniciar_banco()
     db.backup_banco()
+    db.limpar_pdfs_antigos()   # sistema leve: PDFs são regenerados sob demanda
 
 
 # ---------------------------------------------------------------- home / busca
@@ -186,6 +187,35 @@ async def salvar_paciente(request: Request, pid: int):
     finally:
         con.close()
     return RedirectResponse(f"/pacientes/{pid}", status_code=303)
+
+
+def _mesclar_tags(con, pid: int, novas: list[str]) -> None:
+    """Une diagnósticos novos às tags do paciente, sem duplicar (para estatísticas)."""
+    row = con.execute("SELECT tags FROM pacientes WHERE id = ?", (pid,)).fetchone()
+    atuais = [t.strip() for t in (row["tags"] or "").split(",") if t.strip()]
+    baixo = {t.lower() for t in atuais}
+    for n in novas:
+        n = n.strip()
+        if n and n.lower() not in baixo:
+            atuais.append(n)
+            baixo.add(n.lower())
+    con.execute("UPDATE pacientes SET tags = ?, atualizado_em = ? WHERE id = ?",
+                (", ".join(atuais), db.agora(), pid))
+
+
+def _extrair_tags_do_relatorio(pid: int, texto: str) -> None:
+    """Melhor esforço (nunca quebra o fluxo): GPT curto extrai 2-3 diagnósticos."""
+    from app.services import ia
+    try:
+        novas = ia.extrair_diagnosticos(texto)
+    except Exception:
+        return
+    con = db.conectar()
+    try:
+        _mesclar_tags(con, pid, novas)
+        con.commit()
+    finally:
+        con.close()
 
 
 @app.get("/pacientes/{pid}", response_class=HTMLResponse)
@@ -305,6 +335,7 @@ def emitir_receita(pid: int,
                    vias: int = Form(1),
                    carimbo: str = Form(""),
                    senha_carimbo: str = Form(""),
+                   tags: str = Form(""),
                    itens_json: str = Form(...)):
     itens_raw = json.loads(itens_json)
     if not itens_raw:
@@ -317,6 +348,9 @@ def emitir_receita(pid: int,
                "carimbo": bool(autorizado)}
     con = db.conectar()
     try:
+        if tags.strip():
+            con.execute("UPDATE pacientes SET tags = ?, atualizado_em = ? WHERE id = ?",
+                        (tags.strip(), db.agora(), pid))
         cur = con.execute(
             "INSERT INTO documentos (paciente_id, tipo, data_emissao, conteudo_json) "
             "VALUES (?, ?, ?, ?)",
@@ -364,6 +398,20 @@ def _gerar_pdf_receita(con, doc_id: int) -> str:
 
 CAMPOS_LME_PACIENTE = {"nome_mae": "nome da mãe", "peso_kg": "peso",
                        "altura_cm": "altura"}
+
+
+def _posologia_do_catalogo(con, descricao: str, qtd_mensal: str) -> tuple[str, str]:
+    """Melhor posologia do catálogo para a receita do kit LME (fallback)."""
+    principio = descricao.split()[0]
+    row = con.execute(
+        "SELECT p.texto, p.qtd_30dias FROM posologias p "
+        "JOIN apresentacoes a ON a.id = p.apresentacao_id "
+        "JOIN medicamentos m ON m.id = a.medicamento_id "
+        "WHERE m.principio_ativo LIKE ? AND instr(?, a.dose) > 0 "
+        "ORDER BY p.id LIMIT 1", (f"{principio}%", descricao)).fetchone()
+    if row:
+        return row["texto"], row["qtd_30dias"] or qtd_mensal
+    return "Tomar conforme orientação médica", qtd_mensal
 
 
 def _ultimas_escalas(con, pid: int) -> dict:
@@ -508,7 +556,8 @@ async def emitir_lme(request: Request, pid: int):
         )
         payload = {"meds": meds_raw, "cid10": dados.cid10,
                    "com_data": form.get("com_data", "sem"),
-                   "relatorio": form.get("gerar_relatorio") == "sim"}
+                   "relatorio": form.get("gerar_relatorio") == "sim",
+                   "carimbo": bool(autorizado)}
         cur = con.execute(
             "INSERT INTO documentos (paciente_id, tipo, data_emissao, conteudo_json) "
             "VALUES (?, 'lme', ?, ?)",
@@ -520,6 +569,28 @@ async def emitir_lme(request: Request, pid: int):
         con.execute("UPDATE documentos SET caminho_pdf = ? WHERE id = ?",
                     (str(destino), doc_id))
 
+        # receita de controle especial dos medicamentos do LME (parte do kit)
+        if form.get("gerar_receita", "sim") == "sim":
+            itens_receita = []
+            for m in meds_raw:
+                texto_pos = (m.get("posologia") or "").strip()
+                qtd_pos = m.get("qtd_texto") or ""
+                if not texto_pos:
+                    texto_pos, qtd_pos = _posologia_do_catalogo(
+                        con, m["descricao"], m.get("qtd_mensal", ""))
+                itens_receita.append({
+                    "medicamento": m["descricao"],
+                    "quantidade": qtd_pos or f"{m.get('qtd_mensal', '')} unidades/mês",
+                    "posologia": texto_pos})
+            payload_rec = {"tipo": "controle_especial", "via_administracao": "USO ORAL",
+                           "com_data": form.get("com_data", "sem"), "vias": 2,
+                           "itens": itens_receita, "carimbo": bool(autorizado)}
+            cur_r = con.execute(
+                "INSERT INTO documentos (paciente_id, tipo, data_emissao, conteudo_json) "
+                "VALUES (?, 'receita_controle_especial', ?, ?)",
+                (pid, db.agora(), json.dumps(payload_rec, ensure_ascii=False)))
+            _gerar_pdf_receita(con, cur_r.lastrowid)
+
         # termo TER/TCLE do grupo de medicamentos, já preenchido (nada à mão)
         if form.get("incluir_termo") == "sim":
             tipo_termo = termos.termo_para_medicamentos(
@@ -529,7 +600,9 @@ async def emitir_lme(request: Request, pid: int):
                     "INSERT INTO documentos (paciente_id, tipo, data_emissao, "
                     "conteudo_json) VALUES (?, 'termo', ?, ?)",
                     (pid, db.agora(),
-                     json.dumps({"termo": tipo_termo}, ensure_ascii=False)))
+                     json.dumps({"termo": tipo_termo,
+                                 "meds": [m["descricao"] for m in meds_raw]},
+                                ensure_ascii=False)))
                 destino_termo = config.SAIDA_DIR / f"paciente_{pid}" / \
                     f"{cur3.lastrowid:05d}_termo_{datetime.now():%Y%m%d}.pdf"
                 gerado = termos.gerar_termo(
@@ -553,7 +626,8 @@ async def emitir_lme(request: Request, pid: int):
             cur2 = con.execute(
                 "INSERT INTO documentos (paciente_id, tipo, data_emissao, conteudo_json) "
                 "VALUES (?, 'relatorio_alto_custo', ?, ?)",
-                (pid, db.agora(), json.dumps({"texto": texto_rel, "cid10": dados.cid10},
+                (pid, db.agora(), json.dumps({"texto": texto_rel, "cid10": dados.cid10,
+                                              "carimbo": bool(autorizado)},
                                              ensure_ascii=False)))
             destino_rel = config.SAIDA_DIR / f"paciente_{pid}" / \
                 f"{cur2.lastrowid:05d}_relatorio_{datetime.now():%Y%m%d}.pdf"
@@ -563,7 +637,33 @@ async def emitir_lme(request: Request, pid: int):
         con.commit()
     finally:
         con.close()
-    return RedirectResponse(f"/documentos/{doc_id}/pdf", status_code=303)
+    # volta para o paciente, onde o kit inteiro aparece com botão de imprimir tudo
+    return RedirectResponse(f"/pacientes/{pid}?kit=1", status_code=303)
+
+
+@app.post("/pacientes/{pid}/imprimir-kit")
+def imprimir_kit(pid: int):
+    """Enfileira e imprime todos os documentos emitidos HOJE para o paciente."""
+    hoje = date.today().isoformat()
+    con = db.conectar()
+    try:
+        docs = con.execute(
+            "SELECT d.id, d.tipo, d.caminho_pdf, p.nome FROM documentos d "
+            "JOIN pacientes p ON p.id = d.paciente_id "
+            "WHERE d.paciente_id = ? AND d.data_emissao LIKE ? ORDER BY d.id",
+            (pid, f"{hoje}%")).fetchall()
+        for doc in docs:
+            caminho = doc["caminho_pdf"]
+            if not caminho or not Path(caminho).exists():
+                caminho = _regenerar_pdf(con, doc["id"])
+            imprimir.enfileirar(con, caminho,
+                                f"{doc['nome']} — {doc['tipo'].replace('_', ' ')}",
+                                doc["id"])
+        con.commit()
+    finally:
+        con.close()
+    resultado = imprimir.processar_fila()
+    return {"ok": resultado["erro"] is None, "total": len(docs), **resultado}
 
 
 # ---------------------------------------------------------------- relatório INSS (IA)
@@ -603,6 +703,7 @@ def gerar_inss(request: Request, pid: int,
             "paciente": paciente, "anterior": {"dados": dados},
             "erro": f"A IA falhou ({e}). Nada foi perdido — tente de novo."},
             status_code=502)
+    _extrair_tags_do_relatorio(pid, saida["texto"])   # estatísticas, melhor esforço
     return templates.TemplateResponse(request, "inss_revisao.html", {
         "paciente": paciente, "dados": dados, "texto": saida["texto"],
         "cids": saida["cids"], "instrucoes": instrucoes,
@@ -623,7 +724,8 @@ def pdf_inss(pid: int, dados: str = Form(""), texto: str = Form(...),
     con = db.conectar()
     try:
         paciente = con.execute("SELECT * FROM pacientes WHERE id = ?", (pid,)).fetchone()
-        payload = {"dados": dados, "texto": texto, "cids": cids}
+        payload = {"dados": dados, "texto": texto, "cids": cids,
+                   "carimbo": bool(autorizado)}
         cur = con.execute(
             "INSERT INTO documentos (paciente_id, tipo, data_emissao, conteudo_json) "
             "VALUES (?, 'relatorio_inss', ?, ?)",
@@ -735,7 +837,8 @@ async def emitir_exames(request: Request, pid: int):
             carimbo=bool(autorizado),
         )
         payload = {"exames": exames_raw, "meses": meses,
-                   "indicacao": pedido.indicacao, "com_data": form.get("com_data", "com")}
+                   "indicacao": pedido.indicacao, "com_data": form.get("com_data", "com"),
+                   "carimbo": bool(autorizado)}
         cur = con.execute(
             "INSERT INTO documentos (paciente_id, tipo, data_emissao, conteudo_json) "
             "VALUES (?, 'pedido_exames', ?, ?)",
@@ -750,6 +853,57 @@ async def emitir_exames(request: Request, pid: int):
     finally:
         con.close()
     return RedirectResponse(f"/documentos/{doc_id}/pdf", status_code=303)
+
+
+# ---------------------------------------------------------------- estatísticas
+
+@app.get("/estatisticas", response_class=HTMLResponse)
+def estatisticas(request: Request):
+    con = db.conectar()
+    try:
+        pacientes = con.execute("SELECT * FROM pacientes ORDER BY nome").fetchall()
+        docs = con.execute(
+            "SELECT paciente_id, tipo, data_emissao, conteudo_json FROM documentos "
+            "ORDER BY id").fetchall()
+    finally:
+        con.close()
+
+    por_paciente: dict[int, dict] = {}
+    for d in docs:
+        info = por_paciente.setdefault(d["paciente_id"], {
+            "meds_atuais": [], "lme_datas": [], "n_docs": 0})
+        info["n_docs"] += 1
+        payload = json.loads(d["conteudo_json"])
+        if d["tipo"].startswith("receita"):
+            info["meds_atuais"] = [
+                {"med": i["medicamento"], "qtd": i.get("quantidade", "")}
+                for i in payload.get("itens", [])]
+        elif d["tipo"] == "lme":
+            info["lme_datas"].append(d["data_emissao"][:10])
+            info["meds_lme"] = [f"{m['descricao']} ({m['qtd_mensal']}/mês)"
+                                for m in payload.get("meds", [])]
+
+    linhas = []
+    uso_por_med: dict[str, int] = {}
+    for p in pacientes:
+        info = por_paciente.get(p["id"], {"meds_atuais": [], "lme_datas": [], "n_docs": 0})
+        proxima = ""
+        if info["lme_datas"]:
+            ultima = date.fromisoformat(info["lme_datas"][-1])
+            proxima = _somar_meses(ultima, 6).strftime("%d/%m/%Y")
+        for m in info["meds_atuais"]:
+            principio = m["med"].split()[0].lower()
+            uso_por_med[principio] = uso_por_med.get(principio, 0) + 1
+        linhas.append({
+            "paciente": p, "meds": info["meds_atuais"],
+            "meds_lme": info.get("meds_lme", []),
+            "n_lme": len(info["lme_datas"]),
+            "ultima_lme": info["lme_datas"][-1] if info["lme_datas"] else "",
+            "proxima_renovacao": proxima, "n_docs": info["n_docs"],
+        })
+    ranking = sorted(uso_por_med.items(), key=lambda x: -x[1])
+    return templates.TemplateResponse(request, "estatisticas.html",
+                                      {"linhas": linhas, "ranking": ranking})
 
 
 # ---------------------------------------------------------------- impressão
@@ -840,6 +994,85 @@ def escolher_impressora(nome: str = Form(...)):
     return RedirectResponse("/impressao", status_code=303)
 
 
+def _regenerar_pdf(con, doc_id: int) -> str:
+    """Regenera o PDF de QUALQUER documento a partir do conteúdo estruturado.
+    Permite manter o sistema leve: PDFs antigos são apagados e renascem aqui."""
+    doc = con.execute("SELECT * FROM documentos WHERE id = ?", (doc_id,)).fetchone()
+    tipo = doc["tipo"]
+    if tipo.startswith("receita"):
+        return _gerar_pdf_receita(con, doc_id)
+
+    paciente = con.execute("SELECT * FROM pacientes WHERE id = ?",
+                           (doc["paciente_id"],)).fetchone()
+    payload = json.loads(doc["conteudo_json"])
+    emissao = datetime.fromisoformat(doc["data_emissao"])
+    destino = config.SAIDA_DIR / f"paciente_{paciente['id']}" / \
+        f"{doc_id:05d}_{tipo}_{emissao:%Y%m%d}.pdf"
+
+    if tipo == "lme":
+        lme_row = con.execute("SELECT * FROM lme_dados WHERE paciente_id = ?",
+                              (paciente["id"],)).fetchone()
+        lme_d = dict(lme_row) if lme_row else {}
+        documento_tipo = "CNS" if paciente["cns"] else ("CPF" if paciente["cpf"] else "")
+        dados = DadosLME(
+            paciente=paciente["nome"].upper(),
+            nome_mae=(paciente["nome_mae"] or "").upper(),
+            peso_kg=str(paciente["peso_kg"] or ""),
+            altura_cm=str(paciente["altura_cm"] or ""),
+            medicamentos=[MedicamentoLME(m["descricao"], [m["qtd_mensal"]] * 6)
+                          for m in payload.get("meds", [])],
+            cid10=payload.get("cid10", ""),
+            diagnostico=lme_d.get("diagnostico") or "",
+            anamnese=lme_d.get("anamnese") or "",
+            tratamentos_previos=lme_d.get("tratamentos_previos") or "",
+            incapaz=bool(lme_d.get("incapaz")),
+            nome_responsavel=lme_d.get("nome_responsavel") or "",
+            raca_cor=paciente["raca_cor"] or "",
+            telefone=paciente["telefone"] or "",
+            documento_tipo=documento_tipo,
+            documento_numero=paciente["cns"] or paciente["cpf"] or "",
+            data=emissao.strftime("%d/%m/%Y") if payload.get("com_data") == "com" else "",
+            carimbo=bool(payload.get("carimbo")))
+        preencher_lme(dados, destino)
+    elif tipo == "relatorio_alto_custo":
+        gerar_relatorio_pdf(RelatorioMedico(
+            paciente=paciente["nome"], texto=payload.get("texto", ""),
+            cid10=payload.get("cid10", ""), data=emissao.strftime("%d/%m/%Y"),
+            carimbo=bool(payload.get("carimbo"))), destino)
+    elif tipo == "relatorio_inss":
+        from app.services.documentos_pdf import (RelatorioPrevidenciario,
+                                                 gerar_relatorio_previdenciario_pdf)
+        gerar_relatorio_previdenciario_pdf(RelatorioPrevidenciario(
+            paciente=paciente["nome"], texto=payload.get("texto", ""),
+            cids=payload.get("cids", []), data=emissao.strftime("%d/%m/%Y"),
+            documento=paciente["cpf"] or paciente["rg"] or "",
+            carimbo=bool(payload.get("carimbo"))), destino)
+    elif tipo == "pedido_exames":
+        base = emissao.date()
+        meses = sorted(int(m) for m in payload.get("meses", [0]))
+        datas = [_somar_meses(base, m).strftime("%d/%m/%Y") for m in meses] \
+            if payload.get("com_data", "com") == "com" else [""] * max(1, len(meses))
+        gerar_pedido_exames_pdf(PedidoExames(
+            paciente=paciente["nome"],
+            exames=[ExameSolicitado(e["nome"], e.get("material", ""))
+                    for e in payload.get("exames", [])],
+            indicacao=payload.get("indicacao", ""), datas=datas,
+            carimbo=bool(payload.get("carimbo"))), destino)
+    elif tipo == "termo":
+        gerado = termos.gerar_termo(
+            payload.get("termo", ""), destino, paciente=paciente["nome"],
+            cns=paciente["cns"] or "", medicamentos=payload.get("meds", []),
+            data=emissao.strftime("%d/%m/%Y"))
+        if not gerado:
+            raise FileNotFoundError("modelo do termo indisponível")
+    else:
+        raise FileNotFoundError(f"tipo de documento sem regeneração: {tipo}")
+
+    con.execute("UPDATE documentos SET caminho_pdf = ? WHERE id = ?",
+                (str(destino), doc_id))
+    return str(destino)
+
+
 @app.get("/documentos/{doc_id}/pdf")
 def abrir_pdf(doc_id: int):
     con = db.conectar()
@@ -850,10 +1083,48 @@ def abrir_pdf(doc_id: int):
             return HTMLResponse("Documento não encontrado", status_code=404)
         caminho = doc["caminho_pdf"]
         if not caminho or not Path(caminho).exists():
-            # documento "deixado salvo": gera o PDF na primeira abertura
-            caminho = _gerar_pdf_receita(con, doc_id)
+            caminho = _regenerar_pdf(con, doc_id)
             con.commit()
     finally:
         con.close()
     return FileResponse(caminho, media_type="application/pdf",
                         content_disposition_type="inline")
+
+
+@app.post("/documentos/{doc_id}/excluir")
+def excluir_documento(doc_id: int):
+    con = db.conectar()
+    try:
+        doc = con.execute("SELECT paciente_id, caminho_pdf FROM documentos "
+                          "WHERE id = ?", (doc_id,)).fetchone()
+        if not doc:
+            return HTMLResponse("não encontrado", status_code=404)
+        if doc["caminho_pdf"]:
+            Path(doc["caminho_pdf"]).unlink(missing_ok=True)
+        con.execute("DELETE FROM impressao_fila WHERE documento_id = ?", (doc_id,))
+        con.execute("DELETE FROM documentos WHERE id = ?", (doc_id,))
+        con.commit()
+        pid = doc["paciente_id"]
+    finally:
+        con.close()
+    return RedirectResponse(f"/pacientes/{pid}", status_code=303)
+
+
+@app.post("/pacientes/{pid}/excluir")
+def excluir_paciente(pid: int):
+    con = db.conectar()
+    try:
+        for doc in con.execute("SELECT caminho_pdf FROM documentos "
+                               "WHERE paciente_id = ?", (pid,)).fetchall():
+            if doc["caminho_pdf"]:
+                Path(doc["caminho_pdf"]).unlink(missing_ok=True)
+        con.execute("DELETE FROM impressao_fila WHERE documento_id IN "
+                    "(SELECT id FROM documentos WHERE paciente_id = ?)", (pid,))
+        con.execute("DELETE FROM documentos WHERE paciente_id = ?", (pid,))
+        con.execute("DELETE FROM lme_dados WHERE paciente_id = ?", (pid,))
+        con.execute("DELETE FROM escalas WHERE paciente_id = ?", (pid,))
+        con.execute("DELETE FROM pacientes WHERE id = ?", (pid,))
+        con.commit()
+    finally:
+        con.close()
+    return RedirectResponse("/", status_code=303)

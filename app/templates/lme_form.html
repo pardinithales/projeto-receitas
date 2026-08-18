@@ -138,9 +138,12 @@
       <div style="flex:2"><label>Medicamento (alto custo)</label>
         <input type="text" class="med-busca" list="lista-meds-lme" placeholder="Digite para buscar…"></div>
       <div><label>Apresentação</label><select class="med-apr"></select></div>
-      <div style="max-width:150px"><label>Qtd mensal</label>
-        <input type="text" class="med-qtd" placeholder="ex.: 60"></div>
+      <div style="max-width:130px"><label>Qtd mensal</label>
+        <input type="text" class="med-qtd" placeholder="auto"></div>
     </div>
+    <label>Posologia (vai para a receita do kit — clique numa sugestão ou edite)</label>
+    <div class="chips med-chips"></div>
+    <input type="text" class="med-pos" placeholder="Tomar …">
     <p style="text-align:right;margin:6px 0 0">
       <button type="button" class="chip" onclick="this.closest('.item-med').remove()">remover</button></p>
   </div>
@@ -160,7 +163,29 @@ function novaLinhaMed() {
   const el = document.getElementById('tpl-med').content.cloneNode(true).firstElementChild;
   document.getElementById('meds').appendChild(el);
   const busca = el.querySelector('.med-busca'), apr = el.querySelector('.med-apr'),
-        qtd = el.querySelector('.med-qtd');
+        qtd = el.querySelector('.med-qtd'), pos = el.querySelector('.med-pos'),
+        chips = el.querySelector('.med-chips');
+  function aplicarPosologia(p, chip) {
+    pos.value = p.texto;
+    pos.dataset.qtdTexto = p.qtd_30dias || '';
+    qtd.value = (p.qtd_30dias || '').replace(/[^\d]/g, '') || qtd.value;
+    chips.querySelectorAll('.chip').forEach(x => x.classList.remove('ativa'));
+    if (chip) chip.classList.add('ativa');
+  }
+  function atualizarPosologias() {
+    const m = medNome(busca.value);
+    chips.innerHTML = '';
+    if (!m) return;
+    const a = m.apresentacoes[apr.selectedIndex];
+    if (!a) return;
+    a.posologias.forEach((p, i) => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'chip'; b.textContent = p.texto;
+      b.onclick = () => aplicarPosologia(p, b);
+      chips.appendChild(b);
+      if (i === 0) aplicarPosologia(p, b);   // 1ª sugestão já entra (tudo editável)
+    });
+  }
   busca.addEventListener('change', () => {
     const m = medNome(busca.value);
     apr.innerHTML = '';
@@ -170,12 +195,51 @@ function novaLinhaMed() {
       o.value = o.textContent = `${a.dose} - ${a.forma}`;
       apr.appendChild(o);
     });
-    const p = m.apresentacoes[0] && m.apresentacoes[0].posologias[0];
-    if (p && p.qtd_30dias) qtd.value = p.qtd_30dias.replace(/[^\d]/g, '');
+    atualizarPosologias();
+    sugerirCid();   // ao clicar na med: CID padrão + descrição + pista do PCDT
   });
+  apr.addEventListener('change', atualizarPosologias);
 }
 let CRITERIOS = {};
 fetch('/api/criterios-pcdt').then(r => r.json()).then(c => { CRITERIOS = c; pistaPcdt(); });
+
+// Descrição oficial resumida dos CIDs mais usados (preenche o campo Diagnóstico)
+const DESCRICOES_CID = {
+  'G40.0': 'Epilepsia e síndromes epilépticas idiopáticas definidas por sua localização (focal) (parcial)',
+  'G40.1': 'Epilepsia e síndromes epilépticas sintomáticas definidas por sua localização (focal) (parcial) com crises parciais simples',
+  'G40.2': 'Epilepsia e síndromes epilépticas sintomáticas definidas por sua localização (focal) (parcial) com crises parciais complexas',
+  'G40.3': 'Epilepsia e síndromes epilépticas generalizadas idiopáticas',
+  'G40.4': 'Outras epilepsias e síndromes epilépticas generalizadas',
+  'G40.8': 'Outras epilepsias',
+  'G30.0': 'Doença de Alzheimer de início precoce',
+  'G30.1': 'Doença de Alzheimer de início tardio',
+  'G30.8': 'Outras formas de doença de Alzheimer',
+  'G30.9': 'Doença de Alzheimer não especificada',
+  'G70.0': 'Miastenia gravis',
+  'G70.2': 'Miastenia congênita e do desenvolvimento',
+  'G35': 'Esclerose múltipla',
+  'G20': 'Doença de Parkinson',
+  'G61.0': 'Síndrome de Guillain-Barré',
+  'E78.0': 'Hipercolesterolemia pura',
+  'E78.2': 'Hiperlipidemia mista',
+  'E78.5': 'Hiperlipidemia não especificada',
+  'R52.1': 'Dor crônica intratável',
+  'R52.2': 'Outra dor crônica',
+};
+function aplicarCid(cid) {
+  const campoCid = document.querySelector('input[name=cid10]');
+  const campoDiag = document.querySelector('input[name=diagnostico]');
+  campoCid.value = cid;
+  // preenche/atualiza o diagnóstico se estiver vazio ou se veio de escolha automática
+  if (DESCRICOES_CID[cid] && (!campoDiag.value.trim() || campoDiag.dataset.auto === '1')) {
+    campoDiag.value = DESCRICOES_CID[cid];
+    campoDiag.dataset.auto = '1';
+  }
+  sugerirCid();
+  pistaPcdt();
+}
+document.querySelector('input[name=diagnostico]').addEventListener('input',
+  function() { this.dataset.auto = '0'; });   // edição manual vira definitiva
 
 // CID padrão por grupo do medicamento + opções selecionáveis (sempre editável)
 const CIDS_POR_GRUPO = [
@@ -199,12 +263,20 @@ function sugerirCid() {
   if (!m) return;
   const regra = CIDS_POR_GRUPO.find(r => r.contem.some(c => (m.grupo || '').includes(c)));
   if (!regra) return;
-  if (!campo.value.trim()) { campo.value = regra.padrao; }
+  if (!campo.value.trim()) {
+    campo.value = regra.padrao;
+    const diag = document.querySelector('input[name=diagnostico]');
+    if (DESCRICOES_CID[regra.padrao] && !diag.value.trim()) {
+      diag.value = DESCRICOES_CID[regra.padrao];
+      diag.dataset.auto = '1';
+    }
+  }
   regra.opcoes.forEach(cid => {
     const b = document.createElement('button');
-    b.type = 'button'; b.className = 'chip'; b.textContent = cid;
+    b.type = 'button'; b.className = 'chip';
+    b.textContent = cid + (DESCRICOES_CID[cid] ? ' — ' + DESCRICOES_CID[cid].slice(0, 40) + '…' : '');
     if (campo.value.trim().toUpperCase() === cid) b.classList.add('ativa');
-    b.onclick = () => { campo.value = cid; sugerirCid(); pistaPcdt(); };
+    b.onclick = () => aplicarCid(cid);
     chips.appendChild(b);
   });
   pistaPcdt();
@@ -291,8 +363,11 @@ document.getElementById('form-lme').addEventListener('submit', e => {
     const nome = el.querySelector('.med-busca').value.trim();
     if (!nome) return;
     const apr = el.querySelector('.med-apr').value;
+    const pos = el.querySelector('.med-pos');
     meds.push({ descricao: apr ? `${nome} ${apr}` : nome,
-                qtd_mensal: el.querySelector('.med-qtd').value.trim() || '30' });
+                qtd_mensal: el.querySelector('.med-qtd').value.trim() || '30',
+                posologia: pos.value.trim(),
+                qtd_texto: pos.dataset.qtdTexto || '' });
   });
   if (!meds.length) { e.preventDefault(); alert('Adicione ao menos um medicamento.'); return; }
   document.getElementById('meds_json').value = JSON.stringify(meds);

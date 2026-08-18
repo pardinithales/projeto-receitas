@@ -27,6 +27,8 @@
   <a class="botao rosa"
      href="/pacientes/{{ paciente.id }}/receita?copiar_de={{ documentos[0].id }}">
      Repetir última receita</a>
+  <a class="botao" style="background:#333" href="#"
+     onclick="imprimirKit(this); return false;">🖨️ Imprimir kit de hoje</a>
   {% endif %}
 </div>
 
@@ -51,6 +53,9 @@
         <a href="/pacientes/{{ paciente.id }}/receita?copiar_de={{ d.id }}">repetir</a>
         · <a href="/documentos/{{ d.id }}/copiar">p/ outro paciente</a>
         {% endif %}
+        <form method="post" action="/documentos/{{ d.id }}/excluir" style="display:inline"
+              onsubmit="return confirm('Excluir este documento do histórico?')">
+          <button class="chip" type="submit" style="color:#a33">excluir</button></form>
       </td>
     </tr>
     {% endfor %}
@@ -58,8 +63,25 @@
   {% else %}
   <p>Nenhum documento emitido ainda.</p>
   {% endif %}
+  <p style="margin-top:20px; text-align:right">
+    <form method="post" action="/pacientes/{{ paciente.id }}/excluir" style="display:inline"
+          onsubmit="return confirm('EXCLUIR o paciente {{ paciente.nome }} e TODO o histórico dele? Não tem volta.')">
+      <button class="chip" type="submit" style="color:#a33">excluir paciente</button></form>
+  </p>
 </div>
 <script>
+async function imprimirKit(el) {
+  el.textContent = '🖨️ imprimindo kit…';
+  try {
+    const r = await fetch('/pacientes/{{ paciente.id }}/imprimir-kit', { method: 'POST' });
+    const j = await r.json();
+    if (j.ok) el.textContent = `✅ kit impresso (${j.total} docs)`;
+    else {
+      el.textContent = '❌ parou no meio';
+      alert('Parou: ' + (j.erro || '') + '\nResolva e clique Retomar na página Impressão.');
+    }
+  } catch (e) { el.textContent = '❌ erro'; alert(e); }
+}
 async function imprimirDoc(id, el) {
   el.textContent = '🖨️ imprimindo…';
   try {
