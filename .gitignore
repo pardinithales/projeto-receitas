@@ -43,6 +43,7 @@ venv/
 # Ambiente e segredos
 .env
 .env.*
+!.env.example
 *.pem
 *.pfx
 
