@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+{% block titulo %}Receita — {{ paciente.nome }}{% endblock %}
+{% block conteudo %}
+<div class="cartao">
+  <h1>Nova receita — {{ paciente.nome }}</h1>
+  <form method="post" action="/pacientes/{{ paciente.id }}/receita" id="form-receita">
+
+    <div class="linha">
+      <div>
+        <label>Tipo de receituário</label>
+        <div class="radio-grupo">
+          <label><input type="radio" name="tipo" value="controle_especial" checked>
+            <span>Controle especial</span></label>
+          <label><input type="radio" name="tipo" value="comum">
+            <span>Comum</span></label>
+        </div>
+      </div>
+      <div>
+        <label>Data</label>
+        <div class="radio-grupo">
+          <label><input type="radio" name="com_data" value="sem" checked>
+            <span>SEM data (preencher à mão)</span></label>
+          <label><input type="radio" name="com_data" value="com">
+            <span>COM data ({{ hoje }})</span></label>
+        </div>
+      </div>
+    </div>
+
+    <label>Via de administração</label>
+    <select name="via_administracao">
+      <option>USO ORAL</option>
+      <option>USO TÓPICO</option>
+      <option>USO SUBCUTÂNEO</option>
+      <option>USO INTRAMUSCULAR</option>
+      <option>USO ENDOVENOSO, EM BOMBA DE INFUSÃO CONTÍNUA (BIC)</option>
+    </select>
+
+    <h2>Medicamentos</h2>
+    <div id="itens"></div>
+    <p><button type="button" class="botao secundario" onclick="novaLinha()">+ Adicionar medicamento</button></p>
+
+    <div id="avisos"></div>
+    <input type="hidden" name="itens_json" id="itens_json">
+    <p style="margin-top:18px">
+      <button class="botao" type="submit">Gerar PDF da receita</button>
+      <a class="botao secundario" href="/pacientes/{{ paciente.id }}">Cancelar</a>
+    </p>
+  </form>
+</div>
+
+<template id="tpl-item">
+  <div class="item-med">
+    <div class="linha">
+      <div style="flex:2">
+        <label>Medicamento</label>
+        <input type="text" class="busca-med" list="lista-meds" placeholder="Digite para buscar…">
+      </div>
+      <div>
+        <label>Apresentação</label>
+        <select class="sel-apr"></select>
+      </div>
+      <div style="max-width:170px">
+        <label>Quantidade</label>
+        <input type="text" class="qtd" placeholder="ex.: 60 comprimidos">
+      </div>
+    </div>
+    <label>Posologia (clique numa sugestão ou edite)</label>
+    <div class="chips"></div>
+    <input type="text" class="posologia" placeholder="Tomar …">
+    <p style="text-align:right; margin:6px 0 0">
+      <button type="button" class="chip" onclick="this.closest('.item-med').remove()">remover</button>
+    </p>
+  </div>
+</template>
+<datalist id="lista-meds"></datalist>
+
+<script>
+let CATALOGO = [];
+const PAYLOAD_ANTERIOR = {{ payload_anterior | tojson if payload_anterior else 'null' }};
+
+fetch('/api/catalogo').then(r => r.json()).then(c => {
+  CATALOGO = c;
+  const dl = document.getElementById('lista-meds');
+  dl.innerHTML = c.map(m => `<option value="${m.principio_ativo}">`).join('');
+  iniciar();
+});
+
+function medPorNome(nome) {
+  return CATALOGO.find(m => m.principio_ativo.toLowerCase() === nome.trim().toLowerCase());
+}
+
+function novaLinha(dados) {
+  const el = document.getElementById('tpl-item').content.cloneNode(true).firstElementChild;
+  document.getElementById('itens').appendChild(el);
+  const busca = el.querySelector('.busca-med');
+  const selApr = el.querySelector('.sel-apr');
+  const chips = el.querySelector('.chips');
+  const qtd = el.querySelector('.qtd');
+  const pos = el.querySelector('.posologia');
+
+  function atualizarApresentacoes() {
+    const med = medPorNome(busca.value);
+    selApr.innerHTML = '';
+    chips.innerHTML = '';
+    mostrarAvisos(med);
+    if (!med) return;
+    for (const a of med.apresentacoes) {
+      const o = document.createElement('option');
+      o.value = o.textContent = `${a.dose} - ${a.forma}`;
+      selApr.appendChild(o);
+    }
+    atualizarPosologias();
+  }
+  function atualizarPosologias() {
+    const med = medPorNome(busca.value);
+    chips.innerHTML = '';
+    if (!med) return;
+    const apr = med.apresentacoes[selApr.selectedIndex];
+    if (!apr) return;
+    apr.posologias.forEach((p, i) => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'chip'; b.textContent = p.texto;
+      b.onclick = () => { pos.value = p.texto; qtd.value = p.qtd_30dias || qtd.value;
+        chips.querySelectorAll('.chip').forEach(x => x.classList.remove('ativa'));
+        b.classList.add('ativa'); };
+      chips.appendChild(b);
+      if (i === 0 && !dados) { pos.value = p.texto; qtd.value = p.qtd_30dias || ''; b.classList.add('ativa'); }
+    });
+  }
+  busca.addEventListener('change', atualizarApresentacoes);
+  selApr.addEventListener('change', atualizarPosologias);
+
+  if (dados) {   // pré-preenchimento (repetir receita)
+    const partes = dados.medicamento.split(' ');
+    busca.value = dados._principio || dados.medicamento;
+    atualizarApresentacoes();
+    qtd.value = dados.quantidade;
+    pos.value = dados.posologia;
+    if (dados._apresentacao) selApr.value = dados._apresentacao;
+  }
+  return el;
+}
+
+function mostrarAvisos(med) {
+  const div = document.getElementById('avisos');
+  div.innerHTML = '';
+  document.querySelectorAll('.item-med .busca-med').forEach(inp => {
+    const m = medPorNome(inp.value);
+    if (!m) return;
+    let partes = [];
+    if (m.classificacao === 'B1')
+      partes.push('exige NOTIFICAÇÃO DE RECEITA B (azul) na farmácia');
+    if (m.lme) partes.push('medicamento de alto custo — gerar também o kit LME');
+    if (m.obs) partes.push(m.obs);
+    if (partes.length)
+      div.innerHTML += `<div class="aviso"><b>${m.principio_ativo}:</b> ${partes.join(' · ')}</div>`;
+  });
+}
+
+function iniciar() {
+  if (PAYLOAD_ANTERIOR) {
+    const p = JSON.parse(PAYLOAD_ANTERIOR);
+    document.querySelector(`input[name=tipo][value=${p.tipo}]`).checked = true;
+    if (p.via_administracao)
+      document.querySelector('select[name=via_administracao]').value = p.via_administracao;
+    (p.itens || []).forEach(i => novaLinha(i));
+  } else {
+    novaLinha();
+  }
+}
+
+document.getElementById('form-receita').addEventListener('submit', e => {
+  const itens = [];
+  document.querySelectorAll('.item-med').forEach(el => {
+    const nome = el.querySelector('.busca-med').value.trim();
+    if (!nome) return;
+    const apr = el.querySelector('.sel-apr').value;
+    itens.push({
+      medicamento: apr ? `${nome} ${apr}` : nome,
+      _principio: nome,
+      _apresentacao: apr,
+      quantidade: el.querySelector('.qtd').value.trim() || 'USO CONTÍNUO',
+      posologia: el.querySelector('.posologia').value.trim(),
+    });
+  });
+  if (!itens.length) { e.preventDefault(); alert('Adicione ao menos um medicamento.'); return; }
+  document.getElementById('itens_json').value = JSON.stringify(itens);
+});
+</script>
+{% endblock %}

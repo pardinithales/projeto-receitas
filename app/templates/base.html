@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block titulo %}Sistema de Receitas{% endblock %}</title>
+<script src="/static/htmx.min.js"></script>
+<style>
+  :root { --azul: #00a0dd; --rosa: #e6007e; --cinza: #f4f6f8; --texto: #1c2733; }
+  * { box-sizing: border-box; }
+  body { font-family: "Segoe UI", system-ui, sans-serif; margin: 0; background: var(--cinza);
+         color: var(--texto); font-size: 16px; }
+  header { background: white; border-bottom: 3px solid var(--azul); padding: 12px 24px;
+           display: flex; align-items: center; gap: 16px; }
+  header a.marca { font-size: 20px; font-weight: 700; color: var(--azul); text-decoration: none; }
+  header a.marca span { color: var(--rosa); }
+  main { max-width: 900px; margin: 24px auto; padding: 0 16px; }
+  .cartao { background: white; border-radius: 10px; padding: 20px 24px; margin-bottom: 16px;
+            box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+  h1 { font-size: 22px; margin: 0 0 16px; }
+  h2 { font-size: 17px; margin: 20px 0 8px; }
+  label { display: block; font-size: 13px; font-weight: 600; margin: 10px 0 3px; color: #4a5a6a; }
+  input[type=text], input[type=date], input[type=number], select, textarea {
+    width: 100%; padding: 9px 10px; border: 1px solid #c4cdd6; border-radius: 7px;
+    font-size: 16px; font-family: inherit; background: white; }
+  input:focus, select:focus, textarea:focus { outline: 2px solid var(--azul); border-color: var(--azul); }
+  .linha { display: flex; gap: 12px; } .linha > * { flex: 1; }
+  .botao { display: inline-block; background: var(--azul); color: white; border: none;
+           padding: 12px 22px; border-radius: 8px; font-size: 16px; font-weight: 600;
+           cursor: pointer; text-decoration: none; }
+  .botao:hover { filter: brightness(.92); }
+  .botao.secundario { background: white; color: var(--azul); border: 2px solid var(--azul); }
+  .botao.rosa { background: var(--rosa); }
+  .lista-resultado { list-style: none; margin: 6px 0 0; padding: 0; }
+  .lista-resultado li a { display: block; padding: 10px 12px; border-radius: 7px;
+    text-decoration: none; color: var(--texto); }
+  .lista-resultado li a:hover { background: var(--cinza); }
+  table { width: 100%; border-collapse: collapse; }
+  td, th { text-align: left; padding: 8px 10px; border-bottom: 1px solid #e6ebf0; font-size: 15px; }
+  .item-med { border: 1px solid #d7dee5; border-radius: 8px; padding: 12px; margin: 10px 0;
+              background: #fbfcfd; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+  .chip { background: #e8f6fd; color: #056a94; border: 1px solid #bfe6f7; border-radius: 999px;
+          padding: 4px 12px; font-size: 13px; cursor: pointer; }
+  .chip:hover, .chip.ativa { background: var(--azul); color: white; }
+  .aviso { background: #fff7e0; border: 1px solid #eedc9a; border-radius: 7px;
+           padding: 8px 12px; font-size: 14px; margin: 8px 0; }
+  .radio-grupo { display: flex; gap: 8px; margin-top: 4px; }
+  .radio-grupo label { flex: 1; border: 2px solid #c4cdd6; border-radius: 8px; padding: 10px;
+    text-align: center; cursor: pointer; font-weight: 600; font-size: 15px; margin: 0; }
+  .radio-grupo input { display: none; }
+  .radio-grupo input:checked + span { color: var(--azul); }
+  .radio-grupo label:has(input:checked) { border-color: var(--azul); background: #e8f6fd; }
+</style>
+</head>
+<body>
+<header>
+  <a class="marca" href="/">Receitas <span>Neurologia</span></a>
+</header>
+<main>{% block conteudo %}{% endblock %}</main>
+</body>
+</html>

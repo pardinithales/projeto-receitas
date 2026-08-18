@@ -1,0 +1,9 @@
+<ul class="lista-resultado">
+  {% for p in pacientes %}
+  <li><a href="/pacientes/{{ p.id }}">{{ p.nome }}
+    {% if p.data_nascimento %}<small> — nasc. {{ p.data_nascimento }}</small>{% endif %}</a></li>
+  {% endfor %}
+  {% if q and q|length >= 2 and not pacientes %}
+  <li><a href="/pacientes/novo?nome={{ q }}">Nenhum encontrado — <b>cadastrar “{{ q }}”</b></a></li>
+  {% endif %}
+</ul>

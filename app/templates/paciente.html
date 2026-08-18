@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block titulo %}{{ paciente.nome }}{% endblock %}
+{% block conteudo %}
+<div class="cartao">
+  <h1>{{ paciente.nome }}</h1>
+  <p style="color:#5a6b7a; margin: 4px 0 14px">
+    {% if paciente.data_nascimento %}Nascimento: {{ paciente.data_nascimento }} · {% endif %}
+    {% if paciente.telefone %}Tel: {{ paciente.telefone }} · {% endif %}
+    {% if paciente.cns %}CNS: {{ paciente.cns }}{% endif %}
+  </p>
+  <a class="botao" href="/pacientes/{{ paciente.id }}/receita">Nova receita</a>
+  {% if documentos %}
+  <a class="botao rosa"
+     href="/pacientes/{{ paciente.id }}/receita?copiar_de={{ documentos[0].id }}">
+     Repetir última receita</a>
+  {% endif %}
+</div>
+
+<div class="cartao">
+  <h2>Histórico</h2>
+  {% if documentos %}
+  <table>
+    {% for d in documentos %}
+    <tr>
+      <td>{{ d.data_emissao[:10] }}</td>
+      <td>{{ d.tipo.replace("_", " ") }}</td>
+      <td>{{ d.resumo }}</td>
+      <td><a href="/documentos/{{ d.id }}/pdf" target="_blank">PDF</a></td>
+      <td><a href="/pacientes/{{ paciente.id }}/receita?copiar_de={{ d.id }}">repetir</a></td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}
+  <p>Nenhum documento emitido ainda.</p>
+  {% endif %}
+</div>
+{% endblock %}

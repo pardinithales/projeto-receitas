@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block conteudo %}
+<div class="cartao">
+  <h1>Buscar paciente</h1>
+  <input type="text" name="q" placeholder="Digite o nome do paciente…" autofocus
+         hx-get="/pacientes/busca" hx-trigger="input changed delay:250ms"
+         hx-target="#resultado">
+  <div id="resultado"></div>
+  <p><a class="botao secundario" href="/pacientes/novo">+ Cadastrar novo paciente</a></p>
+</div>
+
+{% if recentes %}
+<div class="cartao">
+  <h2>Últimos documentos emitidos</h2>
+  <table>
+    {% for d in recentes %}
+    <tr>
+      <td><a href="/pacientes/{{ d.paciente_id }}">{{ d.nome }}</a></td>
+      <td>{{ d.tipo.replace("_", " ") }}</td>
+      <td>{{ d.data_emissao[:10] }}</td>
+      <td><a href="/documentos/{{ d.id }}/pdf" target="_blank">abrir PDF</a></td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endif %}
+{% endblock %}
