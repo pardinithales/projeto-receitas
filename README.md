@@ -21,6 +21,25 @@ com banco de dados local (SQLite) que:
 qualquer arquivo real ficam apenas na máquina local, protegidos pelo `.gitignore`.
 Commits contêm somente código, modelos sanitizados (nomes fictícios) e documentação.
 
+## Como rodar
+
+```
+pip install -r requirements.txt
+copy .env.example .env      # e preencher com os dados do prescritor
+python -m uvicorn app.main:app --port 8477
+```
+
+Abrir http://localhost:8477 no navegador. O banco SQLite é criado e populado
+com o catálogo de medicamentos automaticamente no primeiro uso; um backup
+diário é feito a cada inicialização.
+
+Scripts locais (não movem nenhum dado para o repositório):
+
+- `python scripts/importar_pacientes_lme.py 10` — importa pacientes reais dos LMEs recentes;
+- `python scripts/validar_com_receitas_reais.py 20` — confere que o PDF gerado
+  reproduz fielmente receitas antigas.
+
 ## Status
 
-Em levantamento de requisitos — ver `AGENTS.md` (em construção) e `docs/`.
+v1 funcional para receitas (controle especial e comum). Próximo: kit LME
+(PDF oficial preenchido + formulário estadual + termos + escalas). Ver `AGENTS.md`.
