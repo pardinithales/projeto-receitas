@@ -482,7 +482,8 @@ async def emitir_lme(request: Request, pid: int):
 
         # escalas informadas ficam registradas e são reaproveitadas nas renovações
         hoje_iso = db.agora()
-        for tipo, campo in (("MEEM", "meem"), ("CDR", "cdr"), ("EDSS", "edss")):
+        for tipo, campo in (("MEEM", "meem"), ("CDR", "cdr"), ("EDSS", "edss"),
+                            ("LANSS", "lanss"), ("EVA", "eva")):
             if form.get(campo):
                 con.execute("INSERT INTO escalas (paciente_id, tipo, valor, data) "
                             "VALUES (?, ?, ?, ?)", (pid, tipo, form[campo], hoje_iso))
@@ -510,6 +511,10 @@ async def emitir_lme(request: Request, pid: int):
                     faltando.append(f"{rotulo} (obrigatório no PCDT de Alzheimer)")
         if cid.startswith("G35") and not form.get("edss"):
             faltando.append("EDSS (obrigatório no PCDT de esclerose múltipla)")
+        if cid.startswith("R52"):
+            for campo, rotulo in (("lanss", "LANSS"), ("eva", "EVA")):
+                if not form.get(campo):
+                    faltando.append(f"{rotulo} (obrigatório no PCDT de dor crônica)")
         if faltando:
             con.commit()   # preserva o que já foi preenchido
             lme = con.execute("SELECT * FROM lme_dados WHERE paciente_id = ?",
@@ -530,6 +535,9 @@ async def emitir_lme(request: Request, pid: int):
                            f"MEEM: {form.get('meem')}/30. CDR: {form.get('cdr')}.")
         if cid.startswith("G35") and form.get("edss"):
             prefixo.append(f"EDSS atual: {form.get('edss')}.")
+        if cid.startswith("R52") and form.get("lanss"):
+            prefixo.append(f"LANSS: {form.get('lanss')}/24 (escore >=12 sugere dor "
+                           f"neuropática). EVA: {form.get('eva')}/10.")
         if prefixo and prefixo[0].split(":")[0] not in anamnese:
             anamnese = " ".join(prefixo) + " " + anamnese
             form["anamnese"] = anamnese
@@ -595,7 +603,7 @@ async def emitir_lme(request: Request, pid: int):
         # termo TER/TCLE do grupo de medicamentos, já preenchido (nada à mão)
         if form.get("incluir_termo") == "sim":
             tipo_termo = termos.termo_para_medicamentos(
-                [m["descricao"] for m in meds_raw])
+                [m["descricao"] for m in meds_raw], cid10=cid)
             if tipo_termo:
                 cur3 = con.execute(
                     "INSERT INTO documentos (paciente_id, tipo, data_emissao, "

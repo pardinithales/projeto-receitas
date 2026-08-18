@@ -35,12 +35,23 @@ def _normalizar(t: str) -> str:
     return "".join(c for c in t if not unicodedata.combining(c))
 
 
-def termo_para_medicamentos(medicamentos: list[str]) -> str | None:
-    """Escolhe o termo certo pela lista de medicamentos do LME."""
+def termo_para_medicamentos(medicamentos: list[str], cid10: str = "") -> str | None:
+    """Escolhe o termo certo pela lista de medicamentos E pela indicação (CID).
+    Ex.: gabapentina com R52 (dor) usa o termo de dor crônica, não o de epilepsia."""
     texto = _normalizar(" ".join(medicamentos))
-    for med in MEDS_TER_EPILEPSIA:
-        if _normalizar(med).split()[0] in texto:
-            return "epilepsia"
+    cid = cid10.upper()
+    if cid.startswith("R52") and "gabapentina" in texto:
+        return "gabapentina_dor"
+    if cid.startswith(("G30", "F00")):
+        return "demencia"
+    if cid.startswith("G40"):
+        for med in MEDS_TER_EPILEPSIA:
+            if _normalizar(med).split()[0] in texto:
+                return "epilepsia"
+    if not cid:    # sem CID: cai na heurística por medicamento
+        for med in MEDS_TER_EPILEPSIA:
+            if _normalizar(med).split()[0] in texto:
+                return "epilepsia"
     for chave in OUTROS_TERMOS:
         if chave.split("_")[0] in texto:
             return chave
