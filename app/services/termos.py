@@ -127,8 +127,8 @@ def _preencher_ter_epilepsia(destino: Path, paciente: str, cns: str,
                 annot.V = pikepdf.Name("/Sim" if idx_btn in indices else "/Off")
                 annot.AS = pikepdf.Name("/Sim" if idx_btn in indices else "/Off")
                 idx_btn += 1
-    # carimbo sobre a linha "Assinatura e carimbo do médico" (acima do campo Data,
-    # que fica em Rect ~[251,253,371,269] na última página)
-    _carimbar_pagina(pdf, pdf.pages[-1], x=265, y=278)
+    # carimbo sobre a linha de assinatura do médico (faixa livre y~285-318, medida
+    # da página; fundo do carimbo é transparente, então pode encostar nos textos)
+    _carimbar_pagina(pdf, pdf.pages[-1], x=255, y=272, largura=80)
     pdf.save(destino)
     return destino
