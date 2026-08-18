@@ -12,6 +12,10 @@
 !templates/**/*.docx
 !templates/**/*.pdf
 
+# Identidade visual institucional (papel timbrado do hospital):
+# fica apenas local - nao publicar em repositorio publico
+templates/assets/
+
 # Bancos de dados locais
 *.db
 *.sqlite
