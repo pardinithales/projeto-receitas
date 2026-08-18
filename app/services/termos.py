@@ -68,6 +68,27 @@ def gerar_termo(tipo: str, destino: Path, paciente: str = "", cns: str = "",
     return destino
 
 
+def _carimbar_pagina(pdf: pikepdf.Pdf, pagina, x: float, y: float,
+                     largura: float = 88) -> None:
+    """Desenha o carimbo como conteúdo da página (sai em qualquer leitor)."""
+    import io
+
+    from reportlab.pdfgen.canvas import Canvas as RLCanvas
+
+    if not config.CARIMBO_PATH.exists():
+        return
+    box = [float(v) for v in pagina.MediaBox]
+    buf = io.BytesIO()
+    c = RLCanvas(buf, pagesize=(box[2], box[3]))
+    c.drawImage(str(config.CARIMBO_PATH), x, y, width=largura,
+                height=largura * 184 / 271, mask="auto")
+    c.showPage()
+    c.save()
+    buf.seek(0)
+    overlay = pikepdf.open(buf)
+    pagina.add_overlay(overlay.pages[0])
+
+
 def _preencher_ter_epilepsia(destino: Path, paciente: str, cns: str,
                              medicamentos: list[str], data: str) -> Path | None:
     if not TER_EPILEPSIA.exists():
@@ -106,5 +127,8 @@ def _preencher_ter_epilepsia(destino: Path, paciente: str, cns: str,
                 annot.V = pikepdf.Name("/Sim" if idx_btn in indices else "/Off")
                 annot.AS = pikepdf.Name("/Sim" if idx_btn in indices else "/Off")
                 idx_btn += 1
+    # carimbo sobre a linha "Assinatura e carimbo do médico" (acima do campo Data,
+    # que fica em Rect ~[251,253,371,269] na última página)
+    _carimbar_pagina(pdf, pdf.pages[-1], x=265, y=278)
     pdf.save(destino)
     return destino

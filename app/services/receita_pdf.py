@@ -142,8 +142,8 @@ def gerar_receita_pdf(receita: Receita, destino: Path) -> Path:
     c = Canvas(str(destino), pagesize=A4)
     controle = receita.tipo == "controle_especial"
     titulo = "RECEITUÁRIO CONTROLE ESPECIAL" if controle else "RECEITUÁRIO MÉDICO"
-    # COM data: 1 via só (receita datada); SEM data: 1 via por mês até o retorno
-    n_vias = 1 if receita.data else max(1, receita.vias)
+    # nº de folhas vem calculado do guia (controlada = 2 por mês, mesmo COM data)
+    n_vias = max(1, receita.vias)
 
     for _ in range(n_vias):
         y = _cabecalho(c, titulo, controle)

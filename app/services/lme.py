@@ -161,31 +161,69 @@ def preencher_lme(dados: DadosLME, destino: Path) -> Path:
         _set_radio(pdf, "Documentos", f"/{dados.documento_tipo}")
         _set_texto(campos, "Text25a", dados.documento_numero)
 
-    if dados.carimbo and config.CARIMBO_PATH.exists():
-        _aplicar_carimbo(pdf)
+    # Widgets de tela (botões, dropdowns) não podem aparecer no PDF final:
+    # escondemos todos e escrevemos os medicamentos como conteúdo da página.
+    textos_overlay = _esconder_widgets_e_medir(pdf, dados)
+    _aplicar_overlay(pdf, textos_overlay, com_carimbo=dados.carimbo)
 
     pdf.save(destino)
     return destino
 
 
-# Áreas de assinatura do LME oficial (pontos PDF, origem inferior esquerda):
-# campo 17 "Assinatura e carimbo do médico" (direita de Text46/Today) e
-# campo 23 "Assinatura do responsável pelo preenchimento" (direita inferior)
-POSICOES_CARIMBO = [(400, 188), (400, 42)]      # canto inferior esquerdo do carimbo
-CARIMBO_LARGURA = 105                            # pontos (~37mm); altura proporcional
+# Nomes de widgets que são só de tela (nunca devem sair na impressão)
+WIDGETS_DE_TELA = {"MENU", "Salvar como", "Busca CNES", "Hoje",
+                   "Digitar manualmente", "Listar medicamentos", "Text2", "suporte"}
+
+# Carimbo: campo 17 (assinatura do médico) e campo 23 (responsável preenchimento)
+POSICOES_CARIMBO = [(448, 186), (448, 30)]      # canto inferior esquerdo
+CARIMBO_LARGURA = 68                             # pontos (~24mm), não cobre os rótulos
 
 
-def _aplicar_carimbo(pdf: pikepdf.Pdf) -> None:
+def _esconder_widgets_e_medir(pdf: pikepdf.Pdf, dados: DadosLME) -> list[tuple]:
+    """Esconde botões/dropdowns (F=2) e devolve os textos de medicamento com a
+    posição da linha correspondente para desenhar como conteúdo fixo."""
+    textos: list[tuple] = []
+    for page in pdf.pages:
+        for annot in page.get("/Annots", []) or []:
+            t = annot.get("/T")
+            if t is None:
+                continue
+            nome = str(t)
+            esconder = (nome in WIDGETS_DE_TELA or nome.startswith("Limpar")
+                        or nome.startswith("PCDT") or nome.startswith("Selecao med"))
+            if nome == "med1" or nome.startswith("Selecao med"):
+                idx = 0 if nome == "med1" else int(nome.rsplit(" ", 1)[1]) - 1
+                if idx < len(dados.medicamentos):
+                    r = [float(x) for x in annot.get("/Rect")]
+                    if nome == "med1" or idx > 0:   # linha 1 usa o rect do med1
+                        textos.append((dados.medicamentos[idx].descricao,
+                                       min(r[0], r[2]) + 3,
+                                       min(r[1], r[3]) + 5))
+                if nome == "med1":
+                    esconder = True   # o texto sai como conteúdo da página
+            if esconder:
+                annot.F = 2          # hidden: não aparece na tela nem na impressão
+    return textos
+
+
+def _aplicar_overlay(pdf: pikepdf.Pdf, textos: list[tuple],
+                     com_carimbo: bool) -> None:
     import io
 
     from reportlab.pdfgen.canvas import Canvas as RLCanvas
 
+    if not textos and not (com_carimbo and config.CARIMBO_PATH.exists()):
+        return
     buf = io.BytesIO()
     c = RLCanvas(buf, pagesize=(595.32, 841.92))
-    alt = CARIMBO_LARGURA * 184 / 271
-    for x, y in POSICOES_CARIMBO:
-        c.drawImage(str(config.CARIMBO_PATH), x, y,
-                    width=CARIMBO_LARGURA, height=alt, mask="auto")
+    c.setFont("Helvetica", 8)
+    for texto, x, y in textos:
+        c.drawString(x, y, texto[:80])
+    if com_carimbo and config.CARIMBO_PATH.exists():
+        alt = CARIMBO_LARGURA * 184 / 271
+        for x, y in POSICOES_CARIMBO:
+            c.drawImage(str(config.CARIMBO_PATH), x, y,
+                        width=CARIMBO_LARGURA, height=alt, mask="auto")
     c.showPage()
     c.save()
     buf.seek(0)
