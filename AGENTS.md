@@ -31,7 +31,9 @@ Análise detalhada do fluxo atual: `docs/analise-documentos.md`.
 | Saída | **PDF pronto para imprimir** (assinatura à mão no consultório) |
 | Pacientes | Cadastro começa vazio; paciente é cadastrado no primeiro uso |
 | Medicamentos | Catálogo curado de neurologia **pré-carregado** (seed versionado no git) |
-| Prescritor | Fixo: Dr. Thales Pardini Fagundes, CRM-SP 220298, RQE 124154; estabelecimento/CNES único |
+| Prescritor | Fixo: Dr. Thales Pardini Fagundes, CRM-SP 220298, RQE 124154; estabelecimento/CNES único (valores em `.env` local, modelo em `.env.example`) |
+| Papel timbrado | Imagem institucional (Hospital de Amor Barretos) em `templates/assets/` — **local apenas, fora do git** (repo é público) |
+| Kit LME | O LME nunca sai sozinho: gerar kit completo (receita + relatório + formulário estadual + termo + anexos por medicamento) — ver `docs/lme-campos.md` e `docs/termos-consentimento.md` |
 
 ## Princípio central de UX: marcar, não digitar
 
