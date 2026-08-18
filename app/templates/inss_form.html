@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block titulo %}Relatório INSS — {{ paciente.nome }}{% endblock %}
+{% block conteudo %}
+<div class="cartao">
+  <h1>Relatório para fins previdenciários — {{ paciente.nome }}</h1>
+  {% if erro %}<div class="aviso" style="background:#ffe4e4;border-color:#e9a0a0">{{ erro }}</div>{% endif %}
+  <p style="color:#5a6b7a">Cole abaixo tudo que tiver do caso (evoluções, exames, laudos —
+    pode ser muito texto). A IA gera o relatório técnico e neutro, com sugestões de CID,
+    para você revisar antes do PDF.</p>
+  <form method="post" action="/pacientes/{{ paciente.id }}/inss" id="form-inss">
+    <label>Dados do caso</label>
+    <textarea name="dados" rows="18" required
+      placeholder="Cole aqui evoluções, exame neurológico, resultados de exames…">{{ anterior.dados if anterior else '' }}</textarea>
+    <label>Instruções extras para a IA nesta geração (opcional — o prompt-base é o seu
+      arquivo em Prompts principais e pode ser editado lá)</label>
+    <input type="text" name="instrucoes" placeholder="ex.: enfatizar as quedas e o risco ocupacional">
+    <input type="hidden" name="modo" value="padrao">
+    <p style="margin-top:14px">
+      <button class="botao" type="submit" onclick="aguarde(this)">Gerar relatório com IA</button>
+      <a class="botao secundario" href="/pacientes/{{ paciente.id }}">Cancelar</a>
+    </p>
+  </form>
+  {% if anterior and anterior.texto %}
+  <div class="aviso">Os dados do relatório anterior foram carregados acima — ajuste o que
+    mudou e gere novamente.</div>
+  {% endif %}
+</div>
+<script>
+function aguarde(btn) {
+  setTimeout(() => { btn.disabled = true; btn.textContent = 'Gerando… (pode levar 1-2 min)'; }, 10);
+}
+</script>
+{% endblock %}

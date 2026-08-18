@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block titulo %}Copiar receita{% endblock %}
+{% block conteudo %}
+<div class="cartao">
+  <h1>Copiar receita para outro paciente</h1>
+  <p style="color:#5a6b7a">Origem: <b>{{ doc.nome }}</b> ({{ doc.tipo.replace("_", " ") }}).
+    Busque o paciente de destino — a receita abre pré-preenchida para conferir e gerar.</p>
+  <input type="text" id="busca" placeholder="Nome do paciente de destino…" autofocus>
+  <ul class="lista-resultado" id="resultado"></ul>
+</div>
+<script>
+const DOC = {{ doc.id }};
+let timer = null;
+document.getElementById('busca').addEventListener('input', function() {
+  clearTimeout(timer);
+  const q = this.value;
+  timer = setTimeout(async () => {
+    const r = await fetch('/api/pacientes?q=' + encodeURIComponent(q));
+    const lista = await r.json();
+    document.getElementById('resultado').innerHTML = lista.map(p =>
+      `<li><a href="/pacientes/${p.id}/receita?copiar_de=${DOC}">${p.nome}</a></li>`).join('');
+  }, 250);
+});
+</script>
+{% endblock %}

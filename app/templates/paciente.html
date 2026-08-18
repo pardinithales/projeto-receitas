@@ -21,6 +21,8 @@
      href="/pacientes/{{ paciente.id }}/lme">Gerar LME</a>
   <a class="botao" style="background:#0a8f5b"
      href="/pacientes/{{ paciente.id }}/exames">Pedido de exames</a>
+  <a class="botao" style="background:#b3541e"
+     href="/pacientes/{{ paciente.id }}/inss">Relatório INSS (IA)</a>
   {% if documentos %}
   <a class="botao rosa"
      href="/pacientes/{{ paciente.id }}/receita?copiar_de={{ documentos[0].id }}">
@@ -41,7 +43,14 @@
       </td>
       <td><a href="/documentos/{{ d.id }}/pdf" target="_blank">
         {{ "PDF" if d.caminho_pdf else "gerar PDF" }}</a></td>
-      <td><a href="/pacientes/{{ paciente.id }}/receita?copiar_de={{ d.id }}">repetir</a></td>
+      <td>
+        {% if d.tipo == "relatorio_inss" %}
+        <a href="/pacientes/{{ paciente.id }}/inss?doc={{ d.id }}">reaproveitar</a>
+        {% elif d.tipo.startswith("receita") %}
+        <a href="/pacientes/{{ paciente.id }}/receita?copiar_de={{ d.id }}">repetir</a>
+        · <a href="/documentos/{{ d.id }}/copiar">p/ outro paciente</a>
+        {% endif %}
+      </td>
     </tr>
     {% endfor %}
   </table>

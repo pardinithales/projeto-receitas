@@ -40,8 +40,11 @@
       <div><label>Diagnóstico *</label>
         <input type="text" name="diagnostico" value="{{ lme.diagnostico or '' }}" required></div>
     </div>
-    <label>Anamnese *</label>
-    <textarea name="anamnese" rows="4" required>{{ lme.anamnese or '' }}</textarea>
+    <label>Anamnese * <button type="button" class="chip" id="btn-ia-anamnese"
+      onclick="anamneseIA()" style="margin-left:8px">gerar com IA focada no PCDT</button></label>
+    <div id="pista-pcdt" class="aviso" style="display:none"></div>
+    <textarea name="anamnese" rows="4" required
+      placeholder="Cole dados do caso e clique no botão acima, ou escreva direto">{{ lme.anamnese or '' }}</textarea>
     <label>Tratamentos prévios (vazio = marca NÃO no formulário)</label>
     <input type="text" name="tratamentos_previos" value="{{ lme.tratamentos_previos or '' }}">
     <div class="linha">
@@ -76,7 +79,11 @@
     </label>
     <div id="bloco-relatorio" style="display:none">
       <label>Texto do relatório (rascunho automático — edite à vontade)</label>
-      <textarea name="texto_relatorio" rows="5" id="texto-relatorio"></textarea>
+      <textarea name="texto_relatorio" rows="6" id="texto-relatorio"></textarea>
+      <label>Quer um texto técnico melhor? Cole dados do caso (exames, evolução) e use a IA:</label>
+      <textarea rows="5" id="dados-ia" placeholder="Cole aqui semiologia, EEG, RM, tratamentos prévios…"></textarea>
+      <p><button type="button" class="botao secundario" id="btn-ia" onclick="gerarComIA()">
+        Gerar relatório técnico com IA (formato que a LME pede)</button></p>
     </div>
 
     <input type="hidden" name="meds_json" id="meds_json">
@@ -128,6 +135,69 @@ function novaLinhaMed() {
     const p = m.apresentacoes[0] && m.apresentacoes[0].posologias[0];
     if (p && p.qtd_30dias) qtd.value = p.qtd_30dias.replace(/[^\d]/g, '');
   });
+}
+let CRITERIOS = {};
+fetch('/api/criterios-pcdt').then(r => r.json()).then(c => { CRITERIOS = c; pistaPcdt(); });
+function pistaPcdt() {
+  const cid = document.querySelector('input[name=cid10]').value.trim().toUpperCase();
+  const div = document.getElementById('pista-pcdt');
+  const chave = Object.keys(CRITERIOS).find(k => cid.startsWith(k));
+  if (chave) {
+    div.style.display = 'block';
+    div.innerHTML = '<b>O que o PCDT pede na anamnese:</b> ' + CRITERIOS[chave];
+  } else { div.style.display = 'none'; }
+}
+document.querySelector('input[name=cid10]').addEventListener('input', pistaPcdt);
+function medsSelecionados() {
+  return [...document.querySelectorAll('#meds .item-med')].map(el => {
+    const n = el.querySelector('.med-busca').value.trim();
+    const a = el.querySelector('.med-apr').value;
+    return a ? `${n} ${a}` : n;
+  }).filter(Boolean).join('; ');
+}
+async function anamneseIA() {
+  const btn = document.getElementById('btn-ia-anamnese');
+  const campo = document.querySelector('textarea[name=anamnese]');
+  btn.disabled = true; btn.textContent = 'gerando… (30-60s)';
+  try {
+    const r = await fetch('/api/ia/anamnese-lme', {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        dados: campo.value + '\n' + (document.getElementById('dados-ia')?.value || ''),
+        paciente: {{ paciente.nome | tojson }},
+        medicamentos: medsSelecionados(),
+        cid10: document.querySelector('input[name=cid10]').value,
+      })});
+    const j = await r.json();
+    if (j.ok) campo.value = j.texto;
+    else alert('IA falhou: ' + j.erro);
+  } catch (e) { alert('Erro de rede: ' + e); }
+  btn.disabled = false; btn.textContent = 'gerar com IA focada no PCDT';
+}
+async function gerarComIA() {
+  const btn = document.getElementById('btn-ia');
+  btn.disabled = true; btn.textContent = 'Gerando… (30-90s)';
+  const meds = [...document.querySelectorAll('#meds .item-med')].map(el => {
+    const n = el.querySelector('.med-busca').value.trim();
+    const a = el.querySelector('.med-apr').value;
+    return a ? `${n} ${a}` : n;
+  }).filter(Boolean).join('; ');
+  try {
+    const r = await fetch('/api/ia/alto-custo', {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        dados: document.getElementById('dados-ia').value +
+               '\n\nAnamnese do LME: ' + document.querySelector('textarea[name=anamnese]').value +
+               '\nTratamentos prévios: ' + document.querySelector('input[name=tratamentos_previos]').value,
+        paciente: {{ paciente.nome | tojson }},
+        medicamentos: meds,
+        cid10: document.querySelector('input[name=cid10]').value,
+      })});
+    const j = await r.json();
+    if (j.ok) document.getElementById('texto-relatorio').value = j.texto;
+    else alert('IA falhou: ' + j.erro + '\nNada foi perdido, tente de novo.');
+  } catch (e) { alert('Erro de rede: ' + e); }
+  btn.disabled = false; btn.textContent = 'Gerar relatório técnico com IA (formato que a LME pede)';
 }
 document.getElementById('chk-rel').addEventListener('change', function() {
   document.getElementById('bloco-relatorio').style.display = this.checked ? 'block' : 'none';

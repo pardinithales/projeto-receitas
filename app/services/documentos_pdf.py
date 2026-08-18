@@ -72,6 +72,70 @@ def gerar_relatorio_pdf(rel: RelatorioMedico, destino: Path) -> Path:
 
 
 @dataclass
+class RelatorioPrevidenciario:
+    paciente: str
+    texto: str
+    cids: list[str] = field(default_factory=list)     # ["G40.1 - Epilepsia focal", ...]
+    data: str = ""
+    documento: str = ""                                # RG/CPF do paciente, se houver
+
+
+def gerar_relatorio_previdenciario_pdf(rel: RelatorioPrevidenciario,
+                                       destino: Path) -> Path:
+    """RELATÓRIO PARA FINS PREVIDENCIÁRIOS: letra menor, sem bloco de farmácia,
+    paginação e identificação do paciente em TODAS as páginas."""
+    destino.parent.mkdir(parents=True, exist_ok=True)
+    FONTE, TAM, ENTRE = "Helvetica", 10, 4.6 * mm
+    Y_TOPO, Y_FUNDO = ALTURA - 52 * mm, 60 * mm
+
+    # quebra parágrafos em linhas para paginar (2 passadas: contar, depois desenhar)
+    linhas: list[str] = []
+    for par in rel.texto.split("\n"):
+        par = par.strip()
+        if not par:
+            linhas.append("")
+            continue
+        linhas.extend(simpleSplit(par, FONTE, TAM, LARGURA_UTIL))
+        linhas.append("")
+    if rel.cids:
+        linhas.append("")
+        for cid in rel.cids:
+            linhas.append(f"CID-10: {cid}")
+
+    por_pagina = int((Y_TOPO - Y_FUNDO) / ENTRE)
+    paginas = [linhas[i:i + por_pagina] for i in range(0, len(linhas), por_pagina)] or [[]]
+    total = len(paginas)
+
+    c = Canvas(str(destino), pagesize=A4)
+    for num, bloco in enumerate(paginas, start=1):
+        _fundo_timbrado(c)
+        y = ALTURA - 40 * mm
+        c.setFont("Helvetica-Bold", 13)
+        c.drawCentredString(LARGURA / 2, y, "RELATÓRIO PARA FINS PREVIDENCIÁRIOS")
+        y -= 7 * mm
+        c.setFont("Helvetica", 9)
+        ident = f"Paciente: {rel.paciente}"
+        if rel.documento:
+            ident += f"  |  Documento: {rel.documento}"
+        c.drawString(MARGEM_ESQ, y, ident)
+        c.drawRightString(LARGURA - MARGEM_DIR, y, f"Página {num} de {total}")
+        y = Y_TOPO
+        for linha in bloco:
+            if linha:
+                c.setFont(FONTE, TAM)
+                c.drawString(MARGEM_ESQ, y, linha)
+            y -= ENTRE
+        if num == total:
+            _assinatura_rodape(c, y=38 * mm, data=rel.data)
+        else:
+            c.setFont("Helvetica-Oblique", 8)
+            c.drawCentredString(LARGURA / 2, 30 * mm, "continua na próxima página")
+        c.showPage()
+    c.save()
+    return destino
+
+
+@dataclass
 class ExameSolicitado:
     nome: str
     material: str = ""            # "sangue", "urina", "imagem"...

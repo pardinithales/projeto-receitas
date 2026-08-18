@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block titulo %}Revisar relatório INSS — {{ paciente.nome }}{% endblock %}
+{% block conteudo %}
+<div class="cartao">
+  <h1>Revisar relatório — {{ paciente.nome }}</h1>
+  <p style="color:#5a6b7a">Edite à vontade. O PDF sai com cabeçalho
+    "RELATÓRIO PARA FINS PREVIDENCIÁRIOS", paginação e identificação em todas as páginas.</p>
+
+  <form method="post" action="/pacientes/{{ paciente.id }}/inss/pdf" id="form-pdf">
+    <label>Texto do relatório</label>
+    <textarea name="texto" rows="20">{{ texto }}</textarea>
+
+    <label>CIDs sugeridos pela IA (marque os que devem sair no PDF)</label>
+    <div class="chips" id="cids">
+      {% for c in cids %}
+      <label class="chip"><input type="checkbox" checked
+        data-cid="{{ c.codigo }} - {{ c.descricao }}"> {{ c.codigo }} — {{ c.descricao }}</label>
+      {% endfor %}
+    </div>
+    <div class="linha" style="margin-top:6px">
+      <div><label>Adicionar CID manualmente</label>
+        <input type="text" id="cid-extra" placeholder="ex.: G40.1 - Epilepsia focal sintomática"></div>
+      <div style="max-width:130px"><label>&nbsp;</label>
+        <button type="button" class="botao secundario" style="width:100%" onclick="addCid()">Adicionar</button></div>
+    </div>
+
+    <input type="hidden" name="dados" value="{{ dados | e }}">
+    <input type="hidden" name="cids_json" id="cids_json">
+    <p style="margin-top:16px">
+      <button class="botao" type="submit">Gerar PDF final</button>
+    </p>
+  </form>
+
+  <h2>Não ficou bom? Regenerar:</h2>
+  <form method="post" action="/pacientes/{{ paciente.id }}/inss" style="display:inline">
+    <input type="hidden" name="dados" value="{{ dados | e }}">
+    <input type="hidden" name="instrucoes" value="{{ instrucoes | e }}">
+    <input type="hidden" name="modo" value="conciso">
+    <button class="botao secundario" type="submit" onclick="aguarde(this)">Mais conciso</button>
+  </form>
+  <form method="post" action="/pacientes/{{ paciente.id }}/inss" style="display:inline">
+    <input type="hidden" name="dados" value="{{ dados | e }}">
+    <input type="hidden" name="instrucoes" value="{{ instrucoes | e }}">
+    <input type="hidden" name="modo" value="imparcial">
+    <button class="botao secundario" type="submit" onclick="aguarde(this)">Mais imparcial</button>
+  </form>
+  <form method="post" action="/pacientes/{{ paciente.id }}/inss" style="display:inline">
+    <input type="hidden" name="dados" value="{{ dados | e }}">
+    <input type="hidden" name="instrucoes" value="{{ instrucoes | e }}">
+    <input type="hidden" name="modo" value="padrao">
+    <button class="botao secundario" type="submit" onclick="aguarde(this)">Gerar de novo</button>
+  </form>
+</div>
+<script>
+function addCid() {
+  const v = document.getElementById('cid-extra').value.trim();
+  if (!v) return;
+  const l = document.createElement('label');
+  l.className = 'chip';
+  l.innerHTML = `<input type="checkbox" checked data-cid="${v}"> ${v}`;
+  document.getElementById('cids').appendChild(l);
+  document.getElementById('cid-extra').value = '';
+}
+function aguarde(btn) {
+  setTimeout(() => { btn.disabled = true; btn.textContent = 'Gerando…'; }, 10);
+}
+document.getElementById('form-pdf').addEventListener('submit', () => {
+  const cids = [...document.querySelectorAll('#cids input:checked')].map(i => i.dataset.cid);
+  document.getElementById('cids_json').value = JSON.stringify(cids);
+});
+</script>
+{% endblock %}

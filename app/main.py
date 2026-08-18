@@ -195,6 +195,33 @@ def catalogo():
 
 # ---------------------------------------------------------------- receita
 
+@app.get("/api/pacientes")
+def api_pacientes(q: str = ""):
+    if len(q.strip()) < 2:
+        return []
+    con = db.conectar()
+    try:
+        rows = con.execute(
+            "SELECT id, nome FROM pacientes WHERE nome LIKE ? OR tags LIKE ? "
+            "ORDER BY nome LIMIT 12", (f"%{q.strip()}%", f"%{q.strip()}%")).fetchall()
+        return [dict(r) for r in rows]
+    finally:
+        con.close()
+
+
+@app.get("/documentos/{doc_id}/copiar", response_class=HTMLResponse)
+def copiar_para_outro(request: Request, doc_id: int):
+    con = db.conectar()
+    try:
+        doc = con.execute(
+            "SELECT d.id, d.tipo, p.nome FROM documentos d "
+            "JOIN pacientes p ON p.id = d.paciente_id WHERE d.id = ?",
+            (doc_id,)).fetchone()
+    finally:
+        con.close()
+    return templates.TemplateResponse(request, "copiar_form.html", {"doc": doc})
+
+
 @app.get("/pacientes/{pid}/receita", response_class=HTMLResponse)
 def form_receita(request: Request, pid: int, copiar_de: int | None = None):
     con = db.conectar()
@@ -202,9 +229,11 @@ def form_receita(request: Request, pid: int, copiar_de: int | None = None):
         paciente = con.execute("SELECT * FROM pacientes WHERE id = ?", (pid,)).fetchone()
         payload_anterior = None
         if copiar_de:
+            # pode vir de QUALQUER paciente (copiar receita de um para outro):
+            # o payload só tem medicamentos/posologias, nunca dados do outro paciente
             doc = con.execute(
-                "SELECT conteudo_json FROM documentos WHERE id = ? AND paciente_id = ?",
-                (copiar_de, pid)).fetchone()
+                "SELECT conteudo_json FROM documentos WHERE id = ?",
+                (copiar_de,)).fetchone()
             if doc:
                 payload_anterior = doc["conteudo_json"]
     finally:
@@ -400,6 +429,111 @@ async def emitir_lme(request: Request, pid: int):
     finally:
         con.close()
     return RedirectResponse(f"/documentos/{doc_id}/pdf", status_code=303)
+
+
+# ---------------------------------------------------------------- relatório INSS (IA)
+
+@app.get("/pacientes/{pid}/inss", response_class=HTMLResponse)
+def form_inss(request: Request, pid: int, doc: int | None = None):
+    con = db.conectar()
+    try:
+        paciente = con.execute("SELECT * FROM pacientes WHERE id = ?", (pid,)).fetchone()
+        anterior = None
+        if doc:
+            row = con.execute("SELECT conteudo_json FROM documentos WHERE id = ? AND "
+                              "tipo = 'relatorio_inss'", (doc,)).fetchone()
+            if row:
+                anterior = json.loads(row["conteudo_json"])
+    finally:
+        con.close()
+    return templates.TemplateResponse(request, "inss_form.html",
+                                      {"paciente": paciente, "anterior": anterior})
+
+
+@app.post("/pacientes/{pid}/inss", response_class=HTMLResponse)
+def gerar_inss(request: Request, pid: int,
+               dados: str = Form(...), modo: str = Form("padrao"),
+               instrucoes: str = Form("")):
+    from app.services import ia
+    con = db.conectar()
+    try:
+        paciente = con.execute("SELECT * FROM pacientes WHERE id = ?", (pid,)).fetchone()
+    finally:
+        con.close()
+    try:
+        saida = ia.gerar_relatorio_inss(dados, paciente["nome"], modo=modo,
+                                        instrucoes=instrucoes)
+    except Exception as e:
+        return templates.TemplateResponse(request, "inss_form.html", {
+            "paciente": paciente, "anterior": {"dados": dados},
+            "erro": f"A IA falhou ({e}). Nada foi perdido — tente de novo."},
+            status_code=502)
+    return templates.TemplateResponse(request, "inss_revisao.html", {
+        "paciente": paciente, "dados": dados, "texto": saida["texto"],
+        "cids": saida["cids"], "instrucoes": instrucoes,
+        "hoje": date.today().strftime("%d/%m/%Y")})
+
+
+@app.post("/pacientes/{pid}/inss/pdf")
+def pdf_inss(pid: int, dados: str = Form(""), texto: str = Form(...),
+             cids_json: str = Form("[]")):
+    from app.services.documentos_pdf import (RelatorioPrevidenciario,
+                                             gerar_relatorio_previdenciario_pdf)
+    cids = json.loads(cids_json)
+    con = db.conectar()
+    try:
+        paciente = con.execute("SELECT * FROM pacientes WHERE id = ?", (pid,)).fetchone()
+        payload = {"dados": dados, "texto": texto, "cids": cids}
+        cur = con.execute(
+            "INSERT INTO documentos (paciente_id, tipo, data_emissao, conteudo_json) "
+            "VALUES (?, 'relatorio_inss', ?, ?)",
+            (pid, db.agora(), json.dumps(payload, ensure_ascii=False)))
+        doc_id = cur.lastrowid
+        rel = RelatorioPrevidenciario(
+            paciente=paciente["nome"], texto=texto, cids=cids,
+            data=date.today().strftime("%d/%m/%Y"),
+            documento=paciente["cpf"] or paciente["rg"] or "")
+        destino = config.SAIDA_DIR / f"paciente_{pid}" / \
+            f"{doc_id:05d}_inss_{datetime.now():%Y%m%d}.pdf"
+        gerar_relatorio_previdenciario_pdf(rel, destino)
+        con.execute("UPDATE documentos SET caminho_pdf = ? WHERE id = ?",
+                    (str(destino), doc_id))
+        con.commit()
+    finally:
+        con.close()
+    return RedirectResponse(f"/documentos/{doc_id}/pdf", status_code=303)
+
+
+@app.post("/api/ia/alto-custo")
+async def ia_alto_custo(request: Request):
+    from app.services import ia
+    corpo = await request.json()
+    try:
+        texto = ia.gerar_relatorio_alto_custo(
+            dados=corpo.get("dados", ""), paciente=corpo.get("paciente", ""),
+            medicamentos=corpo.get("medicamentos", ""), cid10=corpo.get("cid10", ""))
+        return {"ok": True, "texto": texto}
+    except Exception as e:
+        return {"ok": False, "erro": str(e)}
+
+
+@app.get("/api/criterios-pcdt")
+def criterios_pcdt():
+    from app.services.ia import CRITERIOS_POR_CID
+    return CRITERIOS_POR_CID
+
+
+@app.post("/api/ia/anamnese-lme")
+async def ia_anamnese_lme(request: Request):
+    from app.services import ia
+    corpo = await request.json()
+    try:
+        texto = ia.gerar_anamnese_lme(
+            dados=corpo.get("dados", ""), paciente=corpo.get("paciente", ""),
+            medicamentos=corpo.get("medicamentos", ""), cid10=corpo.get("cid10", ""))
+        return {"ok": True, "texto": texto}
+    except Exception as e:
+        return {"ok": False, "erro": str(e)}
 
 
 # ---------------------------------------------------------------- pedido de exames
