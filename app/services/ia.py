@@ -124,10 +124,20 @@ def gerar_relatorio_inss(dados_colados: str, paciente: str,
                           "documentados, sem qualquer juízo de valor."}[modo]
     if instrucoes.strip():
         extra += f"\n\nInstruções adicionais do médico para esta geração: {instrucoes.strip()}"
-    sistema = (_prompt_base("inss") + REGRAS_FIXAS + extra +
+    regras_finais = (
+        "\n\nREGRAS FINAIS (prevalecem sobre qualquer instrução anterior): "
+        "(1) Os dados clínicos colados (prontuário) são a ÚNICA fonte da clínica. "
+        "Não cite nome de paciente no corpo do texto (a identificação sai no "
+        "cabeçalho do documento) e NUNCA comente divergência de identificação. "
+        "(2) Encerramento do relatório: no máximo 'Mantém seguimento neurológico "
+        "com retorno programado, sem alta até o momento.' É PROIBIDO escrever que "
+        "'aguarda reavaliação para definição dos déficits' ou variações, a não ser "
+        "que os dados colados afirmem isso explicitamente.")
+    sistema = (_prompt_base("inss") + REGRAS_FIXAS + extra + regras_finais +
                "\n\nResponda em JSON: texto do relatório e 2 a 3 sugestões de CID-10 "
                "pertinentes ao caso (código e descrição curta).")
-    conteudo = f"Paciente: {paciente}\n\nDados clínicos colados pelo médico:\n{dados_colados}"
+    # o nome do paciente NÃO é enviado à API (identificação só no PDF, gerado local)
+    conteudo = f"Dados clínicos do prontuário colados pelo médico:\n{dados_colados}"
     resposta = _chamar([{"role": "system", "content": sistema},
                         {"role": "user", "content": conteudo}], schema=SCHEMA_INSS)
     saida = json.loads(resposta)
@@ -209,10 +219,11 @@ def gerar_anamnese_lme(dados: str, paciente: str, medicamentos: str,
         "demonstre que o paciente preenche os critérios do PCDT para o medicamento "
         "solicitado. Inclua semiologia, achados objetivos de exames e tratamentos "
         "prévios com doses quando houver. Não invente dados; não mencione o que não "
-        "está documentado." + REGRAS_FIXAS +
+        "está documentado; não cite nome de paciente (identificação sai no "
+        "formulário)." + REGRAS_FIXAS +
         (f"\n\nCRITÉRIOS A ENDEREÇAR: {criterios}" if criterios else ""))
-    conteudo = (f"Paciente: {paciente}\nMedicamento(s): {medicamentos}\n"
-                f"CID-10: {cid10}\n\nDados clínicos:\n{dados}")
+    conteudo = (f"Medicamento(s): {medicamentos}\nCID-10: {cid10}\n\n"
+                f"Dados clínicos do prontuário:\n{dados}")
     return limpar_texto(_chamar([{"role": "system", "content": sistema},
                                  {"role": "user", "content": conteudo}]))
 
@@ -227,7 +238,9 @@ def gerar_relatorio_alto_custo(dados: str, paciente: str, medicamentos: str,
     if criterios:
         sistema += ("\n\nFOCO OBRIGATÓRIO DESTA CONDIÇÃO — o relatório deve endereçar "
                     "explicitamente estes critérios do PCDT: " + criterios)
-    conteudo = (f"Paciente: {paciente}\nMedicamento(s) solicitado(s): {medicamentos}\n"
-                f"CID-10: {cid10}\n\nDados clínicos:\n{dados}")
+    sistema += ("\n\nNão cite nome de paciente no texto (a identificação sai no "
+                "cabeçalho do documento); os dados clínicos colados são a única fonte.")
+    conteudo = (f"Medicamento(s) solicitado(s): {medicamentos}\n"
+                f"CID-10: {cid10}\n\nDados clínicos do prontuário:\n{dados}")
     return limpar_texto(_chamar([{"role": "system", "content": sistema},
                                  {"role": "user", "content": conteudo}]))
