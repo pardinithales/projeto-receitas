@@ -1,0 +1,48 @@
+# =============================================================
+# PROTECAO DE DADOS DE PACIENTES (LGPD)
+# Nenhum documento real, banco de dados ou saida gerada
+# pode entrar no repositorio. Apenas codigo e modelos sanitizados.
+# =============================================================
+
+# Documentos reais (Word/PDF) - liberados apenas em templates/ via excecao
+*.doc
+*.docx
+*.pdf
+*.odt
+!templates/**/*.docx
+!templates/**/*.pdf
+
+# Bancos de dados locais
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Pastas de dados e saidas geradas
+dados/
+data/
+saida/
+output/
+backup/
+backups/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+
+# Ambiente e segredos
+.env
+.env.*
+*.pem
+*.pfx
+
+# Sistema
+Thumbs.db
+Desktop.ini
+~$*
