@@ -112,8 +112,7 @@ def _assinatura(c: Canvas, y: float, data: str) -> None:
     c.setFont("Helvetica", 10)
     if data:
         c.drawString(MARGEM_ESQ, y + 8 * mm, f"{config.CIDADE_PADRAO}, {data}")
-    else:
-        c.drawString(MARGEM_ESQ, y + 8 * mm, "Data: ______/______/______")
+    # sem data: não imprime nada — receita sai limpa, sem campo de data
     x_centro = LARGURA * 0.62
     c.drawCentredString(x_centro, y, "________________________________________")
     c.setFont("Helvetica-Bold", 10)

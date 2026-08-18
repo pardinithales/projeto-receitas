@@ -3,6 +3,8 @@
 {% block conteudo %}
 <div class="cartao">
   <h1>Cadastrar paciente</h1>
+  <p style="color:#5a6b7a; margin-top:-6px">Só o <b>nome</b> é obrigatório — o resto pode
+    ser preenchido depois. Os dados extras só serão exigidos na hora de gerar um LME.</p>
   <form method="post" action="/pacientes">
     <label>Nome completo *</label>
     <input type="text" name="nome" required value="{{ paciente.nome or '' }}">
@@ -15,7 +17,7 @@
       <div><label>CNS (Cartão SUS)</label><input type="text" name="cns"></div>
       <div><label>RG</label><input type="text" name="rg"></div>
     </div>
-    <h2>Dados para LME (opcional — pode preencher depois)</h2>
+    <h2>Dados para LME (opcionais — obrigatórios apenas ao gerar LME)</h2>
     <label>Nome da mãe</label>
     <input type="text" name="nome_mae">
     <div class="linha">

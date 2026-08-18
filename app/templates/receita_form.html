@@ -19,7 +19,7 @@
         <label>Data</label>
         <div class="radio-grupo">
           <label><input type="radio" name="com_data" value="sem" checked>
-            <span>SEM data (preencher à mão)</span></label>
+            <span>SEM data (sai sem campo de data)</span></label>
           <label><input type="radio" name="com_data" value="com">
             <span>COM data ({{ hoje }})</span></label>
         </div>
@@ -42,7 +42,10 @@
     <div id="avisos"></div>
     <input type="hidden" name="itens_json" id="itens_json">
     <p style="margin-top:18px">
-      <button class="botao" type="submit">Gerar PDF da receita</button>
+      <button class="botao" type="submit" name="acao" value="gerar">Gerar PDF da receita</button>
+      <button class="botao secundario" type="submit" name="acao" value="salvar"
+              title="Fica no histórico do paciente; o PDF é gerado quando você abrir">
+        Deixar salvo (gerar depois)</button>
       <a class="botao secundario" href="/pacientes/{{ paciente.id }}">Cancelar</a>
     </p>
   </form>

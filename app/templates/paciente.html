@@ -24,8 +24,11 @@
     <tr>
       <td>{{ d.data_emissao[:10] }}</td>
       <td>{{ d.tipo.replace("_", " ") }}</td>
-      <td>{{ d.resumo }}</td>
-      <td><a href="/documentos/{{ d.id }}/pdf" target="_blank">PDF</a></td>
+      <td>{{ d.resumo }}
+        {% if not d.caminho_pdf %}<span class="chip" style="cursor:default">salva p/ depois</span>{% endif %}
+      </td>
+      <td><a href="/documentos/{{ d.id }}/pdf" target="_blank">
+        {{ "PDF" if d.caminho_pdf else "gerar PDF" }}</a></td>
       <td><a href="/pacientes/{{ paciente.id }}/receita?copiar_de={{ d.id }}">repetir</a></td>
     </tr>
     {% endfor %}

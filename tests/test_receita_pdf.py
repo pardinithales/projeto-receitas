@@ -59,6 +59,14 @@ def test_assinatura_e_data(tmp_path: Path, receita_exemplo: Receita):
     assert "18/08/2026" in texto
 
 
+def test_sem_data_nao_imprime_campo_de_data(tmp_path: Path, receita_exemplo: Receita):
+    receita_exemplo.data = ""
+    pdf = gerar_receita_pdf(receita_exemplo, tmp_path / "r.pdf")
+    texto = _texto_pdf(pdf)
+    assert "Data: ___" not in texto
+    assert "18/08/2026" not in texto
+
+
 def test_receita_comum_sem_blocos_de_controlada(tmp_path: Path):
     receita = Receita(
         paciente="João Exemplo de Souza",

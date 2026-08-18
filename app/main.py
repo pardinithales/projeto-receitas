@@ -92,7 +92,7 @@ def ver_paciente(request: Request, pid: int):
     try:
         paciente = con.execute("SELECT * FROM pacientes WHERE id = ?", (pid,)).fetchone()
         documentos = con.execute(
-            "SELECT id, tipo, data_emissao, conteudo_json FROM documentos "
+            "SELECT id, tipo, data_emissao, conteudo_json, caminho_pdf FROM documentos "
             "WHERE paciente_id = ? ORDER BY id DESC LIMIT 30", (pid,)
         ).fetchall()
     finally:
@@ -169,39 +169,54 @@ def emitir_receita(pid: int,
                    tipo: str = Form("controle_especial"),
                    via_administracao: str = Form("USO ORAL"),
                    com_data: str = Form("sem"),
+                   acao: str = Form("gerar"),
                    itens_json: str = Form(...)):
     itens_raw = json.loads(itens_json)
     if not itens_raw:
         return RedirectResponse(f"/pacientes/{pid}/receita", status_code=303)
+    payload = {"tipo": tipo, "via_administracao": via_administracao,
+               "com_data": com_data, "itens": itens_raw}
     con = db.conectar()
     try:
-        paciente = con.execute("SELECT * FROM pacientes WHERE id = ?", (pid,)).fetchone()
-        data_txt = date.today().strftime("%d/%m/%Y") if com_data == "com" else ""
-        receita = Receita(
-            paciente=paciente["nome"],
-            itens=[ItemReceita(i["medicamento"], i["quantidade"], i["posologia"])
-                   for i in itens_raw],
-            tipo=tipo,
-            via_administracao=via_administracao,
-            data=data_txt,
-        )
-        payload = {"tipo": tipo, "via_administracao": via_administracao,
-                   "com_data": com_data, "itens": itens_raw}
         cur = con.execute(
             "INSERT INTO documentos (paciente_id, tipo, data_emissao, conteudo_json) "
             "VALUES (?, ?, ?, ?)",
             (pid, f"receita_{tipo}", db.agora(), json.dumps(payload, ensure_ascii=False)),
         )
         doc_id = cur.lastrowid
-        nome_arq = f"{doc_id:05d}_receita_{datetime.now():%Y%m%d}.pdf"
-        destino = config.SAIDA_DIR / f"paciente_{pid}" / nome_arq
-        gerar_receita_pdf(receita, destino)
-        con.execute("UPDATE documentos SET caminho_pdf = ? WHERE id = ?",
-                    (str(destino), doc_id))
+        if acao == "gerar":
+            _gerar_pdf_receita(con, doc_id)
         con.commit()
     finally:
         con.close()
-    return RedirectResponse(f"/documentos/{doc_id}/pdf", status_code=303)
+    if acao == "gerar":
+        return RedirectResponse(f"/documentos/{doc_id}/pdf", status_code=303)
+    return RedirectResponse(f"/pacientes/{pid}", status_code=303)
+
+
+def _gerar_pdf_receita(con, doc_id: int) -> str:
+    """Gera (ou regenera) o PDF de um documento salvo; retorna o caminho."""
+    doc = con.execute("SELECT * FROM documentos WHERE id = ?", (doc_id,)).fetchone()
+    paciente = con.execute("SELECT * FROM pacientes WHERE id = ?",
+                           (doc["paciente_id"],)).fetchone()
+    payload = json.loads(doc["conteudo_json"])
+    data_txt = ""
+    if payload.get("com_data") == "com":
+        data_txt = datetime.fromisoformat(doc["data_emissao"]).strftime("%d/%m/%Y")
+    receita = Receita(
+        paciente=paciente["nome"],
+        itens=[ItemReceita(i["medicamento"], i["quantidade"], i["posologia"])
+               for i in payload["itens"]],
+        tipo=payload.get("tipo", "controle_especial"),
+        via_administracao=payload.get("via_administracao", "USO ORAL"),
+        data=data_txt,
+    )
+    nome_arq = f"{doc_id:05d}_receita_{datetime.now():%Y%m%d}.pdf"
+    destino = config.SAIDA_DIR / f"paciente_{paciente['id']}" / nome_arq
+    gerar_receita_pdf(receita, destino)
+    con.execute("UPDATE documentos SET caminho_pdf = ? WHERE id = ?",
+                (str(destino), doc_id))
+    return str(destino)
 
 
 @app.get("/documentos/{doc_id}/pdf")
@@ -210,9 +225,14 @@ def abrir_pdf(doc_id: int):
     try:
         doc = con.execute("SELECT caminho_pdf FROM documentos WHERE id = ?",
                           (doc_id,)).fetchone()
+        if not doc:
+            return HTMLResponse("Documento não encontrado", status_code=404)
+        caminho = doc["caminho_pdf"]
+        if not caminho or not Path(caminho).exists():
+            # documento "deixado salvo": gera o PDF na primeira abertura
+            caminho = _gerar_pdf_receita(con, doc_id)
+            con.commit()
     finally:
         con.close()
-    if not doc or not doc["caminho_pdf"] or not Path(doc["caminho_pdf"]).exists():
-        return HTMLResponse("PDF não encontrado", status_code=404)
-    return FileResponse(doc["caminho_pdf"], media_type="application/pdf",
+    return FileResponse(caminho, media_type="application/pdf",
                         content_disposition_type="inline")
