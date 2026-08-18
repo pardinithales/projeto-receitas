@@ -29,7 +29,8 @@ class Receita:
     tipo: str = "controle_especial"   # controle_especial | comum
     via_administracao: str = "USO ORAL"
     data: str = ""                    # "18/08/2026" (vazio = sai sem campo de data)
-    vias: int = 1                     # nº de vias/meses (só faz sentido SEM data)
+    vias: int = 1                     # nº de folhas (SEM data: controladas = 2/mês)
+    carimbo: bool = False             # aplica carimbo digital sobre a linha de assinatura
 
 
 def _texto_quebrado(canvas: Canvas, texto: str, x: float, y: float, largura: float,
@@ -109,12 +110,25 @@ def _bloco_comprador_fornecedor(c: Canvas, y_base: float) -> None:
     c.drawString(x2, y2 - 11 * mm, "______/______/______  DATA")
 
 
-def _assinatura(c: Canvas, y: float, data: str) -> None:
+def desenhar_carimbo(c: Canvas, x_centro: float, y_linha: float) -> None:
+    """Carimbo digital centrado sobre a linha de assinatura (atrás do texto)."""
+    if not config.CARIMBO_PATH.exists():
+        return
+    larg = 32 * mm
+    alt = larg * 184 / 271          # proporção da imagem do carimbo
+    c.drawImage(str(config.CARIMBO_PATH), x_centro - larg / 2, y_linha - 3 * mm,
+                width=larg, height=alt, mask="auto")
+
+
+def _assinatura(c: Canvas, y: float, data: str, carimbo: bool = False) -> None:
     c.setFont("Helvetica", 10)
     if data:
         c.drawString(MARGEM_ESQ, y + 8 * mm, f"{config.CIDADE_PADRAO}, {data}")
     # sem data: não imprime nada — receita sai limpa, sem campo de data
     x_centro = LARGURA * 0.62
+    if carimbo:
+        desenhar_carimbo(c, x_centro, y)
+    c.setFont("Helvetica", 10)
     c.drawCentredString(x_centro, y, "________________________________________")
     c.setFont("Helvetica-Bold", 10)
     c.drawCentredString(x_centro, y - 5 * mm, f"Dr. {config.MEDICO_NOME}")
@@ -144,7 +158,7 @@ def gerar_receita_pdf(receita: Receita, destino: Path) -> Path:
             y = _linha_medicamento(c, item, y)
 
         y_comprador = 95 * mm
-        _assinatura(c, y_comprador + 25 * mm, receita.data)
+        _assinatura(c, y_comprador + 25 * mm, receita.data, receita.carimbo)
         if controle:
             _bloco_comprador_fornecedor(c, y_comprador - 10 * mm)
         c.showPage()

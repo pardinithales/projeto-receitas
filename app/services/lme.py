@@ -56,6 +56,7 @@ class DadosLME:
     documento_numero: str = ""
     email: str = ""
     data: str = ""                     # dd/mm/aaaa
+    carimbo: bool = False              # carimbo digital nos 2 campos de assinatura
 
 
 def _set_radio(pdf: pikepdf.Pdf, nome: str, estado: str) -> None:
@@ -160,5 +161,33 @@ def preencher_lme(dados: DadosLME, destino: Path) -> Path:
         _set_radio(pdf, "Documentos", f"/{dados.documento_tipo}")
         _set_texto(campos, "Text25a", dados.documento_numero)
 
+    if dados.carimbo and config.CARIMBO_PATH.exists():
+        _aplicar_carimbo(pdf)
+
     pdf.save(destino)
     return destino
+
+
+# Áreas de assinatura do LME oficial (pontos PDF, origem inferior esquerda):
+# campo 17 "Assinatura e carimbo do médico" (direita de Text46/Today) e
+# campo 23 "Assinatura do responsável pelo preenchimento" (direita inferior)
+POSICOES_CARIMBO = [(400, 188), (400, 42)]      # canto inferior esquerdo do carimbo
+CARIMBO_LARGURA = 105                            # pontos (~37mm); altura proporcional
+
+
+def _aplicar_carimbo(pdf: pikepdf.Pdf) -> None:
+    import io
+
+    from reportlab.pdfgen.canvas import Canvas as RLCanvas
+
+    buf = io.BytesIO()
+    c = RLCanvas(buf, pagesize=(595.32, 841.92))
+    alt = CARIMBO_LARGURA * 184 / 271
+    for x, y in POSICOES_CARIMBO:
+        c.drawImage(str(config.CARIMBO_PATH), x, y,
+                    width=CARIMBO_LARGURA, height=alt, mask="auto")
+    c.showPage()
+    c.save()
+    buf.seek(0)
+    overlay = pikepdf.open(buf)
+    pdf.pages[0].add_overlay(overlay.pages[0])

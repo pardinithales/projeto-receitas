@@ -67,6 +67,18 @@ def test_lme_gera_pdf_preenchido(cliente):
     assert valores["CID"] == "G40.1"
 
 
+def test_lme_alzheimer_exige_meem_cdr_escolaridade(cliente):
+    pid = _novo_paciente(cliente)
+    r = cliente.post(f"/pacientes/{pid}/lme", data={
+        "nome_mae": "Joana Exemplo", "peso_kg": "70", "altura_cm": "165",
+        "meds_json": json.dumps([{"descricao": "Donepezila 10mg - comprimido",
+                                  "qtd_mensal": "30"}]),
+        "cid10": "G30.1", "diagnostico": "Doença de Alzheimer", "anamnese": "Teste.",
+    })
+    assert r.status_code == 422
+    assert "MEEM" in r.text and "CDR" in r.text
+
+
 def test_lme_com_relatorio_alto_custo(cliente):
     pid = _novo_paciente(cliente)
     cliente.post(f"/pacientes/{pid}/lme", data={
@@ -76,12 +88,17 @@ def test_lme_com_relatorio_alto_custo(cliente):
         "cid10": "G30.1", "diagnostico": "Doença de Alzheimer",
         "anamnese": "Teste.", "gerar_relatorio": "sim",
         "texto_relatorio": "Texto fictício do relatório para alto custo.",
+        "meem": "14", "cdr": "2", "escolaridade_anos": "4",
     })
     con = db.conectar()
     tipos = [r["tipo"] for r in con.execute(
         "SELECT tipo FROM documentos WHERE paciente_id = ?", (pid,))]
+    lme = con.execute("SELECT * FROM lme_dados WHERE paciente_id = ?", (pid,)).fetchone()
+    escalas = [r["tipo"] for r in con.execute(
+        "SELECT tipo FROM escalas WHERE paciente_id = ?", (pid,))]
     con.close()
     assert "lme" in tipos and "relatorio_alto_custo" in tipos
+    assert "MEEM" in escalas and "CDR" in escalas   # escores salvos p/ renovação
 
 
 def test_pedido_exames_multiplas_datas(cliente):

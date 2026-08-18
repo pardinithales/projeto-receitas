@@ -1,0 +1,12 @@
+<div class="linha" style="align-items:center; margin-top:10px">
+  <label class="chip" style="display:inline-flex;align-items:center;gap:8px;font-size:15px;padding:10px 16px;margin:0">
+    <input type="checkbox" name="carimbo" value="sim"
+           {{ "checked" if carimbo_ativo else "" }}
+           onchange="this.closest('div').querySelector('.senha-carimbo').style.display = (this.checked && !{{ 'true' if carimbo_ativo else 'false' }}) ? 'block' : 'none'">
+    Aplicar carimbo digital (assinatura + carimbo já impressos)
+    {% if carimbo_ativo %}<small style="color:#0a8f5b">— liberado (senha válida por 24h)</small>{% endif %}
+  </label>
+  <input type="password" name="senha_carimbo" class="senha-carimbo"
+         placeholder="senha do carimbo" autocomplete="off"
+         style="max-width:220px; display:none">
+</div>

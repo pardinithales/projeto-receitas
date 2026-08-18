@@ -43,7 +43,14 @@ REGRAS_FIXAS = (
     "\n\nREGRAS ABSOLUTAS DE ESTILO: nunca use travessões (— ou –); nunca use bullets, "
     "listas ou hifens de tópico; escreva em parágrafos corridos; português técnico e "
     "neutro, sem termos rebuscados; nunca dê parecer sobre concessão de benefício; "
-    "nunca afirme que algo 'não foi encontrado' ou 'não está disponível'.")
+    "nunca afirme que algo 'não foi encontrado' ou 'não está disponível'; "
+    "evite palavras verbosas ou vagas como 'manejo', 'em investigação', 'complexo', "
+    "'abordagem', 'otimização': prefira o termo concreto do que foi feito ou observado. "
+    "PROIBIDO frases genéricas e vazias que caberiam em qualquer relatório, como "
+    "'necessita seguimento especializado', 'perda funcional relevante', "
+    "'comprometimento importante', 'impacto significativo', 'quadro em evolução': "
+    "substitua sempre por dados objetivos, mensuráveis e específicos deste caso "
+    "(o que o paciente não consegue fazer, com que frequência, desde quando).")
 
 
 def _prompt_base(qual: str) -> str:

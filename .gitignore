@@ -51,3 +51,6 @@ venv/
 Thumbs.db
 Desktop.ini
 ~$*
+
+# Ferramentas locais baixadas (SumatraPDF etc.)
+tools/

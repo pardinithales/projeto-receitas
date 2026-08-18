@@ -8,7 +8,8 @@ from reportlab.lib.utils import simpleSplit
 from reportlab.pdfgen.canvas import Canvas
 
 from app import config
-from app.services.receita_pdf import LARGURA, ALTURA, MARGEM_ESQ, MARGEM_DIR, LARGURA_UTIL
+from app.services.receita_pdf import (LARGURA, ALTURA, MARGEM_ESQ, MARGEM_DIR,
+                                      LARGURA_UTIL, desenhar_carimbo)
 
 
 def _fundo_timbrado(c: Canvas) -> None:
@@ -27,11 +28,15 @@ def _paragrafo(c: Canvas, texto: str, x: float, y: float, largura: float,
     return y
 
 
-def _assinatura_rodape(c: Canvas, y: float = 55 * mm, data: str = "") -> None:
+def _assinatura_rodape(c: Canvas, y: float = 55 * mm, data: str = "",
+                       carimbo: bool = False) -> None:
     c.setFont("Helvetica", 10)
     if data:
         c.drawString(MARGEM_ESQ, y + 10 * mm, f"{config.CIDADE_PADRAO}, {data}")
     x = LARGURA * 0.62
+    if carimbo:
+        desenhar_carimbo(c, x, y)
+    c.setFont("Helvetica", 10)
     c.drawCentredString(x, y, "________________________________________")
     c.setFont("Helvetica-Bold", 10)
     c.drawCentredString(x, y - 5 * mm, f"Dr. {config.MEDICO_NOME}")
@@ -47,6 +52,7 @@ class RelatorioMedico:
     cid10: str = ""
     titulo: str = "RELATÓRIO MÉDICO"
     data: str = ""
+    carimbo: bool = False
 
 
 def gerar_relatorio_pdf(rel: RelatorioMedico, destino: Path) -> Path:
@@ -65,7 +71,7 @@ def gerar_relatorio_pdf(rel: RelatorioMedico, destino: Path) -> Path:
         y -= 4 * mm
         c.setFont("Helvetica-Bold", 11)
         c.drawString(MARGEM_ESQ, y, f"CID-10: {rel.cid10}")
-    _assinatura_rodape(c, data=rel.data)
+    _assinatura_rodape(c, data=rel.data, carimbo=rel.carimbo)
     c.showPage()
     c.save()
     return destino
@@ -78,6 +84,7 @@ class RelatorioPrevidenciario:
     cids: list[str] = field(default_factory=list)     # ["G40.1 - Epilepsia focal", ...]
     data: str = ""
     documento: str = ""                                # RG/CPF do paciente, se houver
+    carimbo: bool = False
 
 
 def gerar_relatorio_previdenciario_pdf(rel: RelatorioPrevidenciario,
@@ -126,7 +133,8 @@ def gerar_relatorio_previdenciario_pdf(rel: RelatorioPrevidenciario,
                 c.drawString(MARGEM_ESQ, y, linha)
             y -= ENTRE
         if num == total:
-            _assinatura_rodape(c, y=38 * mm, data=rel.data)
+            # 52mm: acima da barra rosa e do site do papel timbrado
+            _assinatura_rodape(c, y=52 * mm, data=rel.data, carimbo=rel.carimbo)
         else:
             c.setFont("Helvetica-Oblique", 8)
             c.drawCentredString(LARGURA / 2, 30 * mm, "continua na próxima página")
@@ -148,6 +156,7 @@ class PedidoExames:
     indicacao: str = ""           # justificativa clínica / CID
     datas: list[str] = field(default_factory=list)   # 1 página por data ("" = sem data)
     observacao: str = "Realizar preferencialmente no laboratório de sua cidade."
+    carimbo: bool = False
 
 
 def gerar_pedido_exames_pdf(pedido: PedidoExames, destino: Path) -> Path:
@@ -178,7 +187,7 @@ def gerar_pedido_exames_pdf(pedido: PedidoExames, destino: Path) -> Path:
             y = _paragrafo(c, rotulo, MARGEM_ESQ + 7 * mm, y, LARGURA_UTIL - 7 * mm,
                            tamanho=11, entrelinha=4.8 * mm) - 2 * mm
             if y < 80 * mm:
-                _assinatura_rodape(c, data=data)
+                _assinatura_rodape(c, data=data, carimbo=pedido.carimbo)
                 c.showPage()
                 _fundo_timbrado(c)
                 y = ALTURA - 45 * mm
@@ -186,7 +195,7 @@ def gerar_pedido_exames_pdf(pedido: PedidoExames, destino: Path) -> Path:
             y -= 2 * mm
             y = _paragrafo(c, f"Obs.: {pedido.observacao}", MARGEM_ESQ, y,
                            LARGURA_UTIL, tamanho=10)
-        _assinatura_rodape(c, data=data)
+        _assinatura_rodape(c, data=data, carimbo=pedido.carimbo)
         c.showPage()
     c.save()
     return destino
