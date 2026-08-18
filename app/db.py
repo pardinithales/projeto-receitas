@@ -3,6 +3,7 @@ import json
 import shutil
 import sqlite3
 from datetime import date, datetime
+from pathlib import Path
 
 from app import config
 
@@ -167,7 +168,8 @@ def sincronizar_seed_medicamentos(con: sqlite3.Connection) -> None:
 
 
 def backup_banco() -> str | None:
-    """Copia diária do banco (uma por dia; mantém as últimas 30)."""
+    """Copia diária do banco (uma por dia; mantém as últimas 30) e cópia mensal
+    em pasta separada do drive M: (backup-sistema)."""
     if not config.DATABASE_PATH.exists():
         return None
     config.BACKUP_DIR.mkdir(parents=True, exist_ok=True)
@@ -177,7 +179,41 @@ def backup_banco() -> str | None:
         antigos = sorted(config.BACKUP_DIR.glob("receitas-*.db"))[:-30]
         for velho in antigos:
             velho.unlink()
+    try:
+        mensal_dir = config.BACKUP_MENSAL_DIR
+        mensal_dir.mkdir(parents=True, exist_ok=True)
+        mensal = mensal_dir / f"receitas-{date.today():%Y-%m}.db"
+        if not mensal.exists():
+            shutil.copy2(config.DATABASE_PATH, mensal)
+    except OSError:
+        pass    # drive de rede indisponível não pode impedir o sistema de subir
     return str(destino)
+
+
+def limpar_pdfs_antigos(dias: int = 7) -> int:
+    """Apaga PDFs gerados com mais de N dias — tudo é regenerável a partir do
+    banco (o conteúdo estruturado fica em documentos.conteudo_json)."""
+    from datetime import datetime, timedelta
+    limite = (datetime.now() - timedelta(days=dias)).timestamp()
+    apagados = 0
+    con = conectar()
+    try:
+        for doc in con.execute("SELECT id, caminho_pdf FROM documentos "
+                               "WHERE caminho_pdf IS NOT NULL").fetchall():
+            caminho = Path(doc["caminho_pdf"])
+            try:
+                if caminho.exists() and caminho.stat().st_mtime < limite:
+                    caminho.unlink()
+                    apagados += 1
+                if not caminho.exists():
+                    con.execute("UPDATE documentos SET caminho_pdf = NULL WHERE id = ?",
+                                (doc["id"],))
+            except OSError:
+                continue
+        con.commit()
+    finally:
+        con.close()
+    return apagados
 
 
 def agora() -> str:

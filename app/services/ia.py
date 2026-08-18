@@ -70,12 +70,13 @@ def limpar_texto(t: str) -> str:
 
 
 def _chamar(mensagens: list[dict], schema: dict | None = None,
-            tentativas: int = 3) -> str:
+            tentativas: int = 3, modelo: str | None = None,
+            effort: str = "medium") -> str:
     chave = os.getenv("OPENAI_API_KEY", "")
     if not chave:
         raise RuntimeError("OPENAI_API_KEY não configurada no .env")
-    corpo: dict = {"model": MODELO, "messages": mensagens,
-                   "reasoning_effort": "medium"}
+    corpo: dict = {"model": modelo or MODELO, "messages": mensagens,
+                   "reasoning_effort": effort}
     if schema:
         corpo["response_format"] = {
             "type": "json_schema",
@@ -170,6 +171,31 @@ CRITERIOS_POR_CID = {
            "do UK Brain Bank (bradicinesia + rigidez/tremor/instabilidade postural, "
            "resposta a levodopa); justificar o agonista/adjuvante solicitado.",
 }
+
+
+SCHEMA_DIAGNOSTICOS = {
+    "type": "object", "additionalProperties": False, "required": ["diagnosticos"],
+    "properties": {"diagnosticos": {
+        "type": "array", "minItems": 1, "maxItems": 3,
+        "items": {"type": "string"}}},
+}
+
+
+def extrair_diagnosticos(texto: str) -> list[str]:
+    """Extrai 2-3 diagnósticos neurológicos principais de um relatório, com o
+    modelo barato (gpt-5.6-luna), para alimentar as tags/estatísticas do paciente.
+    Ex.: ['astrocitoma', 'epilepsia focal estrutural']."""
+    sistema = (
+        "Extraia de 1 a 3 diagnósticos NEUROLÓGICOS principais do texto, em "
+        "português, minúsculas, curtos e padronizados como um neurologista "
+        "etiquetaria o caso (ex.: 'epilepsia focal estrutural', 'astrocitoma', "
+        "'migrânea crônica', 'doença de alzheimer', 'miastenia gravis'). "
+        "Não invente; ignore comorbidades não neurológicas.")
+    resposta = _chamar([{"role": "system", "content": sistema},
+                        {"role": "user", "content": texto[:20000]}],
+                       schema=SCHEMA_DIAGNOSTICOS,
+                       modelo="gpt-5.6-luna", effort="low", tentativas=2)
+    return json.loads(resposta)["diagnosticos"]
 
 
 def gerar_anamnese_lme(dados: str, paciente: str, medicamentos: str,

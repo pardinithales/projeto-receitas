@@ -9,6 +9,8 @@ load_dotenv(RAIZ / ".env")
 
 DATABASE_PATH = Path(os.getenv("DATABASE_PATH", str(RAIZ / "dados" / "receitas.db")))
 BACKUP_DIR = Path(os.getenv("BACKUP_DIR", str(RAIZ / "dados" / "backups")))
+BACKUP_MENSAL_DIR = Path(os.getenv(
+    "BACKUP_MENSAL_DIR", r"M:\Thales Pardini - Neurologia\backup-sistema"))
 
 MEDICO_NOME = os.getenv("MEDICO_NOME", "")
 MEDICO_CRM = os.getenv("MEDICO_CRM", "")

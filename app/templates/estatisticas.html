@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block titulo %}Estatísticas{% endblock %}
+{% block conteudo %}
+<div class="cartao">
+  <h1>Estatísticas do consultório</h1>
+  <h2>Medicamentos mais usados (pela última receita de cada paciente)</h2>
+  {% if ranking %}
+  <div class="chips">
+    {% for med, n in ranking %}
+    <span class="chip" style="cursor:default">{{ med }} — {{ n }} paciente{{ "s" if n > 1 else "" }}</span>
+    {% endfor %}
+  </div>
+  {% else %}<p>Sem receitas emitidas ainda.</p>{% endif %}
+</div>
+
+<div class="cartao" style="overflow-x:auto">
+  <h2>Por paciente</h2>
+  <table>
+    <tr><th>Paciente</th><th>Diagnósticos</th><th>Medicações atuais</th>
+        <th>LME</th><th>Próx. renovação</th><th>Docs</th></tr>
+    {% for l in linhas %}
+    <tr>
+      <td><a href="/pacientes/{{ l.paciente.id }}">{{ l.paciente.nome }}</a></td>
+      <td style="font-size:13px">{{ l.paciente.tags or "" }}</td>
+      <td style="font-size:13px">
+        {% for m in l.meds %}{{ m.med }} ({{ m.qtd }}){% if not loop.last %}; {% endif %}{% endfor %}
+        {% if l.meds_lme %}<br><small>LME: {{ l.meds_lme | join("; ") }}</small>{% endif %}
+      </td>
+      <td>{{ l.n_lme }}x{% if l.ultima_lme %} <small>(última {{ l.ultima_lme }})</small>{% endif %}</td>
+      <td>{% if l.proxima_renovacao %}<b>{{ l.proxima_renovacao }}</b>{% endif %}</td>
+      <td>{{ l.n_docs }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endblock %}

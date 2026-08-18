@@ -4,6 +4,9 @@
 <div class="cartao">
   <h1>Nova receita — {{ paciente.nome }}</h1>
   <form method="post" action="/pacientes/{{ paciente.id }}/receita" id="form-receita">
+    <label>Diagnósticos-chave do paciente (2-3, separados por vírgula — viram busca e estatística)</label>
+    <input type="text" name="tags" value="{{ paciente.tags or '' }}"
+           placeholder="ex.: astrocitoma, epilepsia focal estrutural">
 
     <div class="linha">
       <div>
