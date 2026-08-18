@@ -87,13 +87,13 @@
     },
     {
       "medicamento": "Natalizumabe",
-      "escalas": [],
-      "periodicidade_sugerida": "sorologia JCV a cada 6 meses; RM anual (LEMP)",
+      "escalas": ["EDSS (obrigatória na renovação da LME de esclerose múltipla)"],
+      "avisos": ["Sorologia anti-JCV: NÃO pedir por este sistema — é realizada externamente (programa do fabricante/laboratório específico). Apenas sinalizar ao paciente quando obrigatória para estratificação de risco de LEMP."],
+      "periodicidade_sugerida": "hemograma mensal; RM de vigilância de LEMP",
       "exames": [
-        {"nome": "Sorologia/índice anti-JCV", "material": "sangue"},
         {"nome": "RM de encéfalo com contraste", "material": "imagem"},
         {"nome": "Hemograma completo", "material": "sangue"},
-        {"nome": "TGO/TGP (transaminases)", "material": "sangue"}
+        {"nome": "TGO/TGP (transaminases) e bilirrubinas", "material": "sangue"}
       ]
     },
     {

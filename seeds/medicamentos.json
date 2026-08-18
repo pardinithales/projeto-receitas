@@ -316,8 +316,17 @@
         {"dose": "4,5mg", "forma": "cápsula", "posologias": [
           {"texto": "Tomar 1 cápsula de 12 em 12 horas, com alimento", "qtd_30dias": "60 cápsulas"}
         ]},
+        {"dose": "4,6mg/24h", "forma": "adesivo transdérmico", "posologias": [
+          {"texto": "Aplicar 1 adesivo por dia, em pele limpa e seca, alternando o local", "qtd_30dias": "30 adesivos"}
+        ]},
         {"dose": "9,5mg/24h", "forma": "adesivo transdérmico", "posologias": [
           {"texto": "Aplicar 1 adesivo por dia, em pele limpa e seca, alternando o local", "qtd_30dias": "30 adesivos"}
+        ]},
+        {"dose": "13,3mg/24h", "forma": "adesivo transdérmico", "posologias": [
+          {"texto": "Aplicar 1 adesivo por dia, em pele limpa e seca, alternando o local", "qtd_30dias": "30 adesivos"}
+        ]},
+        {"dose": "2mg/mL", "forma": "solução oral", "posologias": [
+          {"texto": "Tomar conforme orientação, de 12 em 12 horas, com alimento", "qtd_30dias": "2 frascos"}
         ]}
       ]
     },
@@ -352,6 +361,9 @@
         ]},
         {"dose": "200/50mg", "forma": "comprimido", "posologias": [
           {"texto": "Tomar 1 comprimido de 8 em 8 horas, 1 hora antes das refeições", "qtd_30dias": "90 comprimidos"}
+        ]},
+        {"dose": "100/25mg", "forma": "cápsula HBS (liberação prolongada)", "posologias": [
+          {"texto": "Tomar 1 cápsula à noite, ao deitar", "qtd_30dias": "30 cápsulas"}
         ]}
       ]
     },
@@ -382,6 +394,50 @@
         ]},
         {"dose": "1mg", "forma": "comprimido", "posologias": [
           {"texto": "Tomar 1 comprimido de 8 em 8 horas", "qtd_30dias": "90 comprimidos"}
+        ]}
+      ]
+    },
+    {
+      "principio_ativo": "Entacapona",
+      "grupo": "antiparkinsoniano",
+      "classificacao_receita": "comum",
+      "disponibilidade": ["ceaf"],
+      "lme": true,
+      "apresentacoes": [
+        {"dose": "200mg", "forma": "comprimido", "posologias": [
+          {"texto": "Tomar 1 comprimido junto com cada dose de levodopa", "qtd_30dias": "90 comprimidos"}
+        ]}
+      ]
+    },
+    {
+      "principio_ativo": "Rasagilina",
+      "grupo": "antiparkinsoniano",
+      "classificacao_receita": "comum",
+      "disponibilidade": ["ceaf"],
+      "lme": true,
+      "apresentacoes": [
+        {"dose": "1mg", "forma": "comprimido", "posologias": [
+          {"texto": "Tomar 1 comprimido pela manhã", "qtd_30dias": "30 comprimidos"}
+        ]}
+      ]
+    },
+    {
+      "principio_ativo": "Atorvastatina",
+      "grupo": "estatina / prevenção vascular",
+      "classificacao_receita": "comum",
+      "disponibilidade": ["ceaf", "remume"],
+      "lme": true,
+      "obs": "LME para dislipidemia (CID E78) — usada em prevenção secundária de AVC",
+      "apresentacoes": [
+        {"dose": "20mg", "forma": "comprimido", "posologias": [
+          {"texto": "Tomar 1 comprimido à noite", "qtd_30dias": "30 comprimidos"}
+        ]},
+        {"dose": "40mg", "forma": "comprimido", "posologias": [
+          {"texto": "Tomar 1 comprimido à noite", "qtd_30dias": "30 comprimidos"},
+          {"texto": "Tomar 2 comprimidos à noite", "qtd_30dias": "60 comprimidos"}
+        ]},
+        {"dose": "80mg", "forma": "comprimido", "posologias": [
+          {"texto": "Tomar 1 comprimido à noite", "qtd_30dias": "30 comprimidos"}
         ]}
       ]
     },
@@ -600,6 +656,92 @@
         ]},
         {"dose": "2mg", "forma": "comprimido", "posologias": [
           {"texto": "Tomar 1 comprimido à noite", "qtd_30dias": "30 comprimidos"}
+        ]}
+      ]
+    },
+    {
+      "principio_ativo": "Fingolimode",
+      "grupo": "esclerose múltipla",
+      "classificacao_receita": "comum",
+      "disponibilidade": ["ceaf"],
+      "lme": true,
+      "obs": "2ª linha EMRR. 1ª dose com observação ~6h e ECG. Monitorizar hemograma/transaminases (30/60/180 dias, depois semestral); avaliação oftalmológica 3º-4º mês.",
+      "apresentacoes": [
+        {"dose": "0,5mg", "forma": "cápsula", "posologias": [
+          {"texto": "Tomar 1 cápsula por dia, sempre no mesmo horário", "qtd_30dias": "30 cápsulas"}
+        ]}
+      ]
+    },
+    {
+      "principio_ativo": "Fumarato de dimetila",
+      "grupo": "esclerose múltipla",
+      "classificacao_receita": "comum",
+      "disponibilidade": ["ceaf"],
+      "lme": true,
+      "obs": "Monitorizar hemograma (linfócitos) a cada 3-6 meses",
+      "apresentacoes": [
+        {"dose": "120mg", "forma": "cápsula", "posologias": [
+          {"texto": "Tomar 1 cápsula de 12 em 12 horas por 7 dias (dose de início)", "qtd_30dias": "14 cápsulas"}
+        ]},
+        {"dose": "240mg", "forma": "cápsula", "posologias": [
+          {"texto": "Tomar 1 cápsula de 12 em 12 horas", "qtd_30dias": "60 cápsulas"}
+        ]}
+      ]
+    },
+    {
+      "principio_ativo": "Teriflunomida",
+      "grupo": "esclerose múltipla",
+      "classificacao_receita": "comum",
+      "disponibilidade": ["ceaf"],
+      "lme": true,
+      "obs": "TGP mensal nos 6 primeiros meses; beta-hCG antes de iniciar (contracepção obrigatória)",
+      "apresentacoes": [
+        {"dose": "14mg", "forma": "comprimido", "posologias": [
+          {"texto": "Tomar 1 comprimido por dia", "qtd_30dias": "30 comprimidos"}
+        ]}
+      ]
+    },
+    {
+      "principio_ativo": "Glatirâmer",
+      "grupo": "esclerose múltipla",
+      "classificacao_receita": "comum",
+      "disponibilidade": ["ceaf"],
+      "lme": true,
+      "apresentacoes": [
+        {"dose": "20mg/mL", "forma": "seringa preenchida SC", "posologias": [
+          {"texto": "Aplicar 1 seringa por via subcutânea 1 vez ao dia", "qtd_30dias": "30 seringas"}
+        ]},
+        {"dose": "40mg/mL", "forma": "seringa preenchida SC", "posologias": [
+          {"texto": "Aplicar 1 seringa por via subcutânea 3 vezes por semana", "qtd_30dias": "12 seringas"}
+        ]}
+      ]
+    },
+    {
+      "principio_ativo": "Natalizumabe",
+      "grupo": "esclerose múltipla",
+      "classificacao_receita": "comum",
+      "disponibilidade": ["ceaf"],
+      "lme": true,
+      "obs": "EMRR de alta atividade (1ª linha) ou 3ª linha. Infusão EV em centro de referência a cada 28 dias. JCV feito externamente — apenas sinalizar. Hemograma mensal; vigilância de LEMP com RM.",
+      "apresentacoes": [
+        {"dose": "300mg", "forma": "frasco-ampola EV", "posologias": [
+          {"texto": "Infundir 300 mg EV a cada 28 dias, em centro de infusão", "qtd_30dias": "1 frasco"}
+        ]}
+      ]
+    },
+    {
+      "principio_ativo": "Betainterferona 1a",
+      "grupo": "esclerose múltipla",
+      "classificacao_receita": "comum",
+      "disponibilidade": ["ceaf"],
+      "lme": true,
+      "obs": "Monitorizar hemograma, transaminases e TSH",
+      "apresentacoes": [
+        {"dose": "44mcg", "forma": "seringa preenchida SC", "posologias": [
+          {"texto": "Aplicar por via subcutânea 3 vezes por semana", "qtd_30dias": "12 seringas"}
+        ]},
+        {"dose": "30mcg", "forma": "seringa IM", "posologias": [
+          {"texto": "Aplicar por via intramuscular 1 vez por semana", "qtd_30dias": "4 seringas"}
         ]}
       ]
     },

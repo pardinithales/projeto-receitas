@@ -71,7 +71,31 @@ CREATE TABLE IF NOT EXISTS lme_dados (
     atualizado_em TEXT NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS config (
+    chave TEXT PRIMARY KEY,
+    valor TEXT
+);
+
+CREATE TABLE IF NOT EXISTS impressao_fila (
+    id INTEGER PRIMARY KEY,
+    documento_id INTEGER REFERENCES documentos(id),
+    caminho TEXT NOT NULL,
+    descricao TEXT,
+    status TEXT NOT NULL DEFAULT 'pendente',   -- pendente | ok | erro
+    erro TEXT,
+    criado_em TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS escalas (
+    id INTEGER PRIMARY KEY,
+    paciente_id INTEGER NOT NULL REFERENCES pacientes(id),
+    tipo TEXT NOT NULL,               -- MEEM | CDR | EDSS | EVA | LANSS
+    valor TEXT NOT NULL,
+    data TEXT NOT NULL
+);
+
 CREATE INDEX IF NOT EXISTS idx_documentos_paciente ON documentos(paciente_id, data_emissao DESC);
+CREATE INDEX IF NOT EXISTS idx_escalas_paciente ON escalas(paciente_id, tipo, data DESC);
 """
 
 
@@ -99,6 +123,8 @@ def _migrar(con: sqlite3.Connection) -> None:
     colunas = {r["name"] for r in con.execute("PRAGMA table_info(pacientes)")}
     if "tags" not in colunas:
         con.execute("ALTER TABLE pacientes ADD COLUMN tags TEXT")
+    if "escolaridade_anos" not in colunas:
+        con.execute("ALTER TABLE pacientes ADD COLUMN escolaridade_anos REAL")
 
 
 def sincronizar_seed_medicamentos(con: sqlite3.Connection) -> None:
