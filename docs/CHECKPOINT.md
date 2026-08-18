@@ -1,49 +1,56 @@
-# CHECKPOINT — estado do projeto (atualizado em 18/08/2026)
+# CHECKPOINT — estado do projeto (atualizado em 18/08/2026, fim do dia)
 
-Leia junto com `AGENTS.md` (regras e decisões) antes de retomar o trabalho.
+Leia junto com `AGENTS.md`. Tudo pushado até o commit `57edf6b`. 33 testes passando.
 
-## O que está PRONTO e funcionando (v1 — receitas)
+## Funcionando (testado ao vivo pelo usuário)
 
-| Área | Estado |
-|---|---|
-| Repositório | github.com/pardinithales/projeto-receitas, branch `main`, tudo pushado |
-| Inicialização | `INICIAR-RECEITAS.bat` (duplo clique → instala deps, sobe servidor, abre navegador em http://localhost:8477) |
-| Banco | SQLite em `dados/receitas.db` (drive M:, fora do git), criado/populado no 1º uso, backup diário automático |
-| Catálogo | 48 fármacos, 91 apresentações, 125 posologias (seed em `seeds/medicamentos.json`) |
-| Pacientes | Cadastro mínimo (só nome obrigatório); 10 pacientes reais já importados dos LMEs com mãe/peso/altura/CID/anamnese |
-| Receita | Tela toda por seleção: autocomplete, chips de posologia, quantidade automática, avisos B1/alto custo, COM/SEM data (sem data = papel sem campo de data), controle especial e comum, USO ORAL/EV etc. |
-| Salvamento | Toda receita emitida fica no histórico; botão "Deixar salvo (gerar depois)" grava sem abrir PDF (gera na 1ª abertura); "repetir" em 1 clique |
-| PDF | reportlab sobre papel timbrado local (`templates/assets/`, fora do git); validado contra 20/20 receitas reais |
-| Testes | 11 pytest passando (`python -m pytest tests/ -q`) — só dados fictícios |
-| Scripts locais | `scripts/importar_pacientes_lme.py N` e `scripts/validar_com_receitas_reais.py N` |
+- **Receitas**: controle especial/comum, posologias por chips, COM/SEM data (sem data =
+  papel sem campo), guia de folhas (controlada = 2 folhas/mês pois a farmácia retém 1;
+  UBS comum = 1 folha a cada 2 meses), avisos de onde retirar (REMUME/CEAF/comercial),
+  repetir, copiar para outro paciente, deixar salvo com PDF sob demanda.
+- **Kit LME**: LME oficial preenchido (medicamentos desenhados como conteúdo da página —
+  widgets/dropdowns ocultados pois não renderizavam) + receita do medicamento com
+  posologia por linha + TER preenchido (nome, CNS, data, checkbox do fármaco, carimbo) +
+  relatório alto custo opcional (IA). CID + descrição automáticos ao clicar na medicação;
+  escalas MEEM/CDR/EDSS obrigatórias conforme PCDT, salvas e reaproveitadas; anamnese
+  reaproveitada da lme_dados em toda renovação. Volta ao paciente com "imprimir kit".
+- **Carimbo digital**: senha `carimbo` (mestra = telefone, ambas no .env), válida 24h,
+  checkbox padrão dentro da janela; aplicado em receita/LME/TER/relatórios/exames.
+- **Impressão**: SumatraPDF portátil (tools/, fora do git), fila com parada no erro,
+  retomar/reimprimir folha específica/reimprimir tudo/cancelar, seleção de impressora
+  (HP 3015). Página /impressao.
+- **Relatório INSS com IA** (GPT-5.6 Sol medium): prompt-base = arquivo do usuário em
+  Prompts principais (editável lá), instruções extras por geração, regenerar mais
+  conciso/imparcial, 2-3 CIDs sugeridos, PDF previdenciário paginado com identificação,
+  sem travessões/frases genéricas. Reaproveitável do histórico.
+- **Pedido de exames**: painéis por medicamento, datas +3/6/9/12 meses (1 folha por
+  data), JCV nunca é pedido (aviso: feito externamente).
+- **Estatísticas** (/estatisticas): meds atuais por paciente, ranking de uso, nº de
+  LMEs e próxima renovação (+6 meses). Tags/diagnósticos-chave editáveis na receita e
+  extraídos dos relatórios via gpt-5.6-luna (melhor esforço).
+- **Sistema leve**: PDFs > 7 dias apagados e regenerados sob demanda (qualquer tipo);
+  excluir paciente/documento; backup diário + mensal em M:/backup-sistema.
 
-## PRÓXIMO MARCO: kit LME (ainda não iniciado)
+## Constantes/locais importantes
 
-Gerar de uma vez, por medicamento de alto custo:
-1. **LME oficial preenchido** — PDF AcroForm; mapa de campos pronto em `docs/lme-campos.md`;
-   usar pikepdf (latin-1, xref corrompida); template em branco deve ser criado limpando
-   os campos de um exemplar real (NUNCA commitar exemplar preenchido);
-   atenção ao dropdown `Selecao med 1` que fica com "Lovastatina" residual.
-2. Receita do medicamento (já existe o gerador).
-3. Relatório para farmácia de alto custo (modelo em docs/analise-documentos.md).
-4. Formulário estadual (ex.: epilepsia-MG) conforme estado do paciente.
-5. Termo TER/TCLE do grupo (inventário em `docs/termos-consentimento.md`).
-6. Anexos por medicamento: gabapentina → EVA+LANSS pré-preenchidas (LANSS 21 pts, EVA 8);
-   donepezila/rivastigmina/galantamina → termo com CDR e MEEM.
+- `.env` local: dados do médico, CNES, OPENAI_API_KEY, senhas do carimbo, impressora.
+- Carimbo: `templates/assets/carimbo.png` (origem: assinatura-digital-thales-com-carimbo.png na raiz do M:).
+- LME oficial em branco: `templates/lme/lme_oficial.pdf`; fichas SES-SP: `templates/requisitos-sp/`.
+- TER epilepsia usado: pasta TERMOS DE CONSENTIMENTO (campos AcroForm mapeados em app/services/termos.py).
 
-Dados por paciente já existem na tabela `lme_dados` (cid10, diagnóstico, anamnese,
-tratamentos prévios) — os 10 importados já vieram preenchidos.
-Constantes (CNES, estabelecimento, CNS do médico) estão no `.env` local.
+## Próximos passos sugeridos
 
-## Backlog depois do LME
+1. Validar na prática o kit LME impresso (usuário estava testando; reiniciar o .bat
+   carrega as correções do med1/dropdowns/carimbo).
+2. TERs restantes preenchíveis (hoje só epilepsia é preenchido; os outros são copiados).
+3. Escalas como folhas preenchidas (MEEM/CDR/EDSS/LANSS impressos com respostas
+   marcadas) — fonte: pasta "Escalas e ferramentas uteis" (protocolo USP) e
+   ESCALA_evas_lanss (LANSS 21, EVA 8 padrão).
+4. Formulários estaduais MG/GO (flat PDFs — precisam overlay ou recriação).
+5. Baixar fichas SES-SP dos demais fármacos (demência, EM, toxina, pramipexol...).
 
-- Relatórios médicos, encaminhamentos, atestados (modelos em docs/analise-documentos.md).
-- Recriar TCLEs como formulários preenchíveis.
-- Edição de paciente e de dados de LME pela interface (hoje só criação).
-- Renovação semestral de LME em 1 clique a partir de `lme_dados` + último kit.
+## Avisos
 
-## Avisos operacionais
-
-- Servidor não tem auto-reload: após atualizar o código, fechar e reabrir o `.bat`.
-- Regras invioláveis: nenhum dado de paciente no repo (público); nunca varrer a pasta
-  real de receitas inteira; commits atômicos em pt-BR.
+- Servidor sem auto-reload: fechar e reabrir INICIAR-RECEITAS.bat após mudanças.
+- Regras invioláveis: nenhum dado de paciente no repo público; nunca varrer a pasta
+  real de receitas; commits atômicos pt-BR.
