@@ -33,7 +33,14 @@ Análise detalhada do fluxo atual: `docs/analise-documentos.md`.
 | Medicamentos | Catálogo curado de neurologia **pré-carregado** (seed versionado no git) |
 | Prescritor | Fixo: Dr. Thales Pardini Fagundes, CRM-SP 220298, RQE 124154; estabelecimento/CNES único (valores em `.env` local, modelo em `.env.example`) |
 | Papel timbrado | Imagem institucional (Hospital de Amor Barretos) em `templates/assets/` — **local apenas, fora do git** (repo é público) |
-| Kit LME | O LME nunca sai sozinho: gerar kit completo (receita + relatório + formulário estadual + termo + anexos por medicamento) — ver `docs/lme-campos.md` e `docs/termos-consentimento.md` |
+| Kit LME | O LME nunca sai sozinho: LME preenchido + receita com posologia + termo TER pelo CID + relatório alto custo opcional — ver `docs/lme-campos.md` e `docs/termos-consentimento.md` |
+| CIDs | Cada medicamento carrega seus CIDs contemplados (campo `cids` do seed); indicação única auto-preenche (epilepsia G40.1, Alzheimer G30.1), múltipla pergunta; o CID dispara escalas/termo/validações |
+| Escalas | MEEM/CDR/escolaridade (G30/F00), EDSS (G35), LANSS/EVA com padrão 21/8 (R52) — obrigatórias pelo PCDT, salvas na tabela `escalas`, injetadas na anamnese |
+| Carimbo | Imagem transparente local (`templates/assets/carimbo.png`); senha `CARIMBO_SENHA` (+ mestra) no `.env`, liberação de 24h; aplicado como conteúdo de página |
+| Impressão | SumatraPDF portátil em `tools/` (fora do git); fila com retomada em `/impressao`; impressora salva na tabela `config` |
+| IA | OpenAI: GPT-5.6 Sol (relatórios INSS/alto custo/anamnese, prompts-base = .txt do usuário em Prompts principais) e gpt-5.6-luna (extração de diagnósticos p/ tags). **Nunca enviar nome de paciente à API** — identificação só no PDF local |
+| Sistema leve | PDFs > 7 dias apagados; TODO documento é regenerável do `conteudo_json` (`_regenerar_pdf`); não guardar docx/pdf permanentes |
+| Backups | Diário em `dados/backups` (30 cópias) + mensal em `M:\...\backup-sistema` |
 
 ## Princípio central de UX: marcar, não digitar
 

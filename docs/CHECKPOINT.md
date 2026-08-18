@@ -1,6 +1,23 @@
 # CHECKPOINT — estado do projeto (atualizado em 18/08/2026, fim do dia)
 
-Leia junto com `AGENTS.md`. Tudo pushado até o commit `57edf6b`. 33 testes passando.
+Leia junto com `AGENTS.md`. 33 testes passando.
+
+## Ajustes finos após teste ao vivo (últimos commits do dia)
+
+- Carimbo com fundo TRANSPARENTE (imagem processada) e maior: 44mm na receita,
+  35mm nos quadros 17/23 do LME, sobre a linha do TER — sobrepõe como carimbo real.
+- LME: medicamentos desenhados como conteúdo da página (campos Tx/dropdowns não
+  renderizam em todos os leitores); widgets de tela ocultados (F=2).
+- CIDs POR MEDICAMENTO no catálogo (campo `cids`, 37 fármacos): chips com descrição;
+  indicação única auto (G40.1 / G30.1 tardio); múltipla pergunta (gaba G40×R52,
+  azatioprina G70×G35, IVIG, toxina). Equivalências: F00=G30, G51=G24, G82=G81.
+- Termo segue o CID (gaba+R52 → termo de dor, não epilepsia); R52 abre LANSS/EVA
+  (padrão 21/8), obrigatórios, salvos e injetados na anamnese.
+- IA: nome do paciente NUNCA vai à API; fecho do INSS limitado a "retorno programado,
+  sem alta até o momento"; anamnese com roteiro por doença (funciona com poucas
+  palavras, sem inventar números/datas).
+- Kit LME gera receita com posologia por linha; "imprimir kit de hoje" no paciente.
+- Exclusões: por documento, selecionados, todo o histórico, ou paciente inteiro.
 
 ## Funcionando (testado ao vivo pelo usuário)
 
