@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block titulo %}LME — {{ paciente.nome }}{% endblock %}
 {% block conteudo %}
+<script src="/static/posologia.js"></script>
 <div class="cartao">
   <h1>Gerar LME — {{ paciente.nome }}</h1>
   {% if erro %}<div class="aviso" style="background:#ffe4e4;border-color:#e9a0a0">{{ erro }}</div>{% endif %}
@@ -225,18 +226,28 @@ function novaLinhaMed() {
     sugerirCid();   // ao clicar na med: CID padrão + descrição + pista do PCDT
   });
   apr.addEventListener('change', atualizarPosologias);
-  // quantidade digitada À MÃO recalcula o texto que vai para a receita
-  qtd.addEventListener('input', () => {
+  function unidadeDaApresentacao() {
     const m = medNome(busca.value);
     const a = m && m.apresentacoes[apr.selectedIndex];
-    let unidade = 'unidades';
-    if (a) {
-      const f = a.forma.toLowerCase();
-      unidade = f.includes('cápsula') ? 'cápsulas' : f.includes('comprimido')
-        ? 'comprimidos' : f.includes('frasco') ? 'frascos' : f.includes('adesivo')
-        ? 'adesivos' : f.includes('seringa') ? 'seringas' : 'unidades';
+    if (!a) return 'unidades';
+    const f = a.forma.toLowerCase();
+    return f.includes('cápsula') ? 'cápsulas' : f.includes('comprimido')
+      ? 'comprimidos' : f.includes('frasco') ? 'frascos' : f.includes('adesivo')
+      ? 'adesivos' : f.includes('seringa') ? 'seringas' : 'unidades';
+  }
+  // quantidade digitada À MÃO recalcula o texto que vai para a receita
+  qtd.addEventListener('input', () => {
+    pos.dataset.qtdTexto = qtd.value.trim()
+      ? `${qtd.value.trim()} ${unidadeDaApresentacao()}` : '';
+  });
+  // POSOLOGIA editada à mão recalcula a QTD MENSAL (alimenta os 6 meses do
+  // LME e a receita): "Tomar 3 cp à noite" -> 90; "2-0-2" -> 120; "8/8h" -> 90
+  pos.addEventListener('input', () => {
+    const mensal = qtdMensalDaPosologia(pos.value);
+    if (mensal != null) {
+      qtd.value = mensal;
+      pos.dataset.qtdTexto = `${mensal} ${unidadeDaApresentacao()}`;
     }
-    pos.dataset.qtdTexto = qtd.value.trim() ? `${qtd.value.trim()} ${unidade}` : '';
   });
 }
 let CRITERIOS = {};

@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block titulo %}Receita — {{ paciente.nome }}{% endblock %}
 {% block conteudo %}
+<script src="/static/posologia.js"></script>
 <div class="cartao">
   <h1>Nova receita — {{ paciente.nome }}</h1>
   <form method="post" action="/pacientes/{{ paciente.id }}/receita" id="form-receita">
@@ -182,6 +183,17 @@ function novaLinha(dados) {
   }
   busca.addEventListener('change', atualizarApresentacoes);
   selApr.addEventListener('change', atualizarPosologias);
+  // posologia editada à mão recalcula a quantidade ("3 cp à noite" -> 90/mês)
+  pos.addEventListener('input', () => {
+    const mensal = qtdMensalDaPosologia(pos.value);
+    if (mensal == null) return;
+    const med = medNome(busca.value);
+    const a = med && med.apresentacoes[selApr.selectedIndex];
+    const f = a ? a.forma.toLowerCase() : '';
+    const unidade = f.includes('cápsula') ? 'cápsulas' : f.includes('comprimido')
+      ? 'comprimidos' : 'unidades';
+    qtd.value = `${mensal} ${unidade}`;
+  });
 
   if (dados) {   // pré-preenchimento (repetir receita)
     const partes = dados.medicamento.split(' ');
