@@ -31,7 +31,7 @@ def _paragrafo(c: Canvas, texto: str, x: float, y: float, largura: float,
 
 def _texto_paginado(c: Canvas, texto: str, y: float,
                     fonte: str = "Helvetica", tamanho: float = 11,
-                    entrelinha: float = 5.2 * mm, y_minimo: float = 80 * mm) -> float:
+                    entrelinha: float = 5.2 * mm, y_minimo: float = 95 * mm) -> float:
     """Desenha texto longo quebrando de página antes de invadir a assinatura."""
     for bloco in texto.split("\n"):
         for linha in simpleSplit(bloco, fonte, tamanho, LARGURA_UTIL) or [""]:
@@ -88,7 +88,7 @@ def gerar_relatorio_pdf(rel: RelatorioMedico, destino: Path) -> Path:
     y = _texto_paginado(c, rel.texto, y)
     if rel.cid10:
         y -= 4 * mm
-        if y < 80 * mm:
+        if y < 95 * mm:
             c.showPage()
             _fundo_timbrado(c)
             y = ALTURA - 45 * mm
@@ -134,6 +134,12 @@ def gerar_relatorio_previdenciario_pdf(rel: RelatorioPrevidenciario,
 
     por_pagina = int((Y_TOPO - Y_FUNDO) / ENTRE)
     paginas = [linhas[i:i + por_pagina] for i in range(0, len(linhas), por_pagina)] or [[]]
+    # a última página precisa de folga extra para assinatura + carimbo (~95mm)
+    cabe_na_ultima = int((Y_TOPO - 95 * mm) / ENTRE)
+    if len(paginas[-1]) > cabe_na_ultima:
+        ultima = paginas.pop()
+        paginas.append(ultima[:cabe_na_ultima])
+        paginas.append(ultima[cabe_na_ultima:])
     total = len(paginas)
 
     c = Canvas(str(destino), pagesize=A4)
@@ -212,7 +218,7 @@ def gerar_encaminhamento_pdf(enc: Encaminhamento, destino_pdf: Path) -> Path:
         y = _texto_paginado(c, "\n\n".join(partes), y)
         if enc.cid10:
             y -= 2 * mm
-            if y < 80 * mm:
+            if y < 95 * mm:
                 c.showPage()
                 _fundo_timbrado(c)
                 y = ALTURA - 45 * mm
@@ -245,7 +251,7 @@ def gerar_atestado_pdf(at: Atestado, destino: Path) -> Path:
     y = _texto_paginado(c, at.texto, y, tamanho=12, entrelinha=7 * mm)
     if at.cid10:
         y -= 4 * mm
-        if y < 80 * mm:
+        if y < 95 * mm:
             c.showPage()
             _fundo_timbrado(c)
             y = ALTURA - 45 * mm
@@ -300,7 +306,7 @@ def gerar_pedido_exames_pdf(pedido: PedidoExames, destino: Path) -> Path:
             rotulo = exame.nome + (f"  —  {exame.material}" if exame.material else "")
             y = _paragrafo(c, rotulo, MARGEM_ESQ + 7 * mm, y, LARGURA_UTIL - 7 * mm,
                            tamanho=11, entrelinha=4.8 * mm) - 2 * mm
-            if y < 80 * mm:
+            if y < 95 * mm:
                 _assinatura_rodape(c, data=data, carimbo=pedido.carimbo)
                 c.showPage()
                 _fundo_timbrado(c)

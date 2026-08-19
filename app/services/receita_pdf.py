@@ -143,6 +143,53 @@ def _assinatura(c: Canvas, y: float, data: str, carimbo: bool = False) -> None:
     c.drawCentredString(x_centro, y - 15 * mm, f"{config.MEDICO_CRM} | RQE {config.MEDICO_RQE}")
 
 
+# Área útil dos medicamentos numa folha: começa depois do cabeçalho + paciente
+# + via (ALTURA - 92mm) e para antes da assinatura/carimbo (o carimbo sobe até
+# ~146mm quando desenhado sobre a linha de assinatura em 120mm).
+Y_ITENS_INICIO = ALTURA - 92 * mm
+Y_ITENS_LIMITE = 150 * mm
+
+
+def _altura_item(item: ItemReceita) -> float:
+    linhas = 0
+    for par in item.posologia.split("\n"):
+        linhas += len(simpleSplit(par, "Helvetica", 11, LARGURA_UTIL - 8 * mm) or [""])
+    return 5.5 * mm + linhas * 4.5 * mm + 3 * mm
+
+
+def _dividir_item(item: ItemReceita) -> list[ItemReceita]:
+    """Posologia maior que a área útil da folha vira partes '(continuação)'."""
+    max_linhas = int((Y_ITENS_INICIO - Y_ITENS_LIMITE - 8.5 * mm) / (4.5 * mm))
+    linhas: list[str] = []
+    for par in item.posologia.split("\n"):
+        linhas.extend(simpleSplit(par, "Helvetica", 11, LARGURA_UTIL - 8 * mm) or [""])
+    if len(linhas) <= max_linhas:
+        return [item]
+    partes = [linhas[i:i + max_linhas] for i in range(0, len(linhas), max_linhas)]
+    divididos = [ItemReceita(item.medicamento, item.quantidade, "\n".join(partes[0]))]
+    for parte in partes[1:]:
+        divididos.append(ItemReceita(f"{item.medicamento} (continuação)", "",
+                                     "\n".join(parte)))
+    return divididos
+
+
+def _folhas_de_itens(itens: list[ItemReceita]) -> list[list[ItemReceita]]:
+    """Distribui os itens em folhas COMPLETAS (cada uma com assinatura e bloco
+    de farmácia) — nada sobrepõe a assinatura quando a receita é longa."""
+    folhas: list[list[ItemReceita]] = []
+    atual: list[ItemReceita] = []
+    y = Y_ITENS_INICIO
+    for item in [sub for i in itens for sub in _dividir_item(i)]:
+        altura = _altura_item(item)
+        if atual and y - altura < Y_ITENS_LIMITE:
+            folhas.append(atual)
+            atual, y = [], Y_ITENS_INICIO
+        atual.append(item)
+        y -= altura
+    folhas.append(atual)
+    return folhas
+
+
 def gerar_receita_pdf(receita: Receita, destino: Path) -> Path:
     destino.parent.mkdir(parents=True, exist_ok=True)
     c = Canvas(str(destino), pagesize=A4)
@@ -150,26 +197,28 @@ def gerar_receita_pdf(receita: Receita, destino: Path) -> Path:
     titulo = "RECEITUÁRIO CONTROLE ESPECIAL" if controle else "RECEITUÁRIO MÉDICO"
     # nº de folhas vem calculado do guia (controlada = 2 por mês, mesmo COM data)
     n_vias = max(1, receita.vias)
+    folhas = _folhas_de_itens(receita.itens)
 
     for _ in range(n_vias):
-        y = _cabecalho(c, titulo, controle)
-        c.setFont("Helvetica", 11)
-        c.drawString(MARGEM_ESQ, y, f"Paciente: {receita.paciente}")
-        y -= 9 * mm
-        c.setFont("Helvetica-Bold", 11)
-        c.drawString(MARGEM_ESQ, y, receita.via_administracao)
-        if receita.uso_continuo:
-            c.drawRightString(LARGURA - MARGEM_DIR, y, "USO CONTÍNUO")
-        y -= 8 * mm
+        for grupo in folhas:
+            y = _cabecalho(c, titulo, controle)
+            c.setFont("Helvetica", 11)
+            c.drawString(MARGEM_ESQ, y, f"Paciente: {receita.paciente}")
+            y -= 9 * mm
+            c.setFont("Helvetica-Bold", 11)
+            c.drawString(MARGEM_ESQ, y, receita.via_administracao)
+            if receita.uso_continuo:
+                c.drawRightString(LARGURA - MARGEM_DIR, y, "USO CONTÍNUO")
+            y -= 8 * mm
 
-        for item in receita.itens:
-            y = _linha_medicamento(c, item, y)
+            for item in grupo:
+                y = _linha_medicamento(c, item, y)
 
-        y_comprador = 95 * mm
-        _assinatura(c, y_comprador + 25 * mm, receita.data, receita.carimbo)
-        if controle:
-            _bloco_comprador_fornecedor(c, y_comprador - 10 * mm)
-        c.showPage()
+            y_comprador = 95 * mm
+            _assinatura(c, y_comprador + 25 * mm, receita.data, receita.carimbo)
+            if controle:
+                _bloco_comprador_fornecedor(c, y_comprador - 10 * mm)
+            c.showPage()
 
     c.save()
     return destino

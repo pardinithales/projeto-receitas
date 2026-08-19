@@ -173,6 +173,24 @@ def test_receita_uso_continuo_no_pdf(cliente):
     assert json.loads(doc["conteudo_json"])["uso_continuo"] is True
 
 
+def test_receita_longa_divide_em_folhas_completas(tmp_path, monkeypatch):
+    """Muitos medicamentos/posologias longas não podem invadir a assinatura:
+    a receita divide em folhas, cada uma com assinatura e bloco da farmácia."""
+    from app.services.receita_pdf import ItemReceita, Receita, gerar_receita_pdf
+    itens = [ItemReceita(f"Medicamento Exemplo {i} 500mg - comprimido",
+                         "30 comprimidos",
+                         "Tomar 1 comprimido pela manhã durante 7 dias;\n"
+                         "Após, tomar 1 comprimido de 12 em 12 horas;\n"
+                         "Após, tomar 2 comprimidos de 12 em 12 horas.")
+             for i in range(6)]
+    destino = tmp_path / "receita_longa.pdf"
+    gerar_receita_pdf(Receita(paciente="Maria Exemplo da Silva", itens=itens,
+                              vias=2, data="19/08/2026"), destino)
+    with pikepdf.open(destino) as pdf:
+        paginas = len(pdf.pages)
+    assert paginas >= 4 and paginas % 2 == 0     # >1 folha por via, 2 vias iguais
+
+
 def test_qtds_meses_titulacao():
     assert _qtds_meses("30") == ["30"]
     assert _qtds_meses("30 60 60") == ["30", "60", "60"]
