@@ -1,6 +1,19 @@
 # CHECKPOINT — estado do projeto (atualizado em 19/08/2026, rodada 2)
 
-Leia junto com `AGENTS.md`. 42 testes passando.
+Leia junto com `AGENTS.md`. 46 testes passando.
+
+## Ajustes após teste ao vivo da rodada 2
+
+- Encaminhamento SEM especialidade agora gera **carta única ao destinatário**
+  (ex.: resposta à UPA de origem) — antes voltava ao form sem gerar nada.
+  Título escolhível: ENCAMINHAMENTO MÉDICO ou RESPOSTA — CONTRARREFERÊNCIA.
+- **Texto longo pagina** (encaminhamento, relatório livre, atestado): quebra de
+  página antes de invadir a assinatura (`_texto_paginado` em documentos_pdf.py)
+  — corrige a sobreposição com carimbo/assinatura.
+- Unidade da quantidade segue a apresentação (`unidadeDaForma` em posologia.js):
+  ampolas, frascos, sachês, adesivos, seringas… — campo continua livre.
+- Catálogo: **Vitamina B12** 1000/5000mcg (ampola IM e comprimido sublingual)
+  com o esquema em etapas (1/dia 1 semana → 1/semana 4 semanas → mensal).
 
 ## Rodada 2 de 19/08/2026 (segunda leva de feedbacks, todos implementados)
 
