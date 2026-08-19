@@ -103,8 +103,10 @@ def buscar_pacientes(request: Request, q: str = ""):
         try:
             linhas = con.execute(
                 "SELECT id, nome, data_nascimento, tags FROM pacientes "
-                "WHERE nome LIKE ? OR tags LIKE ? ORDER BY nome LIMIT 12",
-                (f"%{q.strip()}%", f"%{q.strip()}%"),
+                "WHERE sem_acento(nome) LIKE '%' || sem_acento(?) || '%' "
+                "OR sem_acento(tags) LIKE '%' || sem_acento(?) || '%' "
+                "ORDER BY nome LIMIT 12",
+                (q.strip(), q.strip()),
             ).fetchall()
         finally:
             con.close()
@@ -289,8 +291,10 @@ def api_pacientes(q: str = ""):
     con = db.conectar()
     try:
         rows = con.execute(
-            "SELECT id, nome FROM pacientes WHERE nome LIKE ? OR tags LIKE ? "
-            "ORDER BY nome LIMIT 12", (f"%{q.strip()}%", f"%{q.strip()}%")).fetchall()
+            "SELECT id, nome FROM pacientes "
+            "WHERE sem_acento(nome) LIKE '%' || sem_acento(?) || '%' "
+            "OR sem_acento(tags) LIKE '%' || sem_acento(?) || '%' "
+            "ORDER BY nome LIMIT 12", (q.strip(), q.strip())).fetchall()
         return [dict(r) for r in rows]
     finally:
         con.close()
@@ -1375,6 +1379,25 @@ def abrir_pdf(doc_id: int):
         con.close()
     return FileResponse(caminho, media_type="application/pdf",
                         content_disposition_type="inline")
+
+
+@app.post("/documentos/{doc_id}/regenerar")
+def regenerar_documento(doc_id: int):
+    """Força a regeneração do PDF (útil quando o arquivo salvo ficou com
+    layout antigo — o conteúdo estruturado no banco é sempre a verdade)."""
+    con = db.conectar()
+    try:
+        doc = con.execute("SELECT caminho_pdf FROM documentos WHERE id = ?",
+                          (doc_id,)).fetchone()
+        if not doc:
+            return HTMLResponse("não encontrado", status_code=404)
+        if doc["caminho_pdf"]:
+            Path(doc["caminho_pdf"]).unlink(missing_ok=True)
+        _regenerar_pdf(con, doc_id)
+        con.commit()
+    finally:
+        con.close()
+    return RedirectResponse(f"/documentos/{doc_id}/pdf", status_code=303)
 
 
 @app.post("/documentos/{doc_id}/excluir")

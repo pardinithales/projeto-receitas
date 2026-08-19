@@ -191,6 +191,27 @@ def test_receita_longa_divide_em_folhas_completas(tmp_path, monkeypatch):
     assert paginas >= 4 and paginas % 2 == 0     # >1 folha por via, 2 vias iguais
 
 
+def test_busca_ignora_acentos(cliente):
+    cliente.post("/pacientes", data={"nome": "José Conceição Exemplo",
+                                     "tags": "migrânea crônica"})
+    assert "José" in cliente.get("/pacientes/busca", params={"q": "jose conceicao"}).text
+    assert "José" in cliente.get("/pacientes/busca", params={"q": "José"}).text
+    assert cliente.get("/api/pacientes", params={"q": "migranea"}).json()
+
+
+def test_regenerar_pdf_forcado(cliente):
+    """Botão 'regerar': apaga o arquivo salvo e gera de novo com o layout atual."""
+    pid = _novo_paciente(cliente, "Nina Exemplo Regerada")
+    r = cliente.post(f"/pacientes/{pid}/atestado", data={
+        "titulo": "DECLARAÇÃO", "texto": "Compareceu à consulta nesta data.",
+        "com_data": "com"}, follow_redirects=False)
+    doc_id = r.headers["location"].split("/documentos/")[1].split("/")[0]
+    r = cliente.post(f"/documentos/{doc_id}/regenerar", follow_redirects=False)
+    assert r.status_code == 303
+    r = cliente.get(r.headers["location"])
+    assert r.content[:5] == b"%PDF-"
+
+
 def test_qtds_meses_titulacao():
     assert _qtds_meses("30") == ["30"]
     assert _qtds_meses("30 60 60") == ["30", "60", "60"]

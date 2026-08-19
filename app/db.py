@@ -100,11 +100,21 @@ CREATE INDEX IF NOT EXISTS idx_escalas_paciente ON escalas(paciente_id, tipo, da
 """
 
 
+def _sem_acento(texto: str | None) -> str:
+    """Busca tolerante: 'jose' acha 'José' (e vice-versa)."""
+    import unicodedata
+    if not texto:
+        return ""
+    t = unicodedata.normalize("NFKD", texto)
+    return "".join(c for c in t if not unicodedata.combining(c)).lower()
+
+
 def conectar() -> sqlite3.Connection:
     config.DATABASE_PATH.parent.mkdir(parents=True, exist_ok=True)
     con = sqlite3.connect(config.DATABASE_PATH)
     con.row_factory = sqlite3.Row
     con.execute("PRAGMA foreign_keys = ON")
+    con.create_function("sem_acento", 1, _sem_acento, deterministic=True)
     return con
 
 

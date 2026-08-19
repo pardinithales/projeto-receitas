@@ -52,7 +52,12 @@
       </td>
       <td><a href="/documentos/{{ d.id }}/pdf" target="_blank">
         {{ "PDF" if d.caminho_pdf else "gerar PDF" }}</a>
-        · <a href="#" onclick="imprimirDoc({{ d.id }}, this); return false;">🖨️ imprimir</a></td>
+        · <a href="#" onclick="imprimirDoc({{ d.id }}, this); return false;">🖨️ imprimir</a>
+        · <form method="post" action="/documentos/{{ d.id }}/regenerar" target="_blank"
+               style="display:inline">
+          <button class="chip" type="submit"
+                  title="Gera o PDF de novo do zero (usa o layout atual)">regerar</button>
+        </form></td>
       <td>
         {% if d.tipo == "relatorio_inss" %}
         <a href="/pacientes/{{ paciente.id }}/inss?doc={{ d.id }}">reaproveitar</a>
