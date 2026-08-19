@@ -240,10 +240,7 @@ function novaLinhaMed() {
   });
   apr.addEventListener('change', atualizarPosologias);
   function unidadeDaApresentacao() {
-    const texto = ((aprAtual() || {}).forma || apr.value || '').toLowerCase();
-    return texto.includes('cápsula') ? 'cápsulas' : texto.includes('comprimido')
-      ? 'comprimidos' : texto.includes('frasco') ? 'frascos' : texto.includes('adesivo')
-      ? 'adesivos' : texto.includes('seringa') ? 'seringas' : 'unidades';
+    return unidadeDaForma((aprAtual() || {}).forma || apr.value || '');
   }
   // quantidade digitada À MÃO recalcula o texto que vai para a receita.
   // Com titulação ("30 60 60"), a receita usa o ÚLTIMO valor (mês de manutenção).

@@ -63,3 +63,18 @@ function qtdMensalDaPosologia(texto) {
   const dia = unidadesPorDia(texto);
   return dia == null ? null : Math.ceil(dia * 30);
 }
+
+// unidade que acompanha a quantidade, deduzida do texto da apresentação
+// ("50mg - comprimido" -> "comprimidos", "5000mcg - ampola IM" -> "ampolas")
+function unidadeDaForma(texto) {
+  const t = (texto || '').toLowerCase();
+  if (t.includes('cápsula') || t.includes('capsula')) return 'cápsulas';
+  if (t.includes('comprimido')) return 'comprimidos';
+  if (t.includes('ampola')) return 'ampolas';
+  if (t.includes('frasco')) return 'frascos';
+  if (t.includes('adesivo')) return 'adesivos';
+  if (t.includes('seringa')) return 'seringas';
+  if (t.includes('sachê') || t.includes('sache')) return 'sachês';
+  if (t.includes('supositório') || t.includes('supositorio')) return 'supositórios';
+  return 'unidades';
+}

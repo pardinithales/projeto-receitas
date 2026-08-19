@@ -211,10 +211,7 @@ function novaLinha(dados) {
   pos.addEventListener('input', () => {
     const mensal = qtdMensalDaPosologia(pos.value);
     if (mensal == null) return;
-    const texto = (selApr.value || '').toLowerCase();
-    const unidade = texto.includes('cápsula') ? 'cápsulas'
-      : texto.includes('comprimido') ? 'comprimidos' : 'unidades';
-    qtd.value = `${mensal} ${unidade}`;
+    qtd.value = `${mensal} ${unidadeDaForma(selApr.value)}`;
   });
 
   if (dados) {   // pré-preenchimento (repetir receita)
