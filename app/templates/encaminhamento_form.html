@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block titulo %}Encaminhamento — {{ paciente.nome }}{% endblock %}
+{% block conteudo %}
+<div class="cartao">
+  <h1>Encaminhamento — {{ paciente.nome }}</h1>
+  <form method="post" action="/pacientes/{{ paciente.id }}/encaminhamento">
+
+    <label>Destinatário (o "Para:" do cabeçalho)</label>
+    <div class="radio-grupo">
+      <label><input type="radio" name="destino" value="" checked>
+        <span>Direto à especialidade</span></label>
+      <label><input type="radio" name="destino" value="SECRETARIA MUNICIPAL DE SAÚDE">
+        <span>SECRETARIA MUNICIPAL DE SAÚDE</span></label>
+      <label><input type="radio" name="destino" value="outro" id="destino-outro-radio">
+        <span>Outro:</span></label>
+    </div>
+    <input type="text" name="destino_outro"
+           placeholder="ex.: AME Barretos / Serviço de Reabilitação"
+           oninput="document.getElementById('destino-outro-radio').checked = true">
+
+    <label>Especialidades solicitadas (sai 1 folha por especialidade)</label>
+    <div class="chips">
+      {% for e in especialidades %}
+      <label class="chip" style="display:inline-flex;align-items:center;gap:6px">
+        <input type="checkbox" name="esp" value="{{ e }}"> {{ e }}</label>
+      {% endfor %}
+    </div>
+    <label>Outra especialidade (digite livre)</label>
+    <input type="text" name="esp_outra" placeholder="ex.: Endocrinologia">
+
+    <label>Motivo / resumo clínico (sai no encaminhamento)</label>
+    <textarea name="motivo" rows="4"
+      placeholder="ex.: paciente com doença de Alzheimer, para reabilitação cognitiva e orientação familiar">{{ diagnostico or '' }}</textarea>
+
+    <div class="linha">
+      <div style="max-width:160px"><label>CID-10 (opcional)</label>
+        <input type="text" name="cid10" value="{{ cid10 or '' }}"></div>
+      <div>
+        <label>Data</label>
+        <div class="radio-grupo">
+          <label><input type="radio" name="com_data" value="com" checked>
+            <span>COM data ({{ hoje }})</span></label>
+          <label><input type="radio" name="com_data" value="sem">
+            <span>SEM data</span></label>
+        </div>
+      </div>
+    </div>
+
+    {% include "_carimbo.html" %}
+    <p style="margin-top:18px">
+      <button class="botao" type="submit">Gerar encaminhamento (PDF)</button>
+      <a class="botao secundario" href="/pacientes/{{ paciente.id }}">Cancelar</a>
+    </p>
+  </form>
+</div>
+{% endblock %}

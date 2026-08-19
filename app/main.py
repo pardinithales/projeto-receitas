@@ -11,9 +11,10 @@ from fastapi.templating import Jinja2Templates
 
 from app import config, db
 from app.services import imprimir, termos
-from app.services.documentos_pdf import (ExameSolicitado, PedidoExames,
-                                         RelatorioMedico, gerar_pedido_exames_pdf,
-                                         gerar_relatorio_pdf)
+from app.services.documentos_pdf import (Atestado, Encaminhamento, ExameSolicitado,
+                                         PedidoExames, RelatorioMedico,
+                                         gerar_atestado_pdf, gerar_encaminhamento_pdf,
+                                         gerar_pedido_exames_pdf, gerar_relatorio_pdf)
 from app.services.lme import DadosLME, MedicamentoLME, preencher_lme
 from app.services.receita_pdf import ItemReceita, Receita, gerar_receita_pdf
 
@@ -238,6 +239,10 @@ def ver_paciente(request: Request, pid: int):
 def _resumo_documento(doc) -> str:
     try:
         payload = json.loads(doc["conteudo_json"])
+        if payload.get("especialidades"):
+            return ", ".join(payload["especialidades"][:3])
+        if payload.get("titulo"):
+            return payload["titulo"].capitalize()
         meds = [i["medicamento"].split(" ")[0] for i in payload.get("itens", [])]
         return ", ".join(meds[:4])
     except Exception:
@@ -944,6 +949,152 @@ async def emitir_exames(request: Request, pid: int):
     return RedirectResponse(f"/documentos/{doc_id}/pdf", status_code=303)
 
 
+# ------------------------------------- encaminhamento / atestado / relatório
+
+ESPECIALIDADES_ENCAMINHAMENTO = [
+    "Fonoaudiologia", "Terapia Ocupacional", "Fisioterapia", "Psicologia",
+    "Avaliação Neuropsicológica", "Psiquiatria", "Nutrição",
+    "Fisiatria / Reabilitação", "Neurocirurgia", "Cardiologia", "Geriatria",
+    "Clínica da Dor", "Oftalmologia", "Otorrinolaringologia",
+]
+
+
+def _emitir_documento(pid: int, tipo: str, payload: dict) -> RedirectResponse:
+    """Insere o documento e gera o PDF pelo mesmo caminho da regeneração."""
+    con = db.conectar()
+    try:
+        cur = con.execute(
+            "INSERT INTO documentos (paciente_id, tipo, data_emissao, conteudo_json) "
+            "VALUES (?, ?, ?, ?)",
+            (pid, tipo, db.agora(), json.dumps(payload, ensure_ascii=False)))
+        doc_id = cur.lastrowid
+        _regenerar_pdf(con, doc_id)
+        con.commit()
+    finally:
+        con.close()
+    return RedirectResponse(f"/documentos/{doc_id}/pdf", status_code=303)
+
+
+@app.get("/pacientes/{pid}/encaminhamento", response_class=HTMLResponse)
+def form_encaminhamento(request: Request, pid: int):
+    con = db.conectar()
+    try:
+        paciente = con.execute("SELECT * FROM pacientes WHERE id = ?", (pid,)).fetchone()
+        lme = con.execute("SELECT cid10, diagnostico FROM lme_dados "
+                          "WHERE paciente_id = ?", (pid,)).fetchone()
+    finally:
+        con.close()
+    return templates.TemplateResponse(request, "encaminhamento_form.html", {
+        "paciente": paciente,
+        "especialidades": ESPECIALIDADES_ENCAMINHAMENTO,
+        "cid10": lme["cid10"] if lme else "",
+        "diagnostico": lme["diagnostico"] if lme else "",
+        "hoje": date.today().strftime("%d/%m/%Y"),
+        "carimbo_ativo": carimbo_janela_ativa(),
+    })
+
+
+@app.post("/pacientes/{pid}/encaminhamento")
+async def emitir_encaminhamento(request: Request, pid: int):
+    form = await request.form()
+    especialidades = [e.strip() for e in form.getlist("esp") if e.strip()]
+    if (form.get("esp_outra") or "").strip():
+        especialidades.append(form.get("esp_outra").strip())
+    if not especialidades:
+        return RedirectResponse(f"/pacientes/{pid}/encaminhamento", status_code=303)
+    autorizado = carimbo_autorizado(dict(form))
+    if autorizado is False:
+        return ERRO_SENHA
+    destino = form.get("destino") or ""
+    if destino == "outro":
+        destino = (form.get("destino_outro") or "").strip()
+    payload = {"especialidades": especialidades, "destino": destino,
+               "motivo": form.get("motivo") or "",
+               "cid10": (form.get("cid10") or "").upper(),
+               "com_data": form.get("com_data", "com"),
+               "carimbo": bool(autorizado)}
+    return _emitir_documento(pid, "encaminhamento", payload)
+
+
+@app.get("/pacientes/{pid}/atestado", response_class=HTMLResponse)
+def form_atestado(request: Request, pid: int):
+    con = db.conectar()
+    try:
+        paciente = con.execute("SELECT * FROM pacientes WHERE id = ?", (pid,)).fetchone()
+        lme = con.execute("SELECT cid10 FROM lme_dados WHERE paciente_id = ?",
+                          (pid,)).fetchone()
+    finally:
+        con.close()
+    return templates.TemplateResponse(request, "atestado_form.html", {
+        "paciente": paciente,
+        "cid10": lme["cid10"] if lme else "",
+        "hoje": date.today().strftime("%d/%m/%Y"),
+        "carimbo_ativo": carimbo_janela_ativa(),
+    })
+
+
+@app.post("/pacientes/{pid}/atestado")
+async def emitir_atestado(request: Request, pid: int):
+    form = dict(await request.form())
+    if not (form.get("texto") or "").strip():
+        return RedirectResponse(f"/pacientes/{pid}/atestado", status_code=303)
+    autorizado = carimbo_autorizado(form)
+    if autorizado is False:
+        return ERRO_SENHA
+    payload = {"titulo": form.get("titulo") or "ATESTADO MÉDICO",
+               "texto": form["texto"].strip(),
+               "cid10": (form.get("cid10") or "").upper()
+               if form.get("incluir_cid") == "sim" else "",
+               "com_data": form.get("com_data", "com"),
+               "carimbo": bool(autorizado)}
+    return _emitir_documento(pid, "atestado", payload)
+
+
+@app.get("/pacientes/{pid}/relatorio", response_class=HTMLResponse)
+def form_relatorio(request: Request, pid: int):
+    con = db.conectar()
+    try:
+        paciente = con.execute("SELECT * FROM pacientes WHERE id = ?", (pid,)).fetchone()
+        lme = con.execute("SELECT cid10 FROM lme_dados WHERE paciente_id = ?",
+                          (pid,)).fetchone()
+        # medicações da última receita alimentam o modelo de orientações
+        meds_atuais = []
+        ultima = con.execute(
+            "SELECT conteudo_json FROM documentos WHERE paciente_id = ? AND "
+            "tipo LIKE 'receita%' ORDER BY id DESC LIMIT 1", (pid,)).fetchone()
+        if ultima:
+            meds_atuais = [
+                {"medicamento": i.get("medicamento", ""),
+                 "posologia": i.get("posologia", ""),
+                 "quantidade": i.get("quantidade", "")}
+                for i in json.loads(ultima["conteudo_json"]).get("itens", [])]
+    finally:
+        con.close()
+    return templates.TemplateResponse(request, "relatorio_form.html", {
+        "paciente": paciente,
+        "cid10": lme["cid10"] if lme else "",
+        "meds_atuais": meds_atuais,
+        "hoje": date.today().strftime("%d/%m/%Y"),
+        "carimbo_ativo": carimbo_janela_ativa(),
+    })
+
+
+@app.post("/pacientes/{pid}/relatorio")
+async def emitir_relatorio(request: Request, pid: int):
+    form = dict(await request.form())
+    if not (form.get("texto") or "").strip():
+        return RedirectResponse(f"/pacientes/{pid}/relatorio", status_code=303)
+    autorizado = carimbo_autorizado(form)
+    if autorizado is False:
+        return ERRO_SENHA
+    payload = {"titulo": (form.get("titulo") or "RELATÓRIO MÉDICO").strip().upper(),
+               "texto": form["texto"].strip(),
+               "cid10": (form.get("cid10") or "").upper(),
+               "com_data": form.get("com_data", "com"),
+               "carimbo": bool(autorizado)}
+    return _emitir_documento(pid, "relatorio_generico", payload)
+
+
 # ---------------------------------------------------------------- estatísticas
 
 @app.get("/estatisticas", response_class=HTMLResponse)
@@ -1146,6 +1297,32 @@ def _regenerar_pdf(con, doc_id: int) -> str:
             exames=[ExameSolicitado(e["nome"], e.get("material", ""))
                     for e in payload.get("exames", [])],
             indicacao=payload.get("indicacao", ""), datas=datas,
+            carimbo=bool(payload.get("carimbo"))), destino)
+    elif tipo == "encaminhamento":
+        gerar_encaminhamento_pdf(Encaminhamento(
+            paciente=paciente["nome"],
+            especialidades=payload.get("especialidades", []),
+            destino=payload.get("destino", ""),
+            motivo=payload.get("motivo", ""),
+            cid10=payload.get("cid10", ""),
+            data=emissao.strftime("%d/%m/%Y")
+            if payload.get("com_data", "com") == "com" else "",
+            carimbo=bool(payload.get("carimbo"))), destino)
+    elif tipo == "atestado":
+        gerar_atestado_pdf(Atestado(
+            paciente=paciente["nome"], texto=payload.get("texto", ""),
+            titulo=payload.get("titulo", "ATESTADO MÉDICO"),
+            cid10=payload.get("cid10", ""),
+            data=emissao.strftime("%d/%m/%Y")
+            if payload.get("com_data", "com") == "com" else "",
+            carimbo=bool(payload.get("carimbo"))), destino)
+    elif tipo == "relatorio_generico":
+        gerar_relatorio_pdf(RelatorioMedico(
+            paciente=paciente["nome"], texto=payload.get("texto", ""),
+            titulo=payload.get("titulo", "RELATÓRIO MÉDICO"),
+            cid10=payload.get("cid10", ""),
+            data=emissao.strftime("%d/%m/%Y")
+            if payload.get("com_data", "com") == "com" else "",
             carimbo=bool(payload.get("carimbo"))), destino)
     elif tipo == "termo":
         gerado = termos.gerar_termo(

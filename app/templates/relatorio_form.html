@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block titulo %}Relatório — {{ paciente.nome }}{% endblock %}
+{% block conteudo %}
+<div class="cartao">
+  <h1>Relatório / declaração — {{ paciente.nome }}</h1>
+  <form method="post" action="/pacientes/{{ paciente.id }}/relatorio">
+
+    <label>Título do documento (escolha ou digite)</label>
+    <input type="text" name="titulo" id="titulo" list="titulos" value="RELATÓRIO MÉDICO">
+    <datalist id="titulos">
+      <option value="RELATÓRIO MÉDICO">
+      <option value="RELATÓRIO DE ORIENTAÇÕES — MEDICAÇÕES EM USO">
+      <option value="DECLARAÇÃO">
+    </datalist>
+
+    <label>Texto do relatório</label>
+    <p style="margin:4px 0">
+      <button type="button" class="chip" onclick="inserirMeds()">
+        inserir medicações em uso (da última receita)</button>
+      <button type="button" class="chip" onclick="modeloOrientacoes()">
+        modelo: orientações sobre as medicações</button>
+    </p>
+    <textarea name="texto" id="texto" rows="10" required
+      placeholder="Escreva o relatório, ou use os botões acima para começar de um modelo"></textarea>
+
+    <div class="linha">
+      <div style="max-width:160px"><label>CID-10 (opcional)</label>
+        <input type="text" name="cid10" value="{{ cid10 or '' }}"></div>
+      <div>
+        <label>Data</label>
+        <div class="radio-grupo">
+          <label><input type="radio" name="com_data" value="com" checked>
+            <span>COM data ({{ hoje }})</span></label>
+          <label><input type="radio" name="com_data" value="sem">
+            <span>SEM data</span></label>
+        </div>
+      </div>
+    </div>
+
+    {% include "_carimbo.html" %}
+    <p style="margin-top:18px">
+      <button class="botao" type="submit">Gerar relatório (PDF)</button>
+      <a class="botao secundario" href="/pacientes/{{ paciente.id }}">Cancelar</a>
+    </p>
+  </form>
+</div>
+
+<script>
+const MEDS = {{ meds_atuais | tojson }};
+function blocoMeds() {
+  if (!MEDS.length) { alert('Nenhuma receita anterior deste paciente para puxar as medicações.'); return ''; }
+  return MEDS.map(m => `- ${m.medicamento}: ${m.posologia}` +
+                       (m.quantidade ? ` (${m.quantidade}/mês)` : '')).join('\n');
+}
+function inserirMeds() {
+  const b = blocoMeds();
+  if (!b) return;
+  const t = document.getElementById('texto');
+  t.value = (t.value ? t.value.trimEnd() + '\n\n' : '') + 'Medicações em uso:\n' + b;
+}
+function modeloOrientacoes() {
+  const b = blocoMeds();
+  if (!b) return;
+  document.getElementById('titulo').value = 'RELATÓRIO DE ORIENTAÇÕES — MEDICAÇÕES EM USO';
+  document.getElementById('texto').value =
+    `Paciente em acompanhamento neurológico neste consultório. Oriento sobre o uso das medicações prescritas:\n\n` +
+    b + `\n\n` +
+    `Manter o uso regular, nos horários indicados, sem interromper por conta própria. ` +
+    `Em caso de efeitos adversos (sonolência excessiva, tontura, alergia), entrar em contato ` +
+    `com o consultório ou procurar atendimento médico.`;
+}
+</script>
+{% endblock %}

@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block titulo %}Atestado — {{ paciente.nome }}{% endblock %}
+{% block conteudo %}
+<div class="cartao">
+  <h1>Atestado / declaração — {{ paciente.nome }}</h1>
+  <form method="post" action="/pacientes/{{ paciente.id }}/atestado">
+
+    <label>Tipo (preenche o texto abaixo — tudo editável)</label>
+    <div class="radio-grupo">
+      <label><input type="radio" name="modelo" value="dia" checked onchange="montar()">
+        <span>Atestado do dia (compareceu à consulta)</span></label>
+      <label><input type="radio" name="modelo" value="acompanhante" onchange="montar()">
+        <span>Acompanhante</span></label>
+      <label><input type="radio" name="modelo" value="afastamento" onchange="montar()">
+        <span>Afastamento (N dias)</span></label>
+      <label><input type="radio" name="modelo" value="viagem" onchange="montar()">
+        <span>Liberação de viagem (avião / TFD)</span></label>
+      <label><input type="radio" name="modelo" value="livre" onchange="montar()">
+        <span>Livre</span></label>
+    </div>
+
+    <div class="linha">
+      <div style="max-width:130px"><label>Das (hora)</label>
+        <input type="text" id="hora-ini" value="" placeholder="ex.: 14:00" oninput="montar()"></div>
+      <div style="max-width:130px"><label>Às (hora)</label>
+        <input type="text" id="hora-fim" value="" placeholder="ex.: 15:00" oninput="montar()"></div>
+      <div style="max-width:150px" id="bloco-dias"><label>Dias de afastamento</label>
+        <input type="number" id="dias" value="1" min="1" oninput="montar()"></div>
+      <div style="flex:2" id="bloco-acomp"><label>Nome do acompanhante</label>
+        <input type="text" id="acompanhante" placeholder="nome completo de quem acompanhou" oninput="montar()"></div>
+    </div>
+
+    <div class="linha">
+      <div style="max-width:260px">
+        <label>Título do documento</label>
+        <select name="titulo" id="titulo">
+          <option>ATESTADO MÉDICO</option>
+          <option>DECLARAÇÃO</option>
+          <option>DECLARAÇÃO DE COMPARECIMENTO</option>
+        </select>
+      </div>
+      <div>
+        <label>Data</label>
+        <div class="radio-grupo">
+          <label><input type="radio" name="com_data" value="com" checked>
+            <span>COM data ({{ hoje }})</span></label>
+          <label><input type="radio" name="com_data" value="sem">
+            <span>SEM data</span></label>
+        </div>
+      </div>
+    </div>
+
+    <label>Texto do atestado (edite à vontade)</label>
+    <textarea name="texto" id="texto" rows="6" required></textarea>
+
+    <div class="linha" style="align-items:center">
+      <label class="chip" style="display:inline-flex;align-items:center;gap:8px;font-size:15px;padding:10px 16px;margin:0">
+        <input type="checkbox" name="incluir_cid" value="sim">
+        Incluir CID-10 (só com autorização do paciente)
+      </label>
+      <input type="text" name="cid10" value="{{ cid10 or '' }}" placeholder="CID-10"
+             style="max-width:140px">
+    </div>
+
+    {% include "_carimbo.html" %}
+    <p style="margin-top:18px">
+      <button class="botao" type="submit">Gerar atestado (PDF)</button>
+      <a class="botao secundario" href="/pacientes/{{ paciente.id }}">Cancelar</a>
+    </p>
+  </form>
+</div>
+
+<script>
+const NOME = {{ paciente.nome | tojson }};
+function montar() {
+  const tipo = document.querySelector('input[name=modelo]:checked').value;
+  const ini = document.getElementById('hora-ini').value.trim() || '______';
+  const fim = document.getElementById('hora-fim').value.trim() || '______';
+  const dias = document.getElementById('dias').value || '____';
+  const acomp = document.getElementById('acompanhante').value.trim() || '______________________';
+  document.getElementById('bloco-dias').style.display =
+    tipo === 'afastamento' ? 'block' : 'none';
+  document.getElementById('bloco-acomp').style.display =
+    tipo === 'acompanhante' ? 'block' : 'none';
+  const titulo = document.getElementById('titulo');
+  const txt = document.getElementById('texto');
+  if (tipo === 'livre') { titulo.value = 'DECLARAÇÃO'; return; }  // não apaga o que já foi escrito
+  const modelos = {
+    dia: `Atesto, para os devidos fins, que o(a) paciente ${NOME} esteve em atendimento médico neste consultório nesta data, no período das ${ini} às ${fim} horas.`,
+    acompanhante: `Declaro, para os devidos fins, que ${acomp} acompanhou o(a) paciente ${NOME} em atendimento médico neste consultório nesta data, no período das ${ini} às ${fim} horas, sendo imprescindível sua presença como acompanhante.`,
+    afastamento: `Atesto, para os devidos fins, que o(a) paciente ${NOME} esteve em atendimento médico nesta data e necessita de afastamento de suas atividades por ${dias} dia(s), a partir desta data.`,
+    viagem: `Atesto, para os devidos fins de Tratamento Fora de Domicílio (TFD) e demais finalidades, que o(a) paciente ${NOME} encontra-se sob acompanhamento médico regular e apresenta condições clínicas para realizar viagem, inclusive por transporte aéreo. Não há contraindicação médica à viagem na presente data.`,
+  };
+  titulo.value = { dia: 'DECLARAÇÃO DE COMPARECIMENTO', acompanhante: 'DECLARAÇÃO',
+                   afastamento: 'ATESTADO MÉDICO', viagem: 'ATESTADO MÉDICO' }[tipo];
+  txt.value = modelos[tipo];
+}
+montar();
+</script>
+{% endblock %}

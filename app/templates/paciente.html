@@ -23,6 +23,12 @@
      href="/pacientes/{{ paciente.id }}/exames">Pedido de exames</a>
   <a class="botao" style="background:#b3541e"
      href="/pacientes/{{ paciente.id }}/inss">Relatório INSS (IA)</a>
+  <a class="botao" style="background:#516f90"
+     href="/pacientes/{{ paciente.id }}/encaminhamento">Encaminhamento</a>
+  <a class="botao" style="background:#8a6d3b"
+     href="/pacientes/{{ paciente.id }}/atestado">Atestado</a>
+  <a class="botao" style="background:#44606e"
+     href="/pacientes/{{ paciente.id }}/relatorio">Relatório livre</a>
   {% if documentos %}
   <a class="botao rosa"
      href="/pacientes/{{ paciente.id }}/receita?copiar_de={{ documentos[0].id }}">

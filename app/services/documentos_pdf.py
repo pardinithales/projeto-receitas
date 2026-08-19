@@ -145,6 +145,86 @@ def gerar_relatorio_previdenciario_pdf(rel: RelatorioPrevidenciario,
 
 
 @dataclass
+class Encaminhamento:
+    paciente: str
+    especialidades: list[str] = field(default_factory=list)   # 1 página por especialidade
+    destino: str = ""             # ex.: "SECRETARIA MUNICIPAL DE SAÚDE" ou serviço/colega
+    motivo: str = ""
+    cid10: str = ""
+    data: str = ""
+    carimbo: bool = False
+
+
+def gerar_encaminhamento_pdf(enc: Encaminhamento, destino_pdf: Path) -> Path:
+    """Uma página por especialidade solicitada (cada serviço fica com a sua)."""
+    destino_pdf.parent.mkdir(parents=True, exist_ok=True)
+    c = Canvas(str(destino_pdf), pagesize=A4)
+    for esp in (enc.especialidades or [""]):
+        _fundo_timbrado(c)
+        y = ALTURA - 45 * mm
+        c.setFont("Helvetica-Bold", 14)
+        c.drawCentredString(LARGURA / 2, y, "ENCAMINHAMENTO MÉDICO")
+        y -= 12 * mm
+        y = _paragrafo(c, f"De: Neurologia — Dr. {config.MEDICO_NOME} "
+                          f"({config.MEDICO_CRM} | RQE {config.MEDICO_RQE})",
+                       MARGEM_ESQ, y, LARGURA_UTIL, tamanho=10)
+        para = " — ".join(p for p in (enc.destino, esp) if p)
+        y = _paragrafo(c, f"Para: {para}", MARGEM_ESQ, y, LARGURA_UTIL,
+                       fonte="Helvetica-Bold", tamanho=11)
+        y -= 2 * mm
+        c.setFont("Helvetica", 11)
+        c.drawString(MARGEM_ESQ, y, f"Paciente: {enc.paciente}")
+        y -= 10 * mm
+        texto = ("Encaminho o(a) paciente para avaliação e acompanhamento com "
+                 f"{esp or 'a especialidade indicada'}.")
+        if enc.motivo:
+            texto += f"\n\nMotivo / resumo clínico: {enc.motivo}"
+        y = _paragrafo(c, texto, MARGEM_ESQ, y, LARGURA_UTIL)
+        if enc.cid10:
+            y -= 2 * mm
+            c.setFont("Helvetica-Bold", 11)
+            c.drawString(MARGEM_ESQ, y, f"CID-10: {enc.cid10}")
+            y -= 8 * mm
+        y -= 2 * mm
+        y = _paragrafo(c, "Agradeço a atenção e coloco-me à disposição para "
+                          "esclarecimentos.", MARGEM_ESQ, y, LARGURA_UTIL)
+        _assinatura_rodape(c, data=enc.data, carimbo=enc.carimbo)
+        c.showPage()
+    c.save()
+    return destino_pdf
+
+
+@dataclass
+class Atestado:
+    paciente: str
+    texto: str                    # já vem completo (modelos montados na tela)
+    titulo: str = "ATESTADO MÉDICO"
+    cid10: str = ""               # só sai se o paciente autorizar
+    data: str = ""
+    carimbo: bool = False
+
+
+def gerar_atestado_pdf(at: Atestado, destino: Path) -> Path:
+    destino.parent.mkdir(parents=True, exist_ok=True)
+    c = Canvas(str(destino), pagesize=A4)
+    _fundo_timbrado(c)
+    y = ALTURA - 55 * mm
+    c.setFont("Helvetica-Bold", 14)
+    c.drawCentredString(LARGURA / 2, y, at.titulo)
+    y -= 16 * mm
+    y = _paragrafo(c, at.texto, MARGEM_ESQ, y, LARGURA_UTIL,
+                   tamanho=12, entrelinha=7 * mm)
+    if at.cid10:
+        y -= 4 * mm
+        c.setFont("Helvetica-Bold", 12)
+        c.drawString(MARGEM_ESQ, y, f"CID-10: {at.cid10}")
+    _assinatura_rodape(c, data=at.data, carimbo=at.carimbo)
+    c.showPage()
+    c.save()
+    return destino
+
+
+@dataclass
 class ExameSolicitado:
     nome: str
     material: str = ""            # "sangue", "urina", "imagem"...
