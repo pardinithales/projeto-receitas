@@ -1,6 +1,33 @@
-# CHECKPOINT — estado do projeto (atualizado em 19/08/2026)
+# CHECKPOINT — estado do projeto (atualizado em 19/08/2026, rodada 2)
 
-Leia junto com `AGENTS.md`. 34 testes passando. Git limpo e pushado (commit 92b1783).
+Leia junto com `AGENTS.md`. 42 testes passando.
+
+## Rodada 2 de 19/08/2026 (segunda leva de feedbacks, todos implementados)
+
+- **Encaminhamento** (botão no paciente): destinatário com opção SECRETARIA
+  MUNICIPAL DE SAÚDE (ou outro digitável), especialidades marcáveis (fono, TO,
+  fisio, psico, neuropsico, dor...) + livre, motivo, CID opcional;
+  **1 folha por especialidade**.
+- **Atestado/declaração**: modelos prontos e editáveis — atestado do dia (com
+  horário das/às), acompanhante, afastamento N dias, liberação de viagem
+  (avião / fins de TFD), livre. CID só sai com autorização do paciente.
+- **Relatório livre**: título a escolher (inclui RELATÓRIO DE ORIENTAÇÕES —
+  MEDICAÇÕES EM USO) e botões que puxam as medicações da última receita.
+- **USO CONTÍNUO** na receita: checkbox, sai impresso; guia de folhas considera
+  que psicotrópico de uso contínuo vale 2 meses (metade das folhas).
+- **Posologia com frações e titulação**: parser entende meio/½/1/2/0,5/¼ e
+  texto em várias linhas ("do dia X ao Y") — a quantidade vem da ÚLTIMA linha
+  calculável; campos de posologia viraram textarea e o PDF respeita quebras.
+- **LME com quantidades por mês**: campo aceita "30 60 60" (o último repete
+  até o 6º mês); a receita do kit sai com a quantidade do último mês (maior).
+- **Aviso REMUME**: ao receitar med do posto, lembra de juntar TODAS as do
+  posto numa mesma receita (e separar as que não têm na REMUME).
+- **Catálogo**: venlafaxina 37,5/75/150, clorpromazina (cp + gotas 40mg/mL),
+  indometacina, melatonina (Melatonum Max gotas + cp manipulado),
+  metilprednisolona EV (pulsoterapia), omeprazol (REMUME); nortriptilina
+  passou a REMUME. O sync do seed agora atualiza disponibilidade/grupo/
+  classificação de fármacos existentes no banco.
+- **CRM-SP | RQE** também no cabeçalho de identificação do emitente da receita.
 
 ## Rodada de 19/08/2026 (feedbacks do uso real, todos implementados)
 
