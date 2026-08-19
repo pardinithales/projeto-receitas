@@ -66,8 +66,10 @@ def _cabecalho(c: Canvas, titulo: str, controle_especial: bool) -> float:
         c.drawRightString(LARGURA - MARGEM_DIR, y, "2ª VIA PACIENTE")
     y -= 5.5 * mm
     c.setFont("Helvetica", 10)
-    crm_num = config.MEDICO_CRM.replace("CRM-SP", "").strip()
-    c.drawString(MARGEM_ESQ, y, f"CREMESP: {crm_num}")
+    identificacao = config.MEDICO_CRM
+    if config.MEDICO_RQE:
+        identificacao += f" | RQE {config.MEDICO_RQE}"
+    c.drawString(MARGEM_ESQ, y, identificacao)
     return y - 10 * mm
 
 
