@@ -39,7 +39,8 @@ Análise detalhada do fluxo atual: `docs/analise-documentos.md`.
 | Carimbo | Imagem transparente local (`templates/assets/carimbo.png`); senha `CARIMBO_SENHA` (+ mestra) no `.env`, liberação de 24h; aplicado como conteúdo de página |
 | Impressão | SumatraPDF portátil em `tools/` (fora do git); fila com retomada em `/impressao`; impressora salva na tabela `config` |
 | IA | OpenAI: GPT-5.6 Sol (relatórios INSS/alto custo/anamnese, prompts-base = .txt do usuário em Prompts principais) e gpt-5.6-luna (extração de diagnósticos p/ tags). **Nunca enviar nome de paciente à API** — identificação só no PDF local |
-| Sistema leve | PDFs > 7 dias apagados; TODO documento é regenerável do `conteudo_json` (`_regenerar_pdf`); não guardar docx/pdf permanentes |
+| Sistema leve | PDFs > 7 dias apagados; TODO documento é regenerável do `conteudo_json` (`_regenerar_pdf`); não guardar docx/pdf permanentes. Após mudança de layout, PDFs já gravados ficam defasados: botão "regerar" no histórico (ou apagar o arquivo) |
+| Paginação | Texto longo NUNCA sobrepõe a assinatura: pagina com cabeçalho de continuação (título, paciente, CRM-SP \| RQE, nº da página) e **assinatura + carimbo em toda página**; receita divide em folhas completas (cada folha é um receituário válido). Validar mudanças de layout com detector de sobreposição (pdfplumber) + render |
 | Backups | Diário em `dados/backups` (30 cópias) + mensal em `M:\...\backup-sistema` |
 
 ## Princípio central de UX: marcar, não digitar

@@ -1,19 +1,38 @@
 # CHECKPOINT — estado do projeto (atualizado em 19/08/2026, rodada 2)
 
-Leia junto com `AGENTS.md`. 46 testes passando.
+Leia junto com `AGENTS.md`. 49 testes passando.
 
 ## Ajustes após teste ao vivo da rodada 2
 
 - Encaminhamento SEM especialidade agora gera **carta única ao destinatário**
   (ex.: resposta à UPA de origem) — antes voltava ao form sem gerar nada.
   Título escolhível: ENCAMINHAMENTO MÉDICO ou RESPOSTA — CONTRARREFERÊNCIA.
-- **Texto longo pagina** (encaminhamento, relatório livre, atestado): quebra de
-  página antes de invadir a assinatura (`_texto_paginado` em documentos_pdf.py)
-  — corrige a sobreposição com carimbo/assinatura.
+- **Texto longo pagina em TODOS os geradores** e **toda página sai completa**:
+  cabeçalho de continuação com título do documento, paciente, médico
+  (CRM-SP | RQE) e nº da página + **assinatura e carimbo em todas as páginas**
+  (`_texto_paginado`/`_continuador`/`_cabecalho_continuacao` em
+  documentos_pdf.py). Vale para relatório livre/alto custo, encaminhamento,
+  atestado, pedido de exames e relatório previdenciário (que antes só assinava
+  a última). Texto desce até 90mm — margem inferior bem aproveitada, sem
+  sobrepor o carimbo (topo do carimbo ≈ 81mm).
+- **Receita longa divide em folhas COMPLETAS** (cabeçalho + assinatura + bloco
+  da farmácia em cada uma; posologia maior que a folha continua em item
+  "(continuação)") — era o único gerador sem paginação e sobrepunha tudo.
+- Verificação anti-sobreposição: script com pdfplumber (caixas de palavras) +
+  páginas renderizadas com pypdfium2, 8 cenários longos, zero sobreposições.
+- **PDFs antigos foram apagados do disco**: os arquivos gravados com o layout
+  defeituoso continuariam sendo servidos (o sistema só regenera se o arquivo
+  sumir). Botão **"regerar"** no histórico força regeneração de qualquer doc
+  (`POST /documentos/{id}/regenerar`).
+- **Busca de paciente ignora acentos** ("jose" acha "José"; "migranea" acha
+  "migrânea" nas tags) — função SQL `sem_acento` registrada em db.conectar().
 - Unidade da quantidade segue a apresentação (`unidadeDaForma` em posologia.js):
   ampolas, frascos, sachês, adesivos, seringas… — campo continua livre.
 - Catálogo: **Vitamina B12** 1000/5000mcg (ampola IM e comprimido sublingual)
   com o esquema em etapas (1/dia 1 semana → 1/semana 4 semanas → mensal).
+- Lição operacional: mudança de código só vale após reiniciar o
+  INICIAR-RECEITAS.bat, e PDFs já gravados não se corrigem sozinhos —
+  usar "regerar" (ou apagar o arquivo) após mudanças de layout.
 
 ## Rodada 2 de 19/08/2026 (segunda leva de feedbacks, todos implementados)
 
