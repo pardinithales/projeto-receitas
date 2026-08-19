@@ -120,6 +120,17 @@
             <span>SEM data</span></label>
         </div>
       </div>
+      <div>
+        <label>Receitas para a farmácia (cada uma sai em 2 vias)</label>
+        <div class="radio-grupo">
+          <label><input type="radio" name="qtd_receitas" value="1">
+            <span>1 (2 folhas)</span></label>
+          <label><input type="radio" name="qtd_receitas" value="6" checked>
+            <span>6 (12 folhas)</span></label>
+          <label><input type="radio" name="qtd_receitas" value="12">
+            <span>12 (24 folhas)</span></label>
+        </div>
+      </div>
     </div>
     <label class="chip" style="display:inline-flex;align-items:center;gap:8px;font-size:15px;padding:10px 16px">
       <input type="checkbox" name="gerar_relatorio" value="sim" id="chk-rel">
@@ -214,6 +225,19 @@ function novaLinhaMed() {
     sugerirCid();   // ao clicar na med: CID padrão + descrição + pista do PCDT
   });
   apr.addEventListener('change', atualizarPosologias);
+  // quantidade digitada À MÃO recalcula o texto que vai para a receita
+  qtd.addEventListener('input', () => {
+    const m = medNome(busca.value);
+    const a = m && m.apresentacoes[apr.selectedIndex];
+    let unidade = 'unidades';
+    if (a) {
+      const f = a.forma.toLowerCase();
+      unidade = f.includes('cápsula') ? 'cápsulas' : f.includes('comprimido')
+        ? 'comprimidos' : f.includes('frasco') ? 'frascos' : f.includes('adesivo')
+        ? 'adesivos' : f.includes('seringa') ? 'seringas' : 'unidades';
+    }
+    pos.dataset.qtdTexto = qtd.value.trim() ? `${qtd.value.trim()} ${unidade}` : '';
+  });
 }
 let CRITERIOS = {};
 fetch('/api/criterios-pcdt').then(r => r.json()).then(c => { CRITERIOS = c; pistaPcdt(); });
@@ -258,8 +282,8 @@ function aplicarCid(cid) {
   const campoCid = document.querySelector('input[name=cid10]');
   const campoDiag = document.querySelector('input[name=diagnostico]');
   campoCid.value = cid;
-  // preenche/atualiza o diagnóstico se estiver vazio ou se veio de escolha automática
-  if (DESCRICOES_CID[cid] && (!campoDiag.value.trim() || campoDiag.dataset.auto === '1')) {
+  // clicar no chip é escolha explícita: o nome do diagnóstico SEMPRE acompanha o CID
+  if (DESCRICOES_CID[cid]) {
     campoDiag.value = DESCRICOES_CID[cid];
     campoDiag.dataset.auto = '1';
   }
@@ -342,6 +366,18 @@ function medsSelecionados() {
     return a ? `${n} ${a}` : n;
   }).filter(Boolean).join('; ');
 }
+function escalasAtuais() {
+  // valores das escalas visíveis entram nos dados da IA (MEEM/CDR/EDSS/LANSS/EVA)
+  const pega = n => (document.querySelector(`[name=${n}]`) || {}).value || '';
+  const partes = [];
+  if (pega('meem')) partes.push(`MEEM: ${pega('meem')}/30`);
+  if (pega('cdr')) partes.push(`CDR: ${pega('cdr')}`);
+  if (pega('escolaridade_anos')) partes.push(`Escolaridade: ${pega('escolaridade_anos')} anos`);
+  if (pega('edss')) partes.push(`EDSS: ${pega('edss')}`);
+  if (pega('lanss')) partes.push(`LANSS: ${pega('lanss')}/24`);
+  if (pega('eva')) partes.push(`EVA: ${pega('eva')}/10`);
+  return partes.length ? '\nEscalas aferidas: ' + partes.join('; ') + '.' : '';
+}
 async function anamneseIA() {
   const btn = document.getElementById('btn-ia-anamnese');
   const campo = document.querySelector('textarea[name=anamnese]');
@@ -350,7 +386,8 @@ async function anamneseIA() {
     const r = await fetch('/api/ia/anamnese-lme', {
       method: 'POST', headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({
-        dados: campo.value + '\n' + (document.getElementById('dados-ia')?.value || ''),
+        dados: campo.value + '\n' + (document.getElementById('dados-ia')?.value || '')
+               + escalasAtuais(),
         paciente: {{ paciente.nome | tojson }},
         medicamentos: medsSelecionados(),
         cid10: document.querySelector('input[name=cid10]').value,
@@ -375,7 +412,8 @@ async function gerarComIA() {
       body: JSON.stringify({
         dados: document.getElementById('dados-ia').value +
                '\n\nAnamnese do LME: ' + document.querySelector('textarea[name=anamnese]').value +
-               '\nTratamentos prévios: ' + document.querySelector('input[name=tratamentos_previos]').value,
+               '\nTratamentos prévios: ' + document.querySelector('input[name=tratamentos_previos]').value +
+               escalasAtuais(),
         paciente: {{ paciente.nome | tojson }},
         medicamentos: meds,
         cid10: document.querySelector('input[name=cid10]').value,

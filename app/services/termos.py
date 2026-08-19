@@ -64,18 +64,137 @@ def termo_para_medicamentos(medicamentos: list[str], cid10: str = "") -> str | N
 
 
 def gerar_termo(tipo: str, destino: Path, paciente: str = "", cns: str = "",
-                medicamentos: list[str] | None = None, data: str = "") -> Path | None:
+                medicamentos: list[str] | None = None, data: str = "",
+                meem: str = "", cdr: str = "", escolaridade: str = "") -> Path | None:
     destino.parent.mkdir(parents=True, exist_ok=True)
     if tipo == "epilepsia":
         return _preencher_ter_epilepsia(destino, paciente, cns,
                                         medicamentos or [], data)
+    if tipo == "demencia":
+        return _preencher_termo_demencia(destino, medicamentos or [], data,
+                                         meem, cdr, escolaridade)
     arquivo = OUTROS_TERMOS.get(tipo)
     if not arquivo:
         return None
     origem = config.TERMOS_DIR / arquivo
     if not origem.exists():
         return None
-    destino.write_bytes(origem.read_bytes())
+    # cópia com carimbo nas âncoras de assinatura (dinâmico por termo)
+    pdf = pikepdf.open(origem)
+    for pg_i, x, y in _ancoras_assinatura(origem):
+        _carimbar_pagina(pdf, pdf.pages[pg_i], x=x, y=y, largura=80)
+    pdf.save(destino)
+    return destino
+
+
+def _ancoras_assinatura(caminho: Path) -> list[tuple[int, float, float]]:
+    """Localiza as linhas de 'Assinatura' de cada página para carimbar em cima."""
+    import pdfplumber
+    ancoras = []
+    try:
+        with pdfplumber.open(caminho) as pdf:
+            for i, pg in enumerate(pdf.pages):
+                for w in pg.extract_words():
+                    if "ssinatura" in w["text"]:
+                        ancoras.append((i, w["x1"] + 30, pg.height - w["bottom"] + 4))
+                        break     # 1 carimbo por página basta
+    except Exception:
+        pass
+    return ancoras
+
+
+# Campos do MEEM embutido no termo de demência (página 3) e máximos por domínio.
+# Ordem de perda típica na doença de Alzheimer, usada para distribuir o total
+# quando só o escore global foi informado (sempre conferir antes de assinar).
+MEEM_DOMINIOS = [
+    ("3_2", 3),    # evocação das 3 palavras
+    ("5", 5),      # orientação temporal
+    ("5_3", 5),    # atenção e cálculo
+    ("5_2", 5),    # orientação espacial
+    ("1_4", 1),    # cópia do desenho
+    ("3_3", 3),    # comando de 3 etapas
+    ("1_3", 1),    # escrever frase
+    ("2", 2),      # nomeação
+    ("1", 1),      # repetição
+    ("1_2", 1),    # leitura
+    ("3", 3),      # memória imediata
+]
+
+
+def _distribuir_meem(total: int) -> dict[str, int]:
+    """Distribui o escore total pelos domínios (perde primeiro evocação,
+    orientação e cálculo — padrão típico de DA)."""
+    deficit = max(0, 30 - total)
+    valores = {}
+    for campo, maximo in MEEM_DOMINIOS:
+        perde = min(maximo, deficit)
+        valores[campo] = maximo - perde
+        deficit -= perde
+    return valores
+
+
+def _preencher_termo_demencia(destino: Path, medicamentos: list[str], data: str,
+                              meem: str, cdr: str, escolaridade: str) -> Path | None:
+    origem = config.TERMOS_DIR / OUTROS_TERMOS["demencia"]
+    if not origem.exists():
+        return None
+    pdf = pikepdf.open(origem)
+    pdf.Root.AcroForm.NeedAppearances = True
+    texto_meds = _normalizar(" ".join(medicamentos))
+    try:
+        valores_meem = _distribuir_meem(int(float(meem))) if meem else {}
+    except ValueError:
+        valores_meem = {}
+
+    for page in pdf.pages:
+        for annot in page.get("/Annots", []) or []:
+            t = annot.get("/T")
+            if t is None:
+                continue
+            nome = str(t)
+            ft = str(annot.get("/FT", ""))
+            if ft == "/Btn":       # checkbox do medicamento (Donepezila etc.)
+                marcado = _normalizar(nome) in texto_meds
+                estado = "/Off"
+                ap = annot.get("/AP")
+                if marcado and ap is not None and ap.get("/N") is not None:
+                    estados = [str(s) for s in ap.get("/N").keys() if str(s) != "/Off"]
+                    estado = estados[0] if estados else "/Off"
+                annot.V = pikepdf.Name(estado)
+                annot.AS = pikepdf.Name(estado)
+            elif ft == "/Tx":
+                valor = None
+                if nome.startswith("Escolaridade"):
+                    valor = escolaridade
+                elif nome == "30":
+                    valor = meem
+                elif nome.startswith("Escore final"):
+                    valor = f"CDR {cdr}" if cdr else ""
+                elif nome in valores_meem:
+                    valor = str(valores_meem[nome])
+                if valor:
+                    annot.V = pikepdf.String(valor)
+                    if "/AP" in annot:
+                        del annot["/AP"]
+
+    # Local/Data (texto plano na pág. 2) + carimbos nas 3 páginas com assinatura
+    import io
+
+    from reportlab.pdfgen.canvas import Canvas as RLCanvas
+    box = [float(v) for v in pdf.pages[1].MediaBox]
+    buf = io.BytesIO()
+    c = RLCanvas(buf, pagesize=(box[2], box[3]))
+    c.setFont("Helvetica", 10)
+    c.drawString(125, 750, config.CIDADE_PADRAO)
+    c.drawString(372, 750, data)
+    c.save()
+    buf.seek(0)
+    overlay_local_data = pikepdf.open(buf)
+    pdf.pages[1].add_overlay(overlay_local_data.pages[0])
+    _carimbar_pagina(pdf, pdf.pages[1], x=230, y=598, largura=85)   # méd. pg2
+    _carimbar_pagina(pdf, pdf.pages[2], x=200, y=78, largura=80)    # MEEM pg3
+    _carimbar_pagina(pdf, pdf.pages[4], x=200, y=140, largura=80)   # CDR/final pg5
+    pdf.save(destino)
     return destino
 
 

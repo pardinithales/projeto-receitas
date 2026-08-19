@@ -578,8 +578,12 @@ async def emitir_lme(request: Request, pid: int):
         con.execute("UPDATE documentos SET caminho_pdf = ? WHERE id = ?",
                     (str(destino), doc_id))
 
-        # receita de controle especial dos medicamentos do LME (parte do kit)
+        # receita de controle especial dos medicamentos do LME (parte do kit).
+        # A farmácia de alto custo costuma pedir 6 ou 12 receitas: cada uma sai
+        # em 2 vias (folhas), então 6 receitas = 12 folhas no PDF.
+        kit_doc_ids: list[int] = [doc_id]
         if form.get("gerar_receita", "sim") == "sim":
+            qtd_receitas = int(form.get("qtd_receitas", "6") or 6)
             itens_receita = []
             for m in meds_raw:
                 texto_pos = (m.get("posologia") or "").strip()
@@ -592,36 +596,44 @@ async def emitir_lme(request: Request, pid: int):
                     "quantidade": qtd_pos or f"{m.get('qtd_mensal', '')} unidades/mês",
                     "posologia": texto_pos})
             payload_rec = {"tipo": "controle_especial", "via_administracao": "USO ORAL",
-                           "com_data": form.get("com_data", "sem"), "vias": 2,
+                           "com_data": form.get("com_data", "sem"),
+                           "vias": qtd_receitas * 2,
                            "itens": itens_receita, "carimbo": bool(autorizado)}
             cur_r = con.execute(
                 "INSERT INTO documentos (paciente_id, tipo, data_emissao, conteudo_json) "
                 "VALUES (?, 'receita_controle_especial', ?, ?)",
                 (pid, db.agora(), json.dumps(payload_rec, ensure_ascii=False)))
             _gerar_pdf_receita(con, cur_r.lastrowid)
+            kit_doc_ids.append(cur_r.lastrowid)
 
         # termo TER/TCLE do grupo de medicamentos, já preenchido (nada à mão)
         if form.get("incluir_termo") == "sim":
             tipo_termo = termos.termo_para_medicamentos(
                 [m["descricao"] for m in meds_raw], cid10=cid)
             if tipo_termo:
+                payload_termo = {"termo": tipo_termo,
+                                 "meds": [m["descricao"] for m in meds_raw],
+                                 "meem": form.get("meem", ""),
+                                 "cdr": form.get("cdr", ""),
+                                 "escolaridade": form.get("escolaridade_anos", "")}
                 cur3 = con.execute(
                     "INSERT INTO documentos (paciente_id, tipo, data_emissao, "
                     "conteudo_json) VALUES (?, 'termo', ?, ?)",
                     (pid, db.agora(),
-                     json.dumps({"termo": tipo_termo,
-                                 "meds": [m["descricao"] for m in meds_raw]},
-                                ensure_ascii=False)))
+                     json.dumps(payload_termo, ensure_ascii=False)))
                 destino_termo = config.SAIDA_DIR / f"paciente_{pid}" / \
                     f"{cur3.lastrowid:05d}_termo_{datetime.now():%Y%m%d}.pdf"
                 gerado = termos.gerar_termo(
                     tipo_termo, destino_termo, paciente=paciente["nome"],
                     cns=paciente.get("cns") or "",
                     medicamentos=[m["descricao"] for m in meds_raw],
-                    data=date.today().strftime("%d/%m/%Y"))
+                    data=date.today().strftime("%d/%m/%Y"),
+                    meem=form.get("meem", ""), cdr=form.get("cdr", ""),
+                    escolaridade=form.get("escolaridade_anos", ""))
                 if gerado:
                     con.execute("UPDATE documentos SET caminho_pdf = ? WHERE id = ?",
                                 (str(gerado), cur3.lastrowid))
+                    kit_doc_ids.append(cur3.lastrowid)
                 else:
                     con.execute("DELETE FROM documentos WHERE id = ?",
                                 (cur3.lastrowid,))
@@ -643,11 +655,66 @@ async def emitir_lme(request: Request, pid: int):
             gerar_relatorio_pdf(rel, destino_rel)
             con.execute("UPDATE documentos SET caminho_pdf = ? WHERE id = ?",
                         (str(destino_rel), cur2.lastrowid))
+            kit_doc_ids.append(cur2.lastrowid)
+
+        # KIT em PDF único (LME + receitas + termo + relatório): 1 arquivo, 1 impressão
+        kit_id = _gerar_kit_pdf(con, pid, kit_doc_ids)
         con.commit()
     finally:
         con.close()
-    # volta para o paciente, onde o kit inteiro aparece com botão de imprimir tudo
-    return RedirectResponse(f"/pacientes/{pid}?kit=1", status_code=303)
+    return RedirectResponse(f"/documentos/{kit_id}/pdf", status_code=303)
+
+
+def _gerar_kit_pdf(con, pid: int, doc_ids: list[int]) -> int:
+    """Concatena os documentos do kit num único PDF (impressão em 1 clique)."""
+    import pikepdf
+    cur = con.execute(
+        "INSERT INTO documentos (paciente_id, tipo, data_emissao, conteudo_json) "
+        "VALUES (?, 'kit_lme', ?, ?)",
+        (pid, db.agora(), json.dumps({"doc_ids": doc_ids})))
+    kit_id = cur.lastrowid
+    destino = config.SAIDA_DIR / f"paciente_{pid}" / \
+        f"{kit_id:05d}_kit_{datetime.now():%Y%m%d}.pdf"
+    saida = pikepdf.new()
+    for doc_id in doc_ids:
+        doc = con.execute("SELECT caminho_pdf FROM documentos WHERE id = ?",
+                          (doc_id,)).fetchone()
+        if not doc:
+            continue
+        caminho = doc["caminho_pdf"]
+        if not caminho or not Path(caminho).exists():
+            caminho = _regenerar_pdf(con, doc_id)
+        with pikepdf.open(caminho) as parte:
+            saida.pages.extend(parte.pages)
+    destino.parent.mkdir(parents=True, exist_ok=True)
+    saida.save(destino)
+    con.execute("UPDATE documentos SET caminho_pdf = ? WHERE id = ?",
+                (str(destino), kit_id))
+    return kit_id
+
+
+@app.post("/pacientes/{pid}/imprimir-selecionados")
+def imprimir_selecionados(pid: int, ids_json: str = Form("[]")):
+    ids = [int(i) for i in json.loads(ids_json)]
+    con = db.conectar()
+    try:
+        docs = con.execute(
+            "SELECT d.id, d.tipo, d.caminho_pdf, p.nome FROM documentos d "
+            "JOIN pacientes p ON p.id = d.paciente_id "
+            "WHERE d.paciente_id = ? AND d.id IN (%s) ORDER BY d.id"
+            % ",".join("?" * len(ids)), (pid, *ids)).fetchall() if ids else []
+        for doc in docs:
+            caminho = doc["caminho_pdf"]
+            if not caminho or not Path(caminho).exists():
+                caminho = _regenerar_pdf(con, doc["id"])
+            imprimir.enfileirar(con, caminho,
+                                f"{doc['nome']} — {doc['tipo'].replace('_', ' ')}",
+                                doc["id"])
+        con.commit()
+    finally:
+        con.close()
+    resultado = imprimir.processar_fila()
+    return {"ok": resultado["erro"] is None, "total": len(docs), **resultado}
 
 
 @app.post("/pacientes/{pid}/imprimir-kit")
@@ -1071,9 +1138,25 @@ def _regenerar_pdf(con, doc_id: int) -> str:
         gerado = termos.gerar_termo(
             payload.get("termo", ""), destino, paciente=paciente["nome"],
             cns=paciente["cns"] or "", medicamentos=payload.get("meds", []),
-            data=emissao.strftime("%d/%m/%Y"))
+            data=emissao.strftime("%d/%m/%Y"),
+            meem=payload.get("meem", ""), cdr=payload.get("cdr", ""),
+            escolaridade=payload.get("escolaridade", ""))
         if not gerado:
             raise FileNotFoundError("modelo do termo indisponível")
+    elif tipo == "kit_lme":
+        import pikepdf
+        saida = pikepdf.new()
+        for did in payload.get("doc_ids", []):
+            row = con.execute("SELECT caminho_pdf FROM documentos WHERE id = ?",
+                              (did,)).fetchone()
+            if not row:
+                continue
+            caminho_parte = row["caminho_pdf"]
+            if not caminho_parte or not Path(caminho_parte).exists():
+                caminho_parte = _regenerar_pdf(con, did)
+            with pikepdf.open(caminho_parte) as parte:
+                saida.pages.extend(parte.pages)
+        saida.save(destino)
     else:
         raise FileNotFoundError(f"tipo de documento sem regeneração: {tipo}")
 

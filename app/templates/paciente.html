@@ -65,6 +65,8 @@
   <p>Nenhum documento emitido ainda.</p>
   {% endif %}
   <p style="margin-top:20px; text-align:right">
+    <button class="chip" onclick="imprimirSelecionados(this)">🖨️ imprimir selecionados</button>
+    ·
     <form method="post" action="/pacientes/{{ paciente.id }}/excluir-selecionados"
           style="display:inline" id="form-excluir-sel"
           onsubmit="return prepararExclusao()">
@@ -81,6 +83,20 @@
   </p>
 </div>
 <script>
+async function imprimirSelecionados(el) {
+  const ids = [...document.querySelectorAll('.sel-doc:checked')].map(c => c.value);
+  if (!ids.length) { alert('Marque os documentos que quer imprimir.'); return; }
+  el.textContent = '🖨️ imprimindo…';
+  try {
+    const fd = new FormData();
+    fd.append('ids_json', JSON.stringify(ids));
+    const r = await fetch('/pacientes/{{ paciente.id }}/imprimir-selecionados',
+                          { method: 'POST', body: fd });
+    const j = await r.json();
+    el.textContent = j.ok ? `✅ ${j.total} impresso(s)` : '❌ parou — ver Impressão';
+    if (!j.ok) alert('Parou: ' + (j.erro || '') + '\nResolva e use Retomar em Impressão.');
+  } catch (e) { el.textContent = '❌ erro'; alert(e); }
+}
 function prepararExclusao() {
   const ids = [...document.querySelectorAll('.sel-doc:checked')].map(c => c.value);
   if (!ids.length) { alert('Marque os documentos que quer excluir.'); return false; }

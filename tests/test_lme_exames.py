@@ -47,7 +47,9 @@ def test_lme_gera_pdf_preenchido(cliente):
         "anamnese": "Paciente fictícia para teste.", "com_data": "com",
     }, follow_redirects=False)
     assert r.status_code == 303
-    assert r.headers["location"].startswith(f"/pacientes/{pid}")   # volta ao kit
+    # abre direto o KIT em PDF único (imprime tudo de uma vez)
+    kit = cliente.get(r.headers["location"])
+    assert kit.content[:5] == b"%PDF-"
 
     con = db.conectar()
     caminho = con.execute("SELECT caminho_pdf FROM documentos WHERE tipo = 'lme'"
@@ -58,9 +60,12 @@ def test_lme_gera_pdf_preenchido(cliente):
     ).fetchone()
     con.close()
     assert receita is not None
-    itens = json.loads(receita["conteudo_json"])["itens"]
+    payload_rec = json.loads(receita["conteudo_json"])
+    itens = payload_rec["itens"]
     assert any("Levetiracetam" in i["medicamento"] for i in itens)
     assert all(i["posologia"] for i in itens)
+    assert payload_rec["vias"] == 12          # padrão: 6 receitas × 2 vias
+
     pdf = pikepdf.open(caminho)
     valores = {}
     for page in pdf.pages:
@@ -72,6 +77,14 @@ def test_lme_gera_pdf_preenchido(cliente):
     assert valores["Selecao med 2"] == "Clobazam 10 mg (comprimido)"
     assert valores["Text6"] == "60" and valores["Text8a"] == "60"
     assert valores["CID"] == "G40.1"
+
+
+def test_distribuicao_meem_soma_com_total():
+    from app.services.termos import _distribuir_meem
+    for total in (30, 22, 14, 7, 0):
+        valores = _distribuir_meem(total)
+        assert sum(valores.values()) == total
+    assert _distribuir_meem(27)["3_2"] == 0   # perde evocação primeiro
 
 
 def test_lme_alzheimer_exige_meem_cdr_escolaridade(cliente):
