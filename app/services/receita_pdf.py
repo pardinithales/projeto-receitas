@@ -36,10 +36,12 @@ class Receita:
 def _texto_quebrado(canvas: Canvas, texto: str, x: float, y: float, largura: float,
                     fonte: str = "Helvetica", tamanho: float = 11,
                     entrelinha: float = 4.5 * mm) -> float:
-    for linha in simpleSplit(texto, fonte, tamanho, largura):
-        canvas.setFont(fonte, tamanho)
-        canvas.drawString(x, y, linha)
-        y -= entrelinha
+    # quebras de linha digitadas pelo usuário são respeitadas (titulação etc.)
+    for paragrafo in texto.split("\n"):
+        for linha in simpleSplit(paragrafo, fonte, tamanho, largura) or [""]:
+            canvas.setFont(fonte, tamanho)
+            canvas.drawString(x, y, linha)
+            y -= entrelinha
     return y
 
 

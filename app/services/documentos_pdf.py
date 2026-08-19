@@ -21,10 +21,11 @@ def _fundo_timbrado(c: Canvas) -> None:
 def _paragrafo(c: Canvas, texto: str, x: float, y: float, largura: float,
                fonte: str = "Helvetica", tamanho: float = 11,
                entrelinha: float = 5.2 * mm) -> float:
-    for linha in simpleSplit(texto, fonte, tamanho, largura):
-        c.setFont(fonte, tamanho)
-        c.drawString(x, y, linha)
-        y -= entrelinha
+    for bloco in texto.split("\n"):
+        for linha in simpleSplit(bloco, fonte, tamanho, largura) or [""]:
+            c.setFont(fonte, tamanho)
+            c.drawString(x, y, linha)
+            y -= entrelinha
     return y
 
 

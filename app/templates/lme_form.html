@@ -171,9 +171,10 @@
       <div style="max-width:130px"><label>Qtd mensal</label>
         <input type="text" class="med-qtd" placeholder="auto"></div>
     </div>
-    <label>Posologia (vai para a receita do kit — clique numa sugestão ou edite)</label>
+    <label>Posologia (vai para a receita do kit — clique numa sugestão ou edite;
+      Enter quebra linha, ex.: titulação)</label>
     <div class="chips med-chips"></div>
-    <input type="text" class="med-pos" placeholder="Tomar …">
+    <textarea class="med-pos" rows="2" placeholder="Tomar …"></textarea>
     <p style="text-align:right;margin:6px 0 0">
       <button type="button" class="chip" onclick="this.closest('.item-med').remove()">remover</button></p>
   </div>
