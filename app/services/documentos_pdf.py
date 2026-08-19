@@ -29,18 +29,56 @@ def _paragrafo(c: Canvas, texto: str, x: float, y: float, largura: float,
     return y
 
 
+def _cabecalho_continuacao(c: Canvas, titulo: str, paciente: str,
+                           pagina: int) -> float:
+    """Página de continuação identificada: documento, paciente, médico e nº."""
+    _fundo_timbrado(c)
+    y = ALTURA - 40 * mm
+    c.setFont("Helvetica-Bold", 13)
+    c.drawCentredString(LARGURA / 2, y, f"{titulo} (continuação)")
+    y -= 7 * mm
+    c.setFont("Helvetica", 9)
+    c.drawString(MARGEM_ESQ, y, f"Paciente: {paciente}")
+    c.drawRightString(LARGURA - MARGEM_DIR, y, f"página {pagina}")
+    y -= 4.5 * mm
+    c.drawString(MARGEM_ESQ, y, f"Dr. {config.MEDICO_NOME} — {config.MEDICO_CRM} "
+                                f"| RQE {config.MEDICO_RQE}")
+    return y - 9 * mm
+
+
+def _continuador(titulo: str, paciente: str, data: str = "",
+                 carimbo: bool = False):
+    """Fecha a página atual JÁ ASSINADA/CARIMBADA e abre a próxima
+    identificada (documento, paciente, médico, nº) — nada de folha pelada."""
+    contador = {"pagina": 1}
+
+    def proxima_pagina(c: Canvas) -> float:
+        _assinatura_rodape(c, data=data, carimbo=carimbo)
+        c.setFont("Helvetica-Oblique", 8)
+        c.drawCentredString(LARGURA / 2, 30 * mm, "continua na próxima página")
+        c.showPage()
+        contador["pagina"] += 1
+        return _cabecalho_continuacao(c, titulo, paciente, contador["pagina"])
+    return proxima_pagina
+
+
 def _texto_paginado(c: Canvas, texto: str, y: float,
                     fonte: str = "Helvetica", tamanho: float = 11,
-                    entrelinha: float = 5.2 * mm, y_minimo: float = 95 * mm) -> float:
+                    entrelinha: float = 5.2 * mm, y_minimo: float = 90 * mm,
+                    continuacao=None) -> float:
     """Desenha texto longo quebrando de página antes de invadir a assinatura."""
     for bloco in texto.split("\n"):
         for linha in simpleSplit(bloco, fonte, tamanho, LARGURA_UTIL) or [""]:
             if y < y_minimo:
-                c.setFont("Helvetica-Oblique", 8)
-                c.drawCentredString(LARGURA / 2, 30 * mm, "continua na próxima página")
-                c.showPage()
-                _fundo_timbrado(c)
-                y = ALTURA - 45 * mm
+                if continuacao:
+                    y = continuacao(c)
+                else:
+                    c.setFont("Helvetica-Oblique", 8)
+                    c.drawCentredString(LARGURA / 2, 30 * mm,
+                                        "continua na próxima página")
+                    c.showPage()
+                    _fundo_timbrado(c)
+                    y = ALTURA - 45 * mm
             c.setFont(fonte, tamanho)
             c.drawString(MARGEM_ESQ, y, linha)
             y -= entrelinha
@@ -85,13 +123,12 @@ def gerar_relatorio_pdf(rel: RelatorioMedico, destino: Path) -> Path:
     c.setFont("Helvetica", 11)
     c.drawString(MARGEM_ESQ, y, f"Paciente: {rel.paciente}")
     y -= 10 * mm
-    y = _texto_paginado(c, rel.texto, y)
+    continuar = _continuador(rel.titulo, rel.paciente, rel.data, rel.carimbo)
+    y = _texto_paginado(c, rel.texto, y, continuacao=continuar)
     if rel.cid10:
         y -= 4 * mm
-        if y < 95 * mm:
-            c.showPage()
-            _fundo_timbrado(c)
-            y = ALTURA - 45 * mm
+        if y < 90 * mm:
+            y = continuar(c)
         c.setFont("Helvetica-Bold", 11)
         c.drawString(MARGEM_ESQ, y, f"CID-10: {rel.cid10}")
     _assinatura_rodape(c, data=rel.data, carimbo=rel.carimbo)
@@ -116,7 +153,8 @@ def gerar_relatorio_previdenciario_pdf(rel: RelatorioPrevidenciario,
     paginação e identificação do paciente em TODAS as páginas."""
     destino.parent.mkdir(parents=True, exist_ok=True)
     FONTE, TAM, ENTRE = "Helvetica", 10, 4.6 * mm
-    Y_TOPO, Y_FUNDO = ALTURA - 52 * mm, 60 * mm
+    # todas as páginas saem assinadas/carimbadas: o texto para em 90mm
+    Y_TOPO, Y_FUNDO = ALTURA - 52 * mm, 90 * mm
 
     # quebra parágrafos em linhas para paginar (2 passadas: contar, depois desenhar)
     linhas: list[str] = []
@@ -134,12 +172,6 @@ def gerar_relatorio_previdenciario_pdf(rel: RelatorioPrevidenciario,
 
     por_pagina = int((Y_TOPO - Y_FUNDO) / ENTRE)
     paginas = [linhas[i:i + por_pagina] for i in range(0, len(linhas), por_pagina)] or [[]]
-    # a última página precisa de folga extra para assinatura + carimbo (~95mm)
-    cabe_na_ultima = int((Y_TOPO - 95 * mm) / ENTRE)
-    if len(paginas[-1]) > cabe_na_ultima:
-        ultima = paginas.pop()
-        paginas.append(ultima[:cabe_na_ultima])
-        paginas.append(ultima[cabe_na_ultima:])
     total = len(paginas)
 
     c = Canvas(str(destino), pagesize=A4)
@@ -161,10 +193,10 @@ def gerar_relatorio_previdenciario_pdf(rel: RelatorioPrevidenciario,
                 c.setFont(FONTE, TAM)
                 c.drawString(MARGEM_ESQ, y, linha)
             y -= ENTRE
-        if num == total:
-            # 52mm: acima da barra rosa e do site do papel timbrado
-            _assinatura_rodape(c, y=52 * mm, data=rel.data, carimbo=rel.carimbo)
-        else:
+        # 52mm: acima da barra rosa e do site do papel timbrado.
+        # Assinatura + carimbo em TODAS as páginas (cada folha vale sozinha).
+        _assinatura_rodape(c, y=52 * mm, data=rel.data, carimbo=rel.carimbo)
+        if num != total:
             c.setFont("Helvetica-Oblique", 8)
             c.drawCentredString(LARGURA / 2, 30 * mm, "continua na próxima página")
         c.showPage()
@@ -215,13 +247,12 @@ def gerar_encaminhamento_pdf(enc: Encaminhamento, destino_pdf: Path) -> Path:
                           else enc.motivo)
         partes.append("Agradeço a atenção e coloco-me à disposição para "
                       "esclarecimentos.")
-        y = _texto_paginado(c, "\n\n".join(partes), y)
+        continuar = _continuador(enc.titulo, enc.paciente, enc.data, enc.carimbo)
+        y = _texto_paginado(c, "\n\n".join(partes), y, continuacao=continuar)
         if enc.cid10:
             y -= 2 * mm
-            if y < 95 * mm:
-                c.showPage()
-                _fundo_timbrado(c)
-                y = ALTURA - 45 * mm
+            if y < 90 * mm:
+                y = continuar(c)
             c.setFont("Helvetica-Bold", 11)
             c.drawString(MARGEM_ESQ, y, f"CID-10: {enc.cid10}")
         _assinatura_rodape(c, data=enc.data, carimbo=enc.carimbo)
@@ -248,13 +279,13 @@ def gerar_atestado_pdf(at: Atestado, destino: Path) -> Path:
     c.setFont("Helvetica-Bold", 14)
     c.drawCentredString(LARGURA / 2, y, at.titulo)
     y -= 16 * mm
-    y = _texto_paginado(c, at.texto, y, tamanho=12, entrelinha=7 * mm)
+    continuar = _continuador(at.titulo, at.paciente, at.data, at.carimbo)
+    y = _texto_paginado(c, at.texto, y, tamanho=12, entrelinha=7 * mm,
+                        continuacao=continuar)
     if at.cid10:
         y -= 4 * mm
-        if y < 95 * mm:
-            c.showPage()
-            _fundo_timbrado(c)
-            y = ALTURA - 45 * mm
+        if y < 90 * mm:
+            y = continuar(c)
         c.setFont("Helvetica-Bold", 12)
         c.drawString(MARGEM_ESQ, y, f"CID-10: {at.cid10}")
     _assinatura_rodape(c, data=at.data, carimbo=at.carimbo)
@@ -284,6 +315,8 @@ def gerar_pedido_exames_pdf(pedido: PedidoExames, destino: Path) -> Path:
     destino.parent.mkdir(parents=True, exist_ok=True)
     c = Canvas(str(destino), pagesize=A4)
     for data in (pedido.datas or [""]):
+        continuar = _continuador("SOLICITAÇÃO DE EXAMES", pedido.paciente,
+                                 data, pedido.carimbo)
         _fundo_timbrado(c)
         y = ALTURA - 45 * mm
         c.setFont("Helvetica-Bold", 14)
@@ -306,13 +339,12 @@ def gerar_pedido_exames_pdf(pedido: PedidoExames, destino: Path) -> Path:
             rotulo = exame.nome + (f"  —  {exame.material}" if exame.material else "")
             y = _paragrafo(c, rotulo, MARGEM_ESQ + 7 * mm, y, LARGURA_UTIL - 7 * mm,
                            tamanho=11, entrelinha=4.8 * mm) - 2 * mm
-            if y < 95 * mm:
-                _assinatura_rodape(c, data=data, carimbo=pedido.carimbo)
-                c.showPage()
-                _fundo_timbrado(c)
-                y = ALTURA - 45 * mm
+            if y < 90 * mm:
+                y = continuar(c)   # página assinada + cabeçalho identificado
         if pedido.observacao:
             y -= 2 * mm
+            if y < 100 * mm:
+                y = continuar(c)
             y = _paragrafo(c, f"Obs.: {pedido.observacao}", MARGEM_ESQ, y,
                            LARGURA_UTIL, tamanho=10)
         _assinatura_rodape(c, data=data, carimbo=pedido.carimbo)
