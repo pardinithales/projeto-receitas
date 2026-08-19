@@ -40,6 +40,54 @@ def test_encaminhamento_uma_pagina_por_especialidade(cliente):
         assert len(pdf.pages) == 3            # 1 folha por especialidade
 
 
+def test_encaminhamento_carta_sem_especialidade(cliente):
+    """Cartinha de volta à origem (UPA/UBS): sem especialidade, só destinatário."""
+    pid = _novo_paciente(cliente, "Ugo Exemplo Cartinha")
+    r = cliente.post(f"/pacientes/{pid}/encaminhamento", data={
+        "destino": "outro", "destino_outro": "UPA Central — equipe de origem",
+        "titulo": "RESPOSTA — CONTRARREFERÊNCIA",
+        "motivo": "Paciente avaliado nesta data; sem indicação cirúrgica no momento.",
+        "com_data": "com",
+    }, follow_redirects=False)
+    assert r.status_code == 303
+    r = cliente.get(r.headers["location"])
+    assert r.content[:5] == b"%PDF-"
+    with pikepdf.open(io.BytesIO(r.content)) as pdf:
+        assert len(pdf.pages) == 1
+
+
+def test_encaminhamento_sem_destino_nem_especialidade_nao_gera(cliente):
+    pid = _novo_paciente(cliente, "Zoe Exemplo Vazia")
+    r = cliente.post(f"/pacientes/{pid}/encaminhamento", data={
+        "destino": "", "motivo": "x", "com_data": "com"}, follow_redirects=False)
+    assert r.headers["location"].endswith("/encaminhamento")   # volta ao form
+
+
+def test_encaminhamento_texto_longo_pagina_sem_sobrepor(cliente):
+    pid = _novo_paciente(cliente, "Vera Exemplo Longa")
+    motivo = "\n\n".join(f"Tópico {i}: " + "história clínica extensa do caso. " * 10
+                         for i in range(25))
+    r = cliente.post(f"/pacientes/{pid}/encaminhamento", data={
+        "destino": "", "esp": ["Neurocirurgia"], "motivo": motivo,
+        "cid10": "G40.1", "com_data": "com",
+    }, follow_redirects=False)
+    r = cliente.get(r.headers["location"])
+    with pikepdf.open(io.BytesIO(r.content)) as pdf:
+        assert len(pdf.pages) >= 2                # texto longo pagina
+
+
+def test_relatorio_texto_longo_pagina(cliente):
+    pid = _novo_paciente(cliente, "Walter Exemplo Extenso")
+    texto = "\n".join("Evolução clínica detalhada do período. " * 8
+                      for _ in range(60))
+    r = cliente.post(f"/pacientes/{pid}/relatorio", data={
+        "titulo": "RELATÓRIO MÉDICO", "texto": texto, "com_data": "com",
+    }, follow_redirects=False)
+    r = cliente.get(r.headers["location"])
+    with pikepdf.open(io.BytesIO(r.content)) as pdf:
+        assert len(pdf.pages) >= 2
+
+
 def test_encaminhamento_regenera_apos_limpeza(cliente):
     pid = _novo_paciente(cliente, "Rui Exemplo Regenera")
     r = cliente.post(f"/pacientes/{pid}/encaminhamento", data={

@@ -1000,15 +1000,18 @@ async def emitir_encaminhamento(request: Request, pid: int):
     especialidades = [e.strip() for e in form.getlist("esp") if e.strip()]
     if (form.get("esp_outra") or "").strip():
         especialidades.append(form.get("esp_outra").strip())
-    if not especialidades:
-        return RedirectResponse(f"/pacientes/{pid}/encaminhamento", status_code=303)
     autorizado = carimbo_autorizado(dict(form))
     if autorizado is False:
         return ERRO_SENHA
     destino = form.get("destino") or ""
     if destino == "outro":
         destino = (form.get("destino_outro") or "").strip()
+    # sem especialidade vale (carta única ao destinatário, ex.: resposta à UPA),
+    # mas precisa haver ao menos um "Para"
+    if not especialidades and not destino:
+        return RedirectResponse(f"/pacientes/{pid}/encaminhamento", status_code=303)
     payload = {"especialidades": especialidades, "destino": destino,
+               "titulo": form.get("titulo") or "ENCAMINHAMENTO MÉDICO",
                "motivo": form.get("motivo") or "",
                "cid10": (form.get("cid10") or "").upper(),
                "com_data": form.get("com_data", "com"),
@@ -1303,6 +1306,7 @@ def _regenerar_pdf(con, doc_id: int) -> str:
             paciente=paciente["nome"],
             especialidades=payload.get("especialidades", []),
             destino=payload.get("destino", ""),
+            titulo=payload.get("titulo", "ENCAMINHAMENTO MÉDICO"),
             motivo=payload.get("motivo", ""),
             cid10=payload.get("cid10", ""),
             data=emissao.strftime("%d/%m/%Y")

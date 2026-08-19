@@ -5,6 +5,14 @@
   <h1>Encaminhamento — {{ paciente.nome }}</h1>
   <form method="post" action="/pacientes/{{ paciente.id }}/encaminhamento">
 
+    <label>Tipo de documento (é o título do PDF)</label>
+    <div class="radio-grupo">
+      <label><input type="radio" name="titulo" value="ENCAMINHAMENTO MÉDICO" checked>
+        <span>Encaminhamento</span></label>
+      <label><input type="radio" name="titulo" value="RESPOSTA — CONTRARREFERÊNCIA">
+        <span>Resposta à origem (cartinha p/ UPA, UBS…)</span></label>
+    </div>
+
     <label>Destinatário (o "Para:" do cabeçalho)</label>
     <div class="radio-grupo">
       <label><input type="radio" name="destino" value="" checked>
@@ -15,10 +23,11 @@
         <span>Outro:</span></label>
     </div>
     <input type="text" name="destino_outro"
-           placeholder="ex.: AME Barretos / Serviço de Reabilitação"
+           placeholder="ex.: UPA de origem / AME Barretos / Serviço de Reabilitação"
            oninput="document.getElementById('destino-outro-radio').checked = true">
 
-    <label>Especialidades solicitadas (sai 1 folha por especialidade)</label>
+    <label>Especialidades solicitadas — sai 1 via por especialidade
+      (opcional: sem nenhuma, sai carta única ao destinatário acima)</label>
     <div class="chips">
       {% for e in especialidades %}
       <label class="chip" style="display:inline-flex;align-items:center;gap:6px">
@@ -28,7 +37,7 @@
     <label>Outra especialidade (digite livre)</label>
     <input type="text" name="esp_outra" placeholder="ex.: Endocrinologia">
 
-    <label>Motivo / resumo clínico (sai no encaminhamento)</label>
+    <label>Motivo / resumo clínico (sai no documento; texto longo pagina sozinho)</label>
     <textarea name="motivo" rows="4"
       placeholder="ex.: paciente com doença de Alzheimer, para reabilitação cognitiva e orientação familiar">{{ diagnostico or '' }}</textarea>
 
