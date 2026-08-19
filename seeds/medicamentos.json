@@ -1398,6 +1398,16 @@
       "lme": false,
       "apresentacoes": [
         {
+          "dose": "37,5mg",
+          "forma": "cápsula de liberação prolongada",
+          "posologias": [
+            {
+              "texto": "Tomar 1 cápsula pela manhã",
+              "qtd_30dias": "30 cápsulas"
+            }
+          ]
+        },
+        {
           "dose": "75mg",
           "forma": "cápsula de liberação prolongada",
           "posologias": [
@@ -1494,6 +1504,7 @@
       "grupo": "antidepressivo tricíclico",
       "classificacao_receita": "C1",
       "disponibilidade": [
+        "remume",
         "comercial"
       ],
       "lme": false,
@@ -2150,6 +2161,175 @@
             {
               "texto": "Tomar 1 comprimido imediatamente antes de deitar",
               "qtd_30dias": "30 comprimidos"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "principio_ativo": "Melatonina",
+      "grupo": "regulador do sono",
+      "classificacao_receita": "comum",
+      "disponibilidade": [
+        "comercial"
+      ],
+      "lme": false,
+      "obs": "venda livre; gotas = Melatonum Max; doses maiores só manipuladas",
+      "apresentacoes": [
+        {
+          "dose": "gotas",
+          "forma": "solução oral (Melatonum Max)",
+          "posologias": [
+            {
+              "texto": "Tomar as gotas 30 minutos antes de deitar, conforme orientação",
+              "qtd_30dias": "1 frasco"
+            }
+          ]
+        },
+        {
+          "dose": "3mg",
+          "forma": "comprimido manipulado",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido 30 minutos antes de deitar",
+              "qtd_30dias": "30 comprimidos"
+            }
+          ]
+        },
+        {
+          "dose": "5mg",
+          "forma": "comprimido manipulado",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido 30 minutos antes de deitar",
+              "qtd_30dias": "30 comprimidos"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "principio_ativo": "Clorpromazina",
+      "grupo": "antipsicótico típico",
+      "classificacao_receita": "C1",
+      "disponibilidade": [
+        "remume"
+      ],
+      "lme": false,
+      "obs": "solução oral 40mg/mL: 1 gota = 1mg",
+      "apresentacoes": [
+        {
+          "dose": "25mg",
+          "forma": "comprimido",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido à noite",
+              "qtd_30dias": "30 comprimidos"
+            }
+          ]
+        },
+        {
+          "dose": "100mg",
+          "forma": "comprimido",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido à noite",
+              "qtd_30dias": "30 comprimidos"
+            }
+          ]
+        },
+        {
+          "dose": "40mg/mL",
+          "forma": "solução oral (gotas)",
+          "posologias": [
+            {
+              "texto": "Tomar as gotas à noite, conforme orientação (1 gota = 1mg)",
+              "qtd_30dias": "1 frasco"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "principio_ativo": "Indometacina",
+      "grupo": "AINE / hemicrania contínua e paroxística",
+      "classificacao_receita": "comum",
+      "disponibilidade": [
+        "comercial"
+      ],
+      "lme": false,
+      "obs": "tomar após as refeições; considerar proteção gástrica (omeprazol)",
+      "apresentacoes": [
+        {
+          "dose": "25mg",
+          "forma": "cápsula",
+          "posologias": [
+            {
+              "texto": "Tomar 1 cápsula de 8 em 8 horas, após as refeições",
+              "qtd_30dias": "90 cápsulas"
+            }
+          ]
+        },
+        {
+          "dose": "50mg",
+          "forma": "cápsula",
+          "posologias": [
+            {
+              "texto": "Tomar 1 cápsula de 8 em 8 horas, após as refeições",
+              "qtd_30dias": "90 cápsulas"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "principio_ativo": "Metilprednisolona",
+      "grupo": "corticoide EV (pulsoterapia)",
+      "classificacao_receita": "comum",
+      "disponibilidade": [
+        "comercial"
+      ],
+      "lme": false,
+      "obs": "pulsoterapia: aplicar EV em ambiente com supervisão (BIC)",
+      "apresentacoes": [
+        {
+          "dose": "500mg",
+          "forma": "frasco-ampola EV",
+          "posologias": [
+            {
+              "texto": "Aplicar 1g EV (2 frascos), diluído em SF 0,9% 250mL, em BIC, 1 vez ao dia, por 3 a 5 dias",
+              "qtd_30dias": "10 frascos"
+            }
+          ]
+        },
+        {
+          "dose": "125mg",
+          "forma": "frasco-ampola EV",
+          "posologias": [
+            {
+              "texto": "Aplicar EV conforme prescrição",
+              "qtd_30dias": "5 frascos"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "principio_ativo": "Omeprazol",
+      "grupo": "proteção gástrica",
+      "classificacao_receita": "comum",
+      "disponibilidade": [
+        "remume"
+      ],
+      "lme": false,
+      "apresentacoes": [
+        {
+          "dose": "20mg",
+          "forma": "cápsula",
+          "posologias": [
+            {
+              "texto": "Tomar 1 cápsula em jejum, 30 minutos antes do café da manhã",
+              "qtd_30dias": "30 cápsulas"
             }
           ]
         }

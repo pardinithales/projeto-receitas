@@ -141,8 +141,11 @@ def sincronizar_seed_medicamentos(con: sqlite3.Connection) -> None:
         cids_json = json.dumps(med.get("cids", []), ensure_ascii=False)
         if row:
             med_id = row["id"]
-            con.execute("UPDATE medicamentos SET obs = ?, cids = ? WHERE id = ?",
-                        (med.get("obs"), cids_json, med_id))
+            con.execute("UPDATE medicamentos SET grupo = ?, classificacao_receita = ?, "
+                        "disponibilidade = ?, lme = ?, obs = ?, cids = ? WHERE id = ?",
+                        (med.get("grupo"), med.get("classificacao_receita", "C1"),
+                         json.dumps(med.get("disponibilidade", []), ensure_ascii=False),
+                         1 if med.get("lme") else 0, med.get("obs"), cids_json, med_id))
         else:
             med_id = con.execute(
                 "INSERT INTO medicamentos "
