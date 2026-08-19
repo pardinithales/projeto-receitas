@@ -2315,6 +2315,66 @@
       ]
     },
     {
+      "principio_ativo": "Vitamina B12",
+      "grupo": "reposição vitamínica (cianocobalamina)",
+      "classificacao_receita": "comum",
+      "disponibilidade": [
+        "comercial"
+      ],
+      "lme": false,
+      "obs": "IM 5000mcg (isolada ou em complexo B, ex.: Citoneurin); sublingual 1000-5000mcg para manutenção",
+      "apresentacoes": [
+        {
+          "dose": "5000mcg",
+          "forma": "ampola IM",
+          "posologias": [
+            {
+              "texto": "Aplicar 1 ampola IM por dia durante 1 semana;\nApós, 1 ampola IM por semana durante 4 semanas;\nApós, 1 ampola IM por mês, até completar 6 meses.",
+              "qtd_30dias": "11 ampolas"
+            },
+            {
+              "texto": "Aplicar 1 ampola IM por semana durante 4 semanas; após, 1 ampola por mês",
+              "qtd_30dias": "5 ampolas"
+            },
+            {
+              "texto": "Aplicar 1 ampola IM por mês",
+              "qtd_30dias": "1 ampola"
+            }
+          ]
+        },
+        {
+          "dose": "1000mcg",
+          "forma": "ampola IM",
+          "posologias": [
+            {
+              "texto": "Aplicar 1 ampola IM por semana durante 4 semanas; após, 1 ampola por mês",
+              "qtd_30dias": "5 ampolas"
+            }
+          ]
+        },
+        {
+          "dose": "1000mcg",
+          "forma": "comprimido sublingual",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido por dia, deixando dissolver embaixo da língua",
+              "qtd_30dias": "30 comprimidos"
+            }
+          ]
+        },
+        {
+          "dose": "5000mcg",
+          "forma": "comprimido sublingual",
+          "posologias": [
+            {
+              "texto": "Tomar 1 comprimido por dia, deixando dissolver embaixo da língua",
+              "qtd_30dias": "30 comprimidos"
+            }
+          ]
+        }
+      ]
+    },
+    {
       "principio_ativo": "Omeprazol",
       "grupo": "proteção gástrica",
       "classificacao_receita": "comum",
