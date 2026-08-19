@@ -246,6 +246,20 @@ function mostrarAvisos(med) {
     if (partes.length)
       div.innerHTML += `<div class="aviso"><b>${m.principio_ativo}:</b> ${partes.join(' · ')}</div>`;
   });
+  // Receita do POSTO: juntar TODAS as meds da REMUME numa mesma receita
+  const remume = [], fora = [];
+  document.querySelectorAll('.item-med .busca-med').forEach(inp => {
+    const m = medPorNome(inp.value);
+    if (!m) return;
+    ((m.disponibilidade || []).includes('remume') ? remume : fora).push(m.principio_ativo);
+  });
+  if (remume.length)
+    div.innerHTML += `<div class="aviso">🏥 <b>Receita do POSTO:</b> ${remume.join(', ')} ` +
+      `${remume.length > 1 ? 'têm' : 'tem'} na farmácia municipal (REMUME). Junte TODAS as ` +
+      `medicações do posto do paciente numa MESMA receita (ex.: nortriptilina, amitriptilina, ` +
+      `omeprazol, carbamazepina, valproato…)` +
+      (fora.length ? ` — e deixe ${fora.join(', ')} em receita separada (não tem no posto)` : '') +
+      `.</div>`;
 }
 
 function iniciar() {
