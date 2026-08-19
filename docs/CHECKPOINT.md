@@ -1,6 +1,34 @@
-# CHECKPOINT — estado do projeto (atualizado em 18/08/2026, fim do dia)
+# CHECKPOINT — estado do projeto (atualizado em 19/08/2026)
 
-Leia junto com `AGENTS.md`. 33 testes passando.
+Leia junto com `AGENTS.md`. 34 testes passando. Git limpo e pushado (commit 92b1783).
+
+## Rodada de 19/08/2026 (feedbacks do uso real, todos implementados)
+
+- **Kit LME = 1 PDF único** (tipo `kit_lme`): LME + N receitas + termo + relatório
+  concatenados; gera e abre direto para imprimir 1 vez; regenerável do banco.
+- **Receitas da farmácia: 1/6/12** (radio no LME; cada receita = 2 vias/folhas;
+  padrão 6 → 12 folhas).
+- **Termo da demência COMPLETO**: checkbox do fármaco, escolaridade, FOLHA DO MEEM
+  embutida preenchida por domínios (distribuição típica de DA a partir do total —
+  `_distribuir_meem` em app/services/termos.py; soma sempre confere; conferir antes
+  de assinar), CDR, Local/Data e carimbo nas 3 páginas. Outros termos copiados
+  ganham carimbo por âncora "Assinatura" (dinâmico via pdfplumber).
+- **Posologia recalcula quantidade** (app/static/posologia.js, parser pt-BR:
+  "3 cp à noite"→90, "2-0-2"→120, "8/8h"→90, "5 x ao dia", "1 + ½"; recusa
+  mL/gotas/adesivos): alimenta os 6 meses do LME e o texto da receita. Qtd manual
+  também recalcula o texto. Bidirecional nas duas telas.
+- **Medicação e apresentação 100% digitáveis**: apresentação virou input+datalist
+  (escolhe do catálogo ou digita livre); medicação livre explícita no placeholder.
+- **CID**: chips por MEDICAMENTO (campo `cids` no seed/DB, 37 fármacos) com
+  descrição; clicar no chip sempre atualiza o nome do diagnóstico; indicação única
+  auto (G40.1 / G30.1 tardio), múltipla pergunta (gaba, azatioprina, IVIG, toxina);
+  equivalências F00=G30, G51=G24, G82=G81.
+- **Escalas nos dados da IA**: MEEM/CDR/escolaridade/EDSS/LANSS/EVA visíveis entram
+  na anamnese/relatório gerados por IA.
+- **Imprimir selecionados** (checkboxes do histórico) além do kit de hoje.
+- IA: nome do paciente NUNCA vai à API; fecho INSS máximo "retorno programado, sem
+  alta até o momento"; anamnese com roteiro obrigatório por doença (funciona com
+  poucas palavras, sem inventar números).
 
 ## Ajustes finos após teste ao vivo (últimos commits do dia)
 
@@ -57,14 +85,15 @@ Leia junto com `AGENTS.md`. 33 testes passando.
 
 ## Próximos passos sugeridos
 
-1. Validar na prática o kit LME impresso (usuário estava testando; reiniciar o .bat
-   carrega as correções do med1/dropdowns/carimbo).
-2. TERs restantes preenchíveis (hoje só epilepsia é preenchido; os outros são copiados).
-3. Escalas como folhas preenchidas (MEEM/CDR/EDSS/LANSS impressos com respostas
-   marcadas) — fonte: pasta "Escalas e ferramentas uteis" (protocolo USP) e
-   ESCALA_evas_lanss (LANSS 21, EVA 8 padrão).
-4. Formulários estaduais MG/GO (flat PDFs — precisam overlay ou recriação).
-5. Baixar fichas SES-SP dos demais fármacos (demência, EM, toxina, pramipexol...).
+1. TERs restantes preenchíveis por campo (miastenia/IVIG/botox/gaba-dor hoje são
+   copiados com carimbo por âncora; epilepsia e demência já saem completos).
+2. Folha EVA/LANSS preenchida (kit de gabapentina-dor): modelo em TERMOS DE
+   CONSENTIMENTO/ESCALA_evas_lanss (flat, precisa overlay; padrão LANSS 21, EVA 8).
+   Folha EDSS preenchida para EM.
+3. Formulários estaduais MG/GO (flat PDFs — overlay ou recriação).
+4. Baixar fichas SES-SP dos demais fármacos (demência, EM, toxina, pramipexol...).
+5. Se o carimbo do termo de demência sair deslocado na prática, ajustar as
+   coordenadas em _preencher_termo_demencia (pg2: 230,598 / pg3: 200,78 / pg5: 200,140).
 
 ## Avisos
 
