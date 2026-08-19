@@ -29,8 +29,10 @@
     </div>
 
     <h2>Medicamentos do LME (até 6)</h2>
-    <p style="color:#5a6b7a;font-size:14px;margin:2px 0 6px">Quantidade mensal repetida
-      nos 6 meses. A 1ª linha sai como texto; as demais casam com a lista oficial do CEAF.</p>
+    <p style="color:#5a6b7a;font-size:14px;margin:2px 0 6px">Quantidade mensal: 1 valor
+      repete nos 6 meses; para titulação digite vários separados por espaço
+      (ex.: <b>30 60 60</b> — o último repete até o 6º mês e é o que vai na receita).
+      A 1ª linha sai como texto; as demais casam com a lista oficial do CEAF.</p>
     <div id="meds"></div>
     <p><button type="button" class="botao secundario" onclick="novaLinhaMed()">+ Adicionar medicamento</button></p>
 
@@ -168,8 +170,8 @@
       <div><label>Apresentação (escolha ou digite)</label>
         <input type="text" class="med-apr" placeholder="ex.: 250mg - comprimido">
         <datalist class="apr-datalist"></datalist></div>
-      <div style="max-width:130px"><label>Qtd mensal</label>
-        <input type="text" class="med-qtd" placeholder="auto"></div>
+      <div style="max-width:160px"><label>Qtd mensal (1 ou 6 valores)</label>
+        <input type="text" class="med-qtd" placeholder="auto · ex.: 30 60 60"></div>
     </div>
     <label>Posologia (vai para a receita do kit — clique numa sugestão ou edite;
       Enter quebra linha, ex.: titulação)</label>
@@ -243,10 +245,11 @@ function novaLinhaMed() {
       ? 'comprimidos' : texto.includes('frasco') ? 'frascos' : texto.includes('adesivo')
       ? 'adesivos' : texto.includes('seringa') ? 'seringas' : 'unidades';
   }
-  // quantidade digitada À MÃO recalcula o texto que vai para a receita
+  // quantidade digitada À MÃO recalcula o texto que vai para a receita.
+  // Com titulação ("30 60 60"), a receita usa o ÚLTIMO valor (mês de manutenção).
   qtd.addEventListener('input', () => {
-    pos.dataset.qtdTexto = qtd.value.trim()
-      ? `${qtd.value.trim()} ${unidadeDaApresentacao()}` : '';
+    const ultimo = qtd.value.trim().split(/[\s;,/]+/).filter(Boolean).pop() || '';
+    pos.dataset.qtdTexto = ultimo ? `${ultimo} ${unidadeDaApresentacao()}` : '';
   });
   // POSOLOGIA editada à mão recalcula a QTD MENSAL (alimenta os 6 meses do
   // LME e a receita): "Tomar 3 cp à noite" -> 90; "2-0-2" -> 120; "8/8h" -> 90

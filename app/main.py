@@ -1,5 +1,6 @@
 """App web local do sistema de receitas. Rodar: uvicorn app.main:app --reload"""
 import json
+import re
 from datetime import date, datetime, timedelta
 from pathlib import Path
 
@@ -404,6 +405,13 @@ CAMPOS_LME_PACIENTE = {"nome_mae": "nome da mãe", "peso_kg": "peso",
                        "altura_cm": "altura"}
 
 
+def _qtds_meses(qtd) -> list[str]:
+    """Titulação no LME: '30' -> ['30']; '30 60 60' -> um valor por mês
+    (o preenchimento do LME repete o último até o 6º mês)."""
+    partes = [p for p in re.split(r"[;,\s/]+", str(qtd or "").strip()) if p]
+    return partes or [""]
+
+
 def _posologia_do_catalogo(con, descricao: str, qtd_mensal: str) -> tuple[str, str]:
     """Melhor posologia do catálogo para a receita do kit LME (fallback)."""
     principio = descricao.split()[0]
@@ -551,7 +559,7 @@ async def emitir_lme(request: Request, pid: int):
             nome_mae=(paciente.get("nome_mae") or "").upper(),
             peso_kg=str(paciente.get("peso_kg") or ""),
             altura_cm=str(paciente.get("altura_cm") or ""),
-            medicamentos=[MedicamentoLME(m["descricao"], [m["qtd_mensal"]] * 6)
+            medicamentos=[MedicamentoLME(m["descricao"], _qtds_meses(m["qtd_mensal"]))
                           for m in meds_raw],
             cid10=(form.get("cid10") or "").upper(),
             diagnostico=form.get("diagnostico") or "",
@@ -596,7 +604,9 @@ async def emitir_lme(request: Request, pid: int):
                         con, m["descricao"], m.get("qtd_mensal", ""))
                 itens_receita.append({
                     "medicamento": m["descricao"],
-                    "quantidade": qtd_pos or f"{m.get('qtd_mensal', '')} unidades/mês",
+                    # titulação: a receita sai com a quantidade do último mês (a maior)
+                    "quantidade": qtd_pos
+                    or f"{_qtds_meses(m.get('qtd_mensal'))[-1]} unidades/mês",
                     "posologia": texto_pos})
             payload_rec = {"tipo": "controle_especial", "via_administracao": "USO ORAL",
                            "com_data": form.get("com_data", "sem"),
@@ -1098,7 +1108,7 @@ def _regenerar_pdf(con, doc_id: int) -> str:
             nome_mae=(paciente["nome_mae"] or "").upper(),
             peso_kg=str(paciente["peso_kg"] or ""),
             altura_cm=str(paciente["altura_cm"] or ""),
-            medicamentos=[MedicamentoLME(m["descricao"], [m["qtd_mensal"]] * 6)
+            medicamentos=[MedicamentoLME(m["descricao"], _qtds_meses(m["qtd_mensal"]))
                           for m in payload.get("meds", [])],
             cid10=payload.get("cid10", ""),
             diagnostico=lme_d.get("diagnostico") or "",
