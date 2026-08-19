@@ -162,9 +162,12 @@
 <template id="tpl-med">
   <div class="item-med">
     <div class="linha">
-      <div style="flex:2"><label>Medicamento (alto custo)</label>
-        <input type="text" class="med-busca" list="lista-meds-lme" placeholder="Digite para buscar…"></div>
-      <div><label>Apresentação</label><select class="med-apr"></select></div>
+      <div style="flex:2"><label>Medicamento (do catálogo ou digitado livre)</label>
+        <input type="text" class="med-busca" list="lista-meds-lme"
+               placeholder="Digite para buscar — pode ser qualquer medicação"></div>
+      <div><label>Apresentação (escolha ou digite)</label>
+        <input type="text" class="med-apr" placeholder="ex.: 250mg - comprimido">
+        <datalist class="apr-datalist"></datalist></div>
       <div style="max-width:130px"><label>Qtd mensal</label>
         <input type="text" class="med-qtd" placeholder="auto"></div>
     </div>
@@ -186,12 +189,19 @@ fetch('/api/catalogo').then(r => r.json()).then(c => {
   novaLinhaMed();
 });
 function medNome(n){ return CAT.find(m => m.principio_ativo.toLowerCase() === n.trim().toLowerCase()); }
+let contadorDlLme = 0;
 function novaLinhaMed() {
   const el = document.getElementById('tpl-med').content.cloneNode(true).firstElementChild;
   document.getElementById('meds').appendChild(el);
   const busca = el.querySelector('.med-busca'), apr = el.querySelector('.med-apr'),
         qtd = el.querySelector('.med-qtd'), pos = el.querySelector('.med-pos'),
-        chips = el.querySelector('.med-chips');
+        chips = el.querySelector('.med-chips'), dl = el.querySelector('.apr-datalist');
+  dl.id = 'apr-dl-lme-' + (++contadorDlLme);
+  apr.setAttribute('list', dl.id);
+  function aprAtual() {
+    const m = medNome(busca.value);
+    return m && m.apresentacoes.find(a => `${a.dose} - ${a.forma}` === apr.value.trim());
+  }
   function aplicarPosologia(p, chip) {
     pos.value = p.texto;
     pos.dataset.qtdTexto = p.qtd_30dias || '';
@@ -200,11 +210,9 @@ function novaLinhaMed() {
     if (chip) chip.classList.add('ativa');
   }
   function atualizarPosologias() {
-    const m = medNome(busca.value);
     chips.innerHTML = '';
-    if (!m) return;
-    const a = m.apresentacoes[apr.selectedIndex];
-    if (!a) return;
+    const a = aprAtual();
+    if (!a) return;    // apresentação digitada livre: posologia/qtd manuais
     a.posologias.forEach((p, i) => {
       const b = document.createElement('button');
       b.type = 'button'; b.className = 'chip'; b.textContent = p.texto;
@@ -215,25 +223,24 @@ function novaLinhaMed() {
   }
   busca.addEventListener('change', () => {
     const m = medNome(busca.value);
-    apr.innerHTML = '';
-    if (!m) return;
-    m.apresentacoes.forEach(a => {
-      const o = document.createElement('option');
-      o.value = o.textContent = `${a.dose} - ${a.forma}`;
-      apr.appendChild(o);
-    });
+    dl.innerHTML = '';
+    if (m) {
+      m.apresentacoes.forEach((a, i) => {
+        const o = document.createElement('option');
+        o.value = `${a.dose} - ${a.forma}`;
+        dl.appendChild(o);
+        if (i === 0) apr.value = o.value;
+      });
+    }
     atualizarPosologias();
     sugerirCid();   // ao clicar na med: CID padrão + descrição + pista do PCDT
   });
   apr.addEventListener('change', atualizarPosologias);
   function unidadeDaApresentacao() {
-    const m = medNome(busca.value);
-    const a = m && m.apresentacoes[apr.selectedIndex];
-    if (!a) return 'unidades';
-    const f = a.forma.toLowerCase();
-    return f.includes('cápsula') ? 'cápsulas' : f.includes('comprimido')
-      ? 'comprimidos' : f.includes('frasco') ? 'frascos' : f.includes('adesivo')
-      ? 'adesivos' : f.includes('seringa') ? 'seringas' : 'unidades';
+    const texto = ((aprAtual() || {}).forma || apr.value || '').toLowerCase();
+    return texto.includes('cápsula') ? 'cápsulas' : texto.includes('comprimido')
+      ? 'comprimidos' : texto.includes('frasco') ? 'frascos' : texto.includes('adesivo')
+      ? 'adesivos' : texto.includes('seringa') ? 'seringas' : 'unidades';
   }
   // quantidade digitada À MÃO recalcula o texto que vai para a receita
   qtd.addEventListener('input', () => {

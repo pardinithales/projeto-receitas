@@ -71,12 +71,14 @@
   <div class="item-med">
     <div class="linha">
       <div style="flex:2">
-        <label>Medicamento</label>
-        <input type="text" class="busca-med" list="lista-meds" placeholder="Digite para buscar…">
+        <label>Medicamento (do catálogo ou digitado livre)</label>
+        <input type="text" class="busca-med" list="lista-meds"
+               placeholder="Digite para buscar — pode ser qualquer medicação">
       </div>
       <div>
-        <label>Apresentação</label>
-        <select class="sel-apr"></select>
+        <label>Apresentação (escolha ou digite)</label>
+        <input type="text" class="sel-apr" placeholder="ex.: 50mg - comprimido">
+        <datalist class="apr-datalist"></datalist>
       </div>
       <div style="max-width:170px">
         <label>Quantidade</label>
@@ -143,33 +145,41 @@ function medPorNome(nome) {
   return CATALOGO.find(m => m.principio_ativo.toLowerCase() === nome.trim().toLowerCase());
 }
 
+let contadorDl = 0;
 function novaLinha(dados) {
   const el = document.getElementById('tpl-item').content.cloneNode(true).firstElementChild;
   document.getElementById('itens').appendChild(el);
   const busca = el.querySelector('.busca-med');
   const selApr = el.querySelector('.sel-apr');
+  const dl = el.querySelector('.apr-datalist');
+  dl.id = 'apr-dl-' + (++contadorDl);
+  selApr.setAttribute('list', dl.id);
   const chips = el.querySelector('.chips');
   const qtd = el.querySelector('.qtd');
   const pos = el.querySelector('.posologia');
 
+  function aprAtual(med) {   // casa o texto digitado/escolhido com o catálogo
+    return med && med.apresentacoes.find(a => `${a.dose} - ${a.forma}` === selApr.value.trim());
+  }
   function atualizarApresentacoes() {
     const med = medPorNome(busca.value);
-    selApr.innerHTML = '';
+    dl.innerHTML = '';
     chips.innerHTML = '';
     mostrarAvisos(med);
     if (!med) return;
-    for (const a of med.apresentacoes) {
+    med.apresentacoes.forEach((a, i) => {
       const o = document.createElement('option');
-      o.value = o.textContent = `${a.dose} - ${a.forma}`;
-      selApr.appendChild(o);
-    }
+      o.value = `${a.dose} - ${a.forma}`;
+      dl.appendChild(o);
+      if (i === 0 && !dados) selApr.value = o.value;
+    });
     atualizarPosologias();
   }
   function atualizarPosologias() {
     const med = medPorNome(busca.value);
     chips.innerHTML = '';
     if (!med) return;
-    const apr = med.apresentacoes[selApr.selectedIndex];
+    const apr = aprAtual(med);
     if (!apr) return;
     apr.posologias.forEach((p, i) => {
       const b = document.createElement('button');
@@ -187,11 +197,9 @@ function novaLinha(dados) {
   pos.addEventListener('input', () => {
     const mensal = qtdMensalDaPosologia(pos.value);
     if (mensal == null) return;
-    const med = medNome(busca.value);
-    const a = med && med.apresentacoes[selApr.selectedIndex];
-    const f = a ? a.forma.toLowerCase() : '';
-    const unidade = f.includes('cápsula') ? 'cápsulas' : f.includes('comprimido')
-      ? 'comprimidos' : 'unidades';
+    const texto = (selApr.value || '').toLowerCase();
+    const unidade = texto.includes('cápsula') ? 'cápsulas'
+      : texto.includes('comprimido') ? 'comprimidos' : 'unidades';
     qtd.value = `${mensal} ${unidade}`;
   });
 
