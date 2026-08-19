@@ -31,6 +31,7 @@ class Receita:
     data: str = ""                    # "18/08/2026" (vazio = sai sem campo de data)
     vias: int = 1                     # nº de folhas (SEM data: controladas = 2/mês)
     carimbo: bool = False             # aplica carimbo digital sobre a linha de assinatura
+    uso_continuo: bool = False        # imprime USO CONTÍNUO (controlada passa a valer 2 meses)
 
 
 def _texto_quebrado(canvas: Canvas, texto: str, x: float, y: float, largura: float,
@@ -157,6 +158,8 @@ def gerar_receita_pdf(receita: Receita, destino: Path) -> Path:
         y -= 9 * mm
         c.setFont("Helvetica-Bold", 11)
         c.drawString(MARGEM_ESQ, y, receita.via_administracao)
+        if receita.uso_continuo:
+            c.drawRightString(LARGURA - MARGEM_DIR, y, "USO CONTÍNUO")
         y -= 8 * mm
 
         for item in receita.itens:

@@ -331,6 +331,7 @@ def form_receita(request: Request, pid: int, copiar_de: int | None = None):
 def emitir_receita(pid: int,
                    tipo: str = Form("controle_especial"),
                    via_administracao: str = Form("USO ORAL"),
+                   uso_continuo: str = Form(""),
                    com_data: str = Form("sem"),
                    acao: str = Form("gerar"),
                    vias: int = Form(1),
@@ -345,6 +346,7 @@ def emitir_receita(pid: int,
     if autorizado is False:
         return ERRO_SENHA
     payload = {"tipo": tipo, "via_administracao": via_administracao,
+               "uso_continuo": uso_continuo == "sim",
                "com_data": com_data, "vias": vias, "itens": itens_raw,
                "carimbo": bool(autorizado)}
     con = db.conectar()
@@ -386,6 +388,7 @@ def _gerar_pdf_receita(con, doc_id: int) -> str:
         data=data_txt,
         vias=int(payload.get("vias", 1)),
         carimbo=bool(payload.get("carimbo")),
+        uso_continuo=bool(payload.get("uso_continuo")),
     )
     nome_arq = f"{doc_id:05d}_receita_{datetime.now():%Y%m%d}.pdf"
     destino = config.SAIDA_DIR / f"paciente_{paciente['id']}" / nome_arq

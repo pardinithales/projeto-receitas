@@ -20,6 +20,13 @@
         </div>
       </div>
       <div>
+        <label>Uso contínuo</label>
+        <div class="radio-grupo">
+          <label><input type="checkbox" name="uso_continuo" value="sim" onchange="guiaFolhas()">
+            <span>USO CONTÍNUO (sai impresso na receita)</span></label>
+        </div>
+      </div>
+      <div>
         <label>Data</label>
         <div class="radio-grupo">
           <label><input type="radio" name="com_data" value="sem" checked
@@ -108,13 +115,20 @@ function toggleVias() {
 function guiaFolhas() {
   const controlada = document.querySelector('input[name=tipo]:checked').value === 'controle_especial';
   const semData = document.querySelector('input[name=com_data][value=sem]').checked;
+  const usoCont = document.querySelector('input[name=uso_continuo]').checked;
   const meses = parseInt(document.getElementById('meses-retorno').value);
   let folhas, texto;
   if (!semData) {
     folhas = controlada ? 2 : 1;
     texto = controlada
-      ? 'COM data: sai <b>2 folhas iguais</b> (1ª via fica retida na farmácia, 2ª via do paciente). Vale 30 dias.'
+      ? 'COM data: sai <b>2 folhas iguais</b> (1ª via fica retida na farmácia, 2ª via do paciente). ' +
+        (usoCont ? 'Com USO CONTÍNUO o psicotrópico vale <b>2 meses</b>.' : 'Vale 30 dias.')
       : 'COM data: sai <b>1 folha</b>. Receita comum de uso contínuo vale por 2 meses na UBS.';
+  } else if (controlada && usoCont) {
+    folhas = Math.ceil(meses / 2) * 2;
+    texto = `Receita CONTROLADA com USO CONTÍNUO vale 2 meses (a farmácia retém 1 via): ` +
+            `para ${meses} ${meses === 1 ? 'mês' : 'meses'} até o retorno saem <b>${folhas} folhas</b> ` +
+            `(2 iguais a cada 2 meses, sem data — o paciente data no mês da retirada).`;
   } else if (controlada) {
     folhas = meses * 2;
     texto = `Receita CONTROLADA vale 30 dias e a farmácia retém 1 via: para ${meses} ` +
@@ -240,6 +254,8 @@ function iniciar() {
     document.querySelector(`input[name=tipo][value=${p.tipo}]`).checked = true;
     if (p.via_administracao)
       document.querySelector('select[name=via_administracao]').value = p.via_administracao;
+    if (p.uso_continuo)
+      document.querySelector('input[name=uso_continuo]').checked = true;
     (p.itens || []).forEach(i => novaLinha(i));
   } else {
     novaLinha();
